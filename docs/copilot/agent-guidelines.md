@@ -17,10 +17,10 @@ Functional and non‑functional requirements are in `/docs/requirements`.
 
 ### 4. Use the Correct Tech Stack
 - SQLite for structured data
-- Local vector DB for embeddings
+- Local vector DB for embeddings (ChromaDB)
 - Small LLMs via Ollama
 - Electron/Tauri for frontend
-- Node/Python for backend worker
+- Python for backend worker
 
 ### 5. Keep Layers Separate
 - Capture = fast, no AI
@@ -36,3 +36,10 @@ Functional and non‑functional requirements are in `/docs/requirements`.
 
 ### 7. Ask for Clarification When Needed
 If requirements are ambiguous, request clarification before generating code.
+
+### 8. General Development Process
+- Development tasks are documented in GitHub Issues in the repository
+- Each issue must be developed in its own branch
+- Plans must be presented before commencing development
+- Branches must be resolved via pull request
+- NO commits directly to main
