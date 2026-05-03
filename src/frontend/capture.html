@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'" />
+  <title>Capture</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --neuro-blue:   #1C2A3A;
+      --cortex-teal:  #2AA6A1;
+      --insight-cyan: #5FD4E6;
+      --ink:          #0E0E0F;
+      --slate:        #3A3A3C;
+      --fog:          #D4D4D8;
+      --cloud:        #F5F5F7;
+      --white:        #FFFFFF;
+      --error-red:    #D9534F;
+      --radius:       6px;
+      --font:         'Inter', system-ui, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--ink);
+      /* Allow the frameless window to be dragged by the title bar area */
+      -webkit-app-region: drag;
+      user-select: none;
+    }
+
+    .popup {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      background: var(--white);
+      border: 1px solid var(--fog);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+
+    /* ── Title bar ── */
+    .titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px 6px;
+      background: var(--neuro-blue);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+    }
+
+    .titlebar__label {
+      opacity: 0.85;
+    }
+
+    .titlebar__hint {
+      opacity: 0.45;
+      font-size: 11px;
+    }
+
+    /* ── Body ── */
+    .body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding: 12px;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+      user-select: text;
+      overflow: hidden;
+    }
+
+    textarea, input {
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--cloud);
+      border: 1px solid var(--fog);
+      border-radius: var(--radius);
+      outline: none;
+      resize: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+
+    textarea:focus, input:focus {
+      border-color: var(--cortex-teal);
+    }
+
+    #content {
+      flex: 1;
+      padding: 8px 10px;
+      line-height: 1.5;
+      min-height: 0;
+    }
+
+    #tags {
+      height: 32px;
+      padding: 0 10px;
+      font-size: 13px;
+    }
+
+    #tags::placeholder, #content::placeholder {
+      color: var(--slate);
+      opacity: 0.55;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 12px 10px;
+      flex-shrink: 0;
+      -webkit-app-region: no-drag;
+    }
+
+    .footer__hint {
+      font-size: 11px;
+      color: var(--slate);
+      opacity: 0.55;
+    }
+
+    .btn-save {
+      padding: 6px 20px;
+      background: var(--cortex-teal);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-save:hover {
+      background: var(--insight-cyan);
+    }
+
+    .btn-save:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+
+    /* ── Error banner ── */
+    .error {
+      display: none;
+      font-size: 12px;
+      color: var(--error-red);
+      padding: 0 12px 6px;
+    }
+
+    .error.visible {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="popup">
+    <div class="titlebar">
+      <span class="titlebar__label">Neurologue — Capture</span>
+      <span class="titlebar__hint">Esc to cancel</span>
+    </div>
+
+    <div class="body">
+      <textarea
+        id="content"
+        placeholder="What are you thinking?"
+        spellcheck="true"
+        autofocus
+      ></textarea>
+      <input
+        id="tags"
+        type="text"
+        placeholder="Tags (comma-separated, optional)"
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+
+    <p class="error" id="error-msg"></p>
+
+    <div class="footer">
+      <span class="footer__hint">Ctrl+Enter to save</span>
+      <button class="btn-save" id="btn-save" disabled>Save</button>
+    </div>
+  </div>
+
+  <script src="capture.js"></script>
+</body>
+</html>
