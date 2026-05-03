@@ -15,5 +15,6 @@ contextBridge.exposeInMainWorld('neurologue', {
   listThemes: () => ipcRenderer.invoke('themes:list'),
   getTheme: (id) => ipcRenderer.invoke('themes:get', { id }),
   triggerClustering: () => ipcRenderer.invoke('themes:cluster'),
-});
+  // ── Export ───────────────────────────────────────────────────────────────
+  exportAll: (opts) => ipcRenderer.invoke('export:run', opts),});
 

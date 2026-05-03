@@ -13,6 +13,7 @@ const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable } = require('./worker/ollama');
 const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
+const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey } = require('./capture/hotkey');
 const { startWorker, stopWorker } = require('./worker/index');
 
@@ -115,7 +116,24 @@ ipcMain.handle('themes:get', async (_event, { id }) => {
 // Manually trigger clustering (for dev/debug)
 ipcMain.handle('themes:cluster', async () => {
   return runClustering();
-});;
+});
+
+// ── Export IPC ───────────────────────────────────────────────────────────────
+
+// Show native folder picker and run export to chosen directory
+ipcMain.handle('export:run', async (_event, { includeEmbeddings = true } = {}) => {
+  const { dialog } = require('electron');
+  const win = BrowserWindow.getFocusedWindow();
+  const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+    title: 'Choose export folder',
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (canceled || !filePaths || filePaths.length === 0) {
+    return { canceled: true };
+  }
+  const result = await runExport(filePaths[0], { includeEmbeddings });
+  return { canceled: false, destDir: filePaths[0], ...result };
+});
 
 app.whenReady().then(async () => {
   await initialise();
