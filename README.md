@@ -250,7 +250,7 @@ Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is 
 | 1 | Core Data Layer (SQLite, LanceDB, CRUD) | ✅ Complete |
 | 2 | Capture Layer (hotkey popup) | ✅ Complete |
 | 3 | Background Worker (embeddings via Ollama) | ✅ Complete |
-| 4 | Library Layer (timeline, search, themes UI) | 🔲 Planned |
+| 4 | Library Layer (timeline, search, themes UI) | ✅ Complete |
 | 5 | Processing Layer (clustering, summaries) | 🔲 Planned |
 | 6 | Export Layer (JSON/MD/embeddings) | 🔲 Planned |
 
@@ -328,6 +328,29 @@ openDb().then(db => {
 ```
 
 **If Ollama is not running:** the worker logs `[worker] Ollama not available — skipping tick` and retries on the next interval. The app continues to function normally.
+
+## Phase 4 — Library Layer
+
+The library window opens automatically at startup and shows a 3-column layout: tag sidebar | entry timeline | entry detail.
+
+**To validate:**
+
+1. Run `npm start`
+2. The library window opens — your captured entries appear in the timeline (newest first)
+3. **Text search:** type in the search bar, results filter in real-time (300ms debounce)
+4. **Semantic search:** click **Semantic** mode button, type a query — if Ollama is running it returns nearest-neighbour results; otherwise a notice banner appears and text results are shown as fallback
+5. **Tag filter:** click a tag in the left sidebar — the timeline shows only entries with that tag
+6. **Entry detail:** click any entry card — the right panel shows full text, date, source, and tags
+7. **Tag navigation:** clicking a tag pill in the detail panel applies that tag as a filter
+
+**To confirm tag indexing:**
+
+```bash
+node -e "
+const { listTags } = require('./src/backend/db/tags');
+listTags().then(tags => { console.log(tags); process.exit(0); });
+"
+```
 
 ---
 

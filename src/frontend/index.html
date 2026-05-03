@@ -3,9 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self'; script-src 'self'" />
   <title>Neurologue</title>
+  <link rel="stylesheet" href="library.css" />
 </head>
 <body>
-  <p>Neurologue — library view coming soon.</p>
+  <div id="app">
+
+    <!-- ── Toolbar ─────────────────────────────────────────────────── -->
+    <div id="toolbar">
+      <span class="logo">Neurologue</span>
+      <input id="search-input" type="text" placeholder="Search entries…" autocomplete="off" />
+      <div id="search-mode">
+        <button id="btn-text" class="mode-btn active">Text</button>
+        <button id="btn-semantic" class="mode-btn">Semantic</button>
+      </div>
+      <span id="entry-count"></span>
+    </div>
+
+    <!-- ── Semantic notice ─────────────────────────────────────────── -->
+    <div id="semantic-notice">
+      Ollama not available — showing text results instead
+    </div>
+
+    <!-- ── Body ────────────────────────────────────────────────────── -->
+    <div id="body">
+
+      <!-- Sidebar: tags -->
+      <div id="sidebar">
+        <div id="sidebar-header">Tags</div>
+        <div id="tag-all">All entries</div>
+        <div id="tag-list"></div>
+      </div>
+
+      <!-- Timeline: entry list -->
+      <div id="timeline">
+        <div id="timeline-list"></div>
+        <button id="load-more-btn">Load more</button>
+      </div>
+
+      <!-- Detail panel -->
+      <div id="detail">
+        <div id="detail-placeholder">Select an entry to view</div>
+        <div id="detail-content">
+          <div id="detail-header">
+            <div id="detail-date"></div>
+            <div id="detail-source"></div>
+          </div>
+          <div id="detail-body">
+            <div id="detail-text"></div>
+            <div id="detail-tags-section">
+              <div id="detail-tags-label">Tags</div>
+              <div id="detail-tags"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /#body -->
+  </div><!-- /#app -->
+
+  <script src="library.js"></script>
 </body>
 </html>

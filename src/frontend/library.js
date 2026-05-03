@@ -1,0 +1,265 @@
+'use strict';
+/* global window, document */
+
+// ── State ──────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 50;
+let _state = {
+  entries: [],
+  offset: 0,
+  hasMore: false,
+  query: '',
+  mode: 'text',      // 'text' | 'semantic'
+  tagFilter: null,   // tag name string or null
+  selectedId: null,
+};
+
+// ── DOM refs ───────────────────────────────────────────────────────────────
+const searchInput   = document.getElementById('search-input');
+const btnText       = document.getElementById('btn-text');
+const btnSemantic   = document.getElementById('btn-semantic');
+const entryCount    = document.getElementById('entry-count');
+const timelineList  = document.getElementById('timeline-list');
+const loadMoreBtn   = document.getElementById('load-more-btn');
+const tagList       = document.getElementById('tag-list');
+const tagAll        = document.getElementById('tag-all');
+const detailPlaceholder = document.getElementById('detail-placeholder');
+const detailContent = document.getElementById('detail-content');
+const detailDate    = document.getElementById('detail-date');
+const detailSource  = document.getElementById('detail-source');
+const detailText    = document.getElementById('detail-text');
+const detailTags    = document.getElementById('detail-tags');
+const semanticNotice = document.getElementById('semantic-notice');
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  return d.toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+// ── Render helpers ─────────────────────────────────────────────────────────
+
+function renderEntryCard(entry) {
+  const card = document.createElement('div');
+  card.className = 'entry-card' + (entry.id === _state.selectedId ? ' selected' : '');
+  card.dataset.id = entry.id;
+
+  const meta = document.createElement('div');
+  meta.className = 'entry-meta';
+
+  const date = document.createElement('span');
+  date.className = 'entry-date';
+  date.textContent = formatDate(entry.created_at);
+  meta.appendChild(date);
+
+  if (entry._distance !== undefined) {
+    const score = document.createElement('span');
+    score.className = 'entry-score';
+    score.textContent = `${(1 - entry._distance).toFixed(2)} match`;
+    meta.appendChild(score);
+  }
+  card.appendChild(meta);
+
+  const preview = document.createElement('div');
+  preview.className = 'entry-preview';
+  preview.textContent = entry.content;
+  card.appendChild(preview);
+
+  if (entry.tags && entry.tags.length > 0) {
+    const tagRow = document.createElement('div');
+    tagRow.className = 'entry-tags';
+    entry.tags.slice(0, 6).forEach((t) => {
+      const pill = document.createElement('span');
+      pill.className = 'tag-pill';
+      pill.textContent = t.name || t;
+      tagRow.appendChild(pill);
+    });
+    card.appendChild(tagRow);
+  }
+
+  card.addEventListener('click', () => selectEntry(entry.id));
+  return card;
+}
+
+function renderTimeline(entries, append = false) {
+  if (!append) timelineList.innerHTML = '';
+
+  if (entries.length === 0 && !append) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = _state.query
+      ? `<strong>No results</strong>Try a different search term`
+      : `<strong>No entries yet</strong>Press Ctrl+Shift+Space to capture your first thought`;
+    timelineList.appendChild(empty);
+  } else {
+    entries.forEach((e) => timelineList.appendChild(renderEntryCard(e)));
+  }
+}
+
+function updateCount(total) {
+  entryCount.textContent = total === 1 ? '1 entry' : `${total} entries`;
+}
+
+// ── Data loading ───────────────────────────────────────────────────────────
+
+async function loadEntries(append = false) {
+  const offset = append ? _state.offset : 0;
+  let entries = [];
+
+  try {
+    if (_state.mode === 'semantic' && _state.query.trim()) {
+      const result = await window.neurologue.searchSemantic(_state.query);
+      if (!result.ok) {
+        semanticNotice.style.display = 'block';
+        // Fall back to text search
+        entries = await window.neurologue.searchText(_state.query, { limit: PAGE_SIZE, offset });
+      } else {
+        semanticNotice.style.display = 'none';
+        entries = result.results;
+      }
+      _state.hasMore = false;
+      loadMoreBtn.style.display = 'none';
+    } else if (_state.query.trim()) {
+      entries = await window.neurologue.searchText(_state.query, { limit: PAGE_SIZE, offset });
+      _state.hasMore = entries.length === PAGE_SIZE;
+    } else {
+      entries = await window.neurologue.list({ limit: PAGE_SIZE, offset, tag: _state.tagFilter });
+      _state.hasMore = entries.length === PAGE_SIZE;
+    }
+
+    if (append) {
+      _state.entries = [..._state.entries, ...entries];
+    } else {
+      _state.entries = entries;
+      _state.offset = 0;
+    }
+    _state.offset += entries.length;
+
+    renderTimeline(entries, append);
+    updateCount(_state.entries.length + (_state.hasMore ? '+' : ''));
+    loadMoreBtn.style.display = _state.hasMore ? 'block' : 'none';
+  } catch (err) {
+    console.error('[library] loadEntries failed:', err);
+  }
+}
+
+async function loadTags() {
+  try {
+    const tags = await window.neurologue.listTags();
+    tagList.innerHTML = '';
+    tags.forEach((tag) => {
+      const item = document.createElement('div');
+      item.className = 'tag-item' + (tag.name === _state.tagFilter ? ' active' : '');
+      item.innerHTML = `<span class="tag-name">${tag.name}</span><span class="tag-clear" title="Clear filter">✕</span>`;
+      item.querySelector('.tag-name').addEventListener('click', () => applyTagFilter(tag.name));
+      item.querySelector('.tag-clear').addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyTagFilter(null);
+      });
+      tagList.appendChild(item);
+    });
+  } catch (err) {
+    console.error('[library] loadTags failed:', err);
+  }
+}
+
+function applyTagFilter(tagName) {
+  _state.tagFilter = tagName;
+  _state.selectedId = null;
+  // Update sidebar active state
+  document.querySelectorAll('.tag-item').forEach((el) => {
+    el.classList.toggle('active', el.querySelector('.tag-name').textContent === tagName);
+  });
+  loadEntries();
+  clearDetail();
+}
+
+// ── Entry detail ───────────────────────────────────────────────────────────
+
+async function selectEntry(id) {
+  _state.selectedId = id;
+
+  // Update card selection highlight
+  document.querySelectorAll('.entry-card').forEach((c) => {
+    c.classList.toggle('selected', c.dataset.id === id);
+  });
+
+  try {
+    const entry = await window.neurologue.getEntry(id);
+    if (!entry) return;
+
+    detailDate.textContent = formatDate(entry.created_at);
+    detailSource.textContent = `Source: ${entry.source || 'manual'}  ·  Type: ${entry.type || 'note'}`;
+    detailText.textContent = entry.content;
+
+    detailTags.innerHTML = '';
+    if (entry.tags && entry.tags.length > 0) {
+      entry.tags.forEach((t) => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.style.cursor = 'pointer';
+        pill.textContent = t.name;
+        pill.addEventListener('click', () => applyTagFilter(t.name));
+        detailTags.appendChild(pill);
+      });
+      document.getElementById('detail-tags-section').style.display = 'block';
+    } else {
+      document.getElementById('detail-tags-section').style.display = 'none';
+    }
+
+    detailPlaceholder.style.display = 'none';
+    detailContent.style.display = 'flex';
+  } catch (err) {
+    console.error('[library] selectEntry failed:', err);
+  }
+}
+
+function clearDetail() {
+  _state.selectedId = null;
+  detailPlaceholder.style.display = 'flex';
+  detailContent.style.display = 'none';
+}
+
+// ── Search mode toggle ─────────────────────────────────────────────────────
+
+function setMode(mode) {
+  _state.mode = mode;
+  btnText.classList.toggle('active', mode === 'text');
+  btnSemantic.classList.toggle('active', mode === 'semantic');
+  if (_state.query.trim()) loadEntries();
+}
+
+// ── Event wiring ───────────────────────────────────────────────────────────
+
+const debouncedSearch = debounce(() => {
+  _state.query = searchInput.value;
+  _state.tagFilter = null;
+  document.querySelectorAll('.tag-item').forEach((el) => el.classList.remove('active'));
+  loadEntries();
+}, 300);
+
+searchInput.addEventListener('input', debouncedSearch);
+searchInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { searchInput.value = ''; debouncedSearch(); }
+});
+
+btnText.addEventListener('click', () => setMode('text'));
+btnSemantic.addEventListener('click', () => setMode('semantic'));
+tagAll.addEventListener('click', () => applyTagFilter(null));
+loadMoreBtn.addEventListener('click', () => loadEntries(true));
+
+// ── Init ───────────────────────────────────────────────────────────────────
+
+(async () => {
+  await loadTags();
+  await loadEntries();
+})();
