@@ -11,6 +11,8 @@ const { listEntries } = require('./backend/db/entries');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable } = require('./worker/ollama');
+const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
+const { runClustering } = require('./backend/clustering/themes');
 const { registerCaptureHotkey } = require('./capture/hotkey');
 const { startWorker, stopWorker } = require('./worker/index');
 
@@ -87,6 +89,33 @@ ipcMain.handle('library:get-entry', async (_event, { id }) => {
 ipcMain.handle('library:list-tags', async () => {
   return listTags();
 });
+
+// ── Themes IPC ───────────────────────────────────────────────────────────────
+
+// List all themes with their entry count
+ipcMain.handle('themes:list', async () => {
+  const themes = await listThemes();
+  return themes;
+});
+
+// Get a single theme with its top entries (enriched with content + tags)
+ipcMain.handle('themes:get', async (_event, { id }) => {
+  const theme = await getThemeById(id);
+  if (!theme) return null;
+  const members = await getEntriesForTheme(id);
+  const entries = await Promise.all(
+    members.slice(0, 20).map(async ({ entry_id, score }) => {
+      const entry = await getEntryWithTags(entry_id);
+      return entry ? { ...entry, score } : null;
+    })
+  );
+  return { ...theme, entries: entries.filter(Boolean) };
+});
+
+// Manually trigger clustering (for dev/debug)
+ipcMain.handle('themes:cluster', async () => {
+  return runClustering();
+});;
 
 app.whenReady().then(async () => {
   await initialise();

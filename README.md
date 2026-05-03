@@ -251,7 +251,7 @@ Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is 
 | 2 | Capture Layer (hotkey popup) | ✅ Complete |
 | 3 | Background Worker (embeddings via Ollama) | ✅ Complete |
 | 4 | Library Layer (timeline, search, themes UI) | ✅ Complete |
-| 5 | Processing Layer (clustering, summaries) | 🔲 Planned |
+| 5 | Processing Layer (clustering, summaries) | ✅ Complete |
 | 6 | Export Layer (JSON/MD/embeddings) | 🔲 Planned |
 
 See [ROADMAP.md](ROADMAP.md) and [GitHub Issues](https://github.com/codebureau/neurologue/issues) for detail.
@@ -350,6 +350,34 @@ node -e "
 const { listTags } = require('./src/backend/db/tags');
 listTags().then(tags => { console.log(tags); process.exit(0); });
 "
+```
+
+## Phase 5 — Theme Clustering + Summaries
+
+The background worker now automatically clusters entries into themes after every 5 new embeddings. Themes appear in the **Themes** section of the library sidebar.
+
+**Prerequisites:** Ollama running with both models:
+
+```bash
+ollama pull bge-small-en   # embeddings
+ollama pull phi3:mini      # LLM summaries
+```
+
+**To validate:**
+
+1. Capture at least 5 entries with `Ctrl+Shift+Space`
+2. Ensure Ollama is running so the worker can embed them
+3. After 5 embeddings the worker logs `[worker] Clustering complete — N themes`
+4. The **Themes** section in the sidebar lists the discovered themes
+5. Click a theme — the right panel shows its LLM-generated summary and member entries
+6. Clicking an entry in the theme panel opens its full detail view
+
+**If Ollama is not running:** themes still form (k-means runs locally) but the description will read “No summary yet” until Ollama becomes available.
+
+**To manually trigger clustering from the DevTools console:**
+
+```js
+await window.neurologue.triggerClustering()
 ```
 
 ---
