@@ -24,7 +24,7 @@ const config = {
   },
   ollama: {
     baseUrl: 'http://127.0.0.1:11434',
-    embeddingModel: 'bge-small-en',
+    embeddingModel: 'nomic-embed-text',
     llmModel: 'phi3:mini',
   },
 };

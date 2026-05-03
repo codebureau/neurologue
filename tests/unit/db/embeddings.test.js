@@ -36,11 +36,11 @@ describe('upsertEmbedding / getEmbedding', () => {
     const { upsertEmbedding, getEmbedding } = require('../../../src/backend/db/embeddings');
     const entry = await makeEntry();
     const vec = makeVector(384, 0.25);
-    await upsertEmbedding(entry.id, vec, 'bge-small-en');
+    await upsertEmbedding(entry.id, vec, 'nomic-embed-text');
     const result = await getEmbedding(entry.id);
     expect(result).toBeDefined();
     expect(result.entry_id).toBe(entry.id);
-    expect(result.model_name).toBe('bge-small-en');
+    expect(result.model_name).toBe('nomic-embed-text');
     expect(result.vector).toBeInstanceOf(Float32Array);
     expect(result.vector.length).toBe(384);
     expect(result.vector[0]).toBeCloseTo(0.25, 5);
@@ -49,8 +49,8 @@ describe('upsertEmbedding / getEmbedding', () => {
   test('overwrites an existing embedding on conflict', async () => {
     const { upsertEmbedding, getEmbedding } = require('../../../src/backend/db/embeddings');
     const entry = await makeEntry();
-    await upsertEmbedding(entry.id, makeVector(384, 0.1), 'bge-small-en');
-    await upsertEmbedding(entry.id, makeVector(384, 0.9), 'bge-small-en');
+    await upsertEmbedding(entry.id, makeVector(384, 0.1), 'nomic-embed-text');
+    await upsertEmbedding(entry.id, makeVector(384, 0.9), 'nomic-embed-text');
     const result = await getEmbedding(entry.id);
     expect(result.vector[0]).toBeCloseTo(0.9, 5);
   });
@@ -67,7 +67,7 @@ describe('listEntriesWithoutEmbedding', () => {
     const { upsertEmbedding, listEntriesWithoutEmbedding } = require('../../../src/backend/db/embeddings');
     const e1 = await makeEntry('needs embedding');
     const e2 = await makeEntry('already has embedding');
-    await upsertEmbedding(e2.id, makeVector(), 'bge-small-en');
+    await upsertEmbedding(e2.id, makeVector(), 'nomic-embed-text');
     const pending = await listEntriesWithoutEmbedding();
     expect(pending).toContain(e1.id);
     expect(pending).not.toContain(e2.id);
@@ -76,7 +76,7 @@ describe('listEntriesWithoutEmbedding', () => {
   test('returns empty array when all entries have embeddings', async () => {
     const { upsertEmbedding, listEntriesWithoutEmbedding } = require('../../../src/backend/db/embeddings');
     const entry = await makeEntry();
-    await upsertEmbedding(entry.id, makeVector(), 'bge-small-en');
+    await upsertEmbedding(entry.id, makeVector(), 'nomic-embed-text');
     expect(await listEntriesWithoutEmbedding()).toEqual([]);
   });
 });
@@ -85,7 +85,7 @@ describe('deleteEmbedding', () => {
   test('removes the embedding', async () => {
     const { upsertEmbedding, deleteEmbedding, getEmbedding } = require('../../../src/backend/db/embeddings');
     const entry = await makeEntry();
-    await upsertEmbedding(entry.id, makeVector(), 'bge-small-en');
+    await upsertEmbedding(entry.id, makeVector(), 'nomic-embed-text');
     await deleteEmbedding(entry.id);
     expect(await getEmbedding(entry.id)).toBeUndefined();
   });
