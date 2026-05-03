@@ -1,10 +1,19 @@
 'use strict';
 
 const path = require('path');
-const { app } = require('electron');
 
-// Use app.getPath('userData') for production; fallback for worker/test contexts
-const userDataPath = app ? app.getPath('userData') : path.join(__dirname, '..', '.data');
+// Priority: explicit env var (tests/CLI) → Electron userData → local .data fallback
+let userDataPath;
+if (process.env.NEUROLOGUE_DATA_PATH) {
+  userDataPath = process.env.NEUROLOGUE_DATA_PATH;
+} else {
+  try {
+    const { app } = require('electron');
+    userDataPath = app ? app.getPath('userData') : path.join(__dirname, '..', '.data');
+  } catch {
+    userDataPath = path.join(__dirname, '..', '.data');
+  }
+}
 
 const config = {
   db: {
