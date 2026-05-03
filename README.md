@@ -249,7 +249,7 @@ Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is 
 | 0 | Foundations (design, scaffolding) | ✅ Complete |
 | 1 | Core Data Layer (SQLite, LanceDB, CRUD) | ✅ Complete |
 | 2 | Capture Layer (hotkey popup) | ✅ Complete |
-| 3 | Background Worker (embeddings via Ollama) | 🔲 In progress |
+| 3 | Background Worker (embeddings via Ollama) | ✅ Complete |
 | 4 | Library Layer (timeline, search, themes UI) | 🔲 Planned |
 | 5 | Processing Layer (clustering, summaries) | 🔲 Planned |
 | 6 | Export Layer (JSON/MD/embeddings) | 🔲 Planned |
@@ -295,6 +295,39 @@ const { listEntries } = require('./src/backend/db/entries');
 listEntries().then(rows => { console.log(rows); process.exit(0); });
 "
 ```
+
+## Phase 3 — Background worker
+
+The worker starts automatically when the app runs. It polls every 10 seconds for entries without embeddings and calls Ollama to generate them.
+
+**Prerequisites:** Ollama must be running with the embedding model pulled:
+
+```bash
+ollama serve              # if not already running as a service
+ollama pull bge-small-en  # or the model set in src/config.js
+```
+
+**To validate:**
+
+1. Start Ollama and pull the model (above)
+2. Run `npm start`
+3. Capture one or more entries via `Ctrl+Shift+Space`
+4. Wait up to 10 seconds — the worker will pick up new entries
+5. Check the console output for `[worker] Embedded entry …` messages
+6. Confirm embeddings were stored:
+
+```bash
+node -e "
+const { openDb } = require('./src/backend/db/connection');
+openDb().then(db => {
+  const rows = db.prepare('SELECT entry_id, model_name FROM embeddings').all();
+  console.log(rows);
+  process.exit(0);
+});
+"
+```
+
+**If Ollama is not running:** the worker logs `[worker] Ollama not available — skipping tick` and retries on the next interval. The app continues to function normally.
 
 ---
 

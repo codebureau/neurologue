@@ -7,6 +7,7 @@ const { initVectorStore } = require('./backend/vector/store');
 const { createEntry } = require('./backend/db/entries');
 const { setTagsForEntry } = require('./backend/db/tags');
 const { registerCaptureHotkey } = require('./capture/hotkey');
+const { startWorker, stopWorker } = require('./worker/index');
 
 async function initialise() {
   await runMigrations();
@@ -46,6 +47,7 @@ app.whenReady().then(async () => {
   await initialise();
   createMainWindow();
   registerCaptureHotkey();
+  startWorker();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -56,7 +58,9 @@ app.whenReady().then(async () => {
 
 app.on('window-all-closed', () => {
   globalShortcut.unregisterAll();
+  stopWorker();
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
+
