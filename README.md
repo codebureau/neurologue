@@ -252,7 +252,7 @@ Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is 
 | 3 | Background Worker (embeddings via Ollama) | ✅ Complete |
 | 4 | Library Layer (timeline, search, themes UI) | ✅ Complete |
 | 5 | Processing Layer (clustering, summaries) | ✅ Complete |
-| 6 | Export Layer (JSON/MD/embeddings) | 🔲 Planned |
+| 6 | Export Layer (JSON/MD/embeddings) | ✅ Complete |
 
 See [ROADMAP.md](ROADMAP.md) and [GitHub Issues](https://github.com/codebureau/neurologue/issues) for detail.
 
@@ -379,6 +379,29 @@ ollama pull phi3:mini      # LLM summaries
 ```js
 await window.neurologue.triggerClustering()
 ```
+
+## Phase 6 — Export Layer
+
+The **Export…** button in the top-right of the toolbar opens a native folder picker. Neurologue writes five files to the chosen directory:
+
+| File | Contents |
+|---|---|
+| `entries.json` | All entries as a JSON array (id, content, source, type, created_at, tags) |
+| `entries.md` | All entries as a single Markdown document |
+| `themes.json` | Themes + LLM summaries + member entry IDs and scores |
+| `themes.md` | Themes as a Markdown document |
+| `embeddings.jsonl` | All embeddings (entry_id, model_name, vector array) |
+
+**To validate:**
+
+1. Run `npm start`
+2. Capture some entries and wait for embeddings + themes
+3. Click **Export…** in the toolbar
+4. Choose a destination folder in the native dialog
+5. A toast notification confirms the export with entry/theme counts
+6. Open the folder — all five files should be present
+
+The resulting files are suitable for ingestion into external tools (NotebookLM, Claude, Copilot, etc.).
 
 ---
 

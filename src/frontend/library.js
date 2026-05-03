@@ -31,6 +31,8 @@ const detailDate    = document.getElementById('detail-date');
 const detailSource  = document.getElementById('detail-source');
 const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
+const exportBtn     = document.getElementById('btn-export');
+const exportToast   = document.getElementById('export-toast');
 const semanticNotice = document.getElementById('semantic-notice');
 
 // ── Utilities ──────────────────────────────────────────────────────────────
@@ -327,6 +329,39 @@ btnText.addEventListener('click', () => setMode('text'));
 btnSemantic.addEventListener('click', () => setMode('semantic'));
 tagAll.addEventListener('click', () => applyTagFilter(null));
 loadMoreBtn.addEventListener('click', () => loadEntries(true));
+
+// ── Export ─────────────────────────────────────────────────────────────────
+
+let _exportToastTimer = null;
+
+function showToast(message, type = 'success') {
+  exportToast.textContent = message;
+  exportToast.className = type;
+  exportToast.style.display = 'block';
+  clearTimeout(_exportToastTimer);
+  _exportToastTimer = setTimeout(() => { exportToast.style.display = 'none'; }, 5000);
+}
+
+exportBtn.addEventListener('click', async () => {
+  exportBtn.disabled = true;
+  exportBtn.textContent = 'Exporting…';
+  try {
+    const result = await window.neurologue.exportAll({ includeEmbeddings: true });
+    if (result.canceled) {
+      showToast('Export cancelled.', 'success');
+    } else {
+      showToast(
+        `Exported ${result.entryCount} entries, ${result.themeCount} themes to ${result.destDir}`,
+        'success'
+      );
+    }
+  } catch (err) {
+    showToast(`Export failed: ${err.message}`, 'error');
+  } finally {
+    exportBtn.disabled = false;
+    exportBtn.textContent = 'Export…';
+  }
+});
 
 // ── Init ───────────────────────────────────────────────────────────────────
 

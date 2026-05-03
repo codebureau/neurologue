@@ -424,3 +424,22 @@ html, body {
   color: var(--synapse-gold);
   text-align: center;
 }
+
+/* ── Export toast ─────────────────────────────────────────────────────── */
+#export-toast {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 100;
+  max-width: 320px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+#export-toast.success { border-color: var(--cortex-teal); color: var(--cortex-teal); }
+#export-toast.error   { border-color: var(--danger);      color: var(--danger); }
