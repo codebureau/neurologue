@@ -119,45 +119,52 @@ Neurologue is designed to be:
 # Tech Stack
 
 ### Frontend
-- Electron or Tauri  
-- Global hotkey  
-- Capture popup  
-- Library UI  
+- **Electron** — global hotkey, capture popup, library UI
 
 ### Backend
-- Node.js (or Python)  
-- SQLite for structured data  
-- Local vector DB (Chroma or LanceDB)  
+- **Node.js** — DB access layer, IPC, background worker
+- **sql.js** — pure-WASM SQLite (no native compilation required)
+- **LanceDB** — embedded local vector store
 
 ### AI
-- Embeddings: `bge-small-en`, `gte-small`, or similar  
-- LLM: Phi‑3 Mini or Qwen 2.5 3B via Ollama  
-- Background worker for processing  
+- Embeddings: `bge-small-en` or `gte-small` via **Ollama**
+- LLM: **Phi‑3 Mini** or **Qwen 2.5 3B** via Ollama
+- Background worker for asynchronous processing
 
 ---
 
 # Repository Structure
 ```
 /docs
-    /architecture
-        01-system-overview.md
-        02-capture-layer.md
-        03-library-layer.md
-        04-processing-layer.md
-        05-export-layer.md
-    /requirements
-        functional-requirements.md
-        nonfunctional-requirements.md
-        data-model.md
-        llm-requirements.md
-/copilot
-    copilot-bootstrap.md
-    agent-guidelines.md
+    /architecture/          — layer-by-layer design documents
+    /requirements/          — functional, non-functional, data model, LLM
+    /copilot/               — Copilot agent guidelines and bootstrap prompt
+    /brand/                 — colours, typography, logo guidelines
 /src
-    /frontend
-    /backend
-    /worker
-    /db
+    main.js                 — Electron entry point
+    config.js               — paths, Ollama endpoint, model names
+    /capture/
+        hotkey.js           — global hotkey + capture BrowserWindow
+    /frontend/
+        index.html          — main library window (placeholder)
+        preload.js          — main window contextBridge
+        capture.html        — capture popup UI
+        capture.js          — capture popup renderer logic
+        capture-preload.js  — capture popup contextBridge
+    /backend/
+        /db/
+            connection.js   — sql.js wrapper (better-sqlite3-compatible API)
+            entries.js      — entries CRUD
+            tags.js         — tags CRUD
+            themes.js       — themes CRUD
+            embeddings.js   — embeddings CRUD
+        /vector/
+            store.js        — LanceDB vector store (init, upsert, search)
+    /db/
+        migrate.js          — versioned migration runner
+        /migrations/
+            001_initial_schema.sql
+    /worker/                — background processing worker (Phase 4)
 ```
 
 
@@ -183,29 +190,111 @@ Each feature is implemented through a GitHub Issue with clear acceptance criteri
 
 # Getting Started (Development)
 
-1. Clone the repo  
-2. Install dependencies (Node, SQLite, Ollama)  
-3. Run the frontend (Electron/Tauri)  
-4. Run the backend server  
-5. Run the background worker  
+## Prerequisites
 
-Detailed setup instructions will be added as components are implemented.
+| Requirement | Version | Notes |
+|---|---|---|
+| Node.js | 18 LTS or later | [nodejs.org](https://nodejs.org) |
+| npm | bundled with Node | — |
+| Ollama | latest | [ollama.com](https://ollama.com) — required for Phase 3+ only |
+
+> **No C++ build toolchain required.** Neurologue uses `sql.js` (pure WASM) and LanceDB (prebuilt binaries).
+
+## Install
+
+```bash
+git clone https://github.com/codebureau/neurologue.git
+cd neurologue
+npm install
+```
+
+## Run the app
+
+```bash
+npm start
+```
+
+This launches the Electron shell. On first run, the SQLite database and LanceDB vector store are created automatically in your OS user-data directory.
+
+- **Windows:** `%APPDATA%\neurologue\`
+- **macOS:** `~/Library/Application Support/neurologue/`
+
+## Using the capture hotkey
+
+Once the app is running, press **`Ctrl+Shift+Space`** (Windows/Linux) or **`Cmd+Shift+Space`** (macOS) from anywhere on your desktop to open the capture popup.
+
+- Type your thought
+- Optionally add comma-separated tags
+- Press **`Ctrl+Enter`** or click **Save**
+- Press **`Escape`** to cancel
+
+## Setting up Ollama (Phase 3+)
+
+Ollama is only needed once the background worker is implemented (Phase 3). To prepare:
+
+```bash
+# Install Ollama, then pull the required models
+ollama pull phi3:mini
+ollama pull bge-small-en   # for embeddings (via ollama or direct)
+```
+
+Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is configurable in `src/config.js`.
 
 ---
 
 # Project Status
 
-Neurologue is currently in **early design and scaffolding**.  
-The next steps are:
+| Phase | Description | Status |
+|---|---|---|
+| 0 | Foundations (design, scaffolding) | ✅ Complete |
+| 1 | Core Data Layer (SQLite, LanceDB, CRUD) | ✅ Complete |
+| 2 | Capture Layer (hotkey popup) | ✅ Complete |
+| 3 | Background Worker (embeddings via Ollama) | 🔲 In progress |
+| 4 | Library Layer (timeline, search, themes UI) | 🔲 Planned |
+| 5 | Processing Layer (clustering, summaries) | 🔲 Planned |
+| 6 | Export Layer (JSON/MD/embeddings) | 🔲 Planned |
 
-- Implement SQLite schema  
-- Build capture popup  
-- Add background embedding worker  
-- Add semantic search  
-- Add theme clustering  
-- Add export system  
+See [ROADMAP.md](ROADMAP.md) and [GitHub Issues](https://github.com/codebureau/neurologue/issues) for detail.
 
-See GitHub Issues for the full roadmap.
+---
+
+# Validating the build
+
+## Phase 1 — Data layer
+
+Verify the database is created and all tables exist:
+
+```bash
+npm start
+# Then close the app and inspect the DB, or run:
+node -e "
+const { openDb } = require('./src/backend/db/connection');
+openDb().then(db => {
+  const t = db.prepare(\"SELECT name FROM sqlite_master WHERE type='table'\").all();
+  console.log(t.map(r => r.name));
+  process.exit(0);
+});
+"
+```
+
+Expected output: `entries, tags, entry_tags, embeddings, themes, theme_entries, schema_migrations`
+
+## Phase 2 — Capture popup
+
+1. Run `npm start`
+2. Press **`Ctrl+Shift+Space`** — the capture popup should appear within 100ms
+3. Type a thought, add optional tags, press `Ctrl+Enter`
+4. The popup closes — the entry is saved to SQLite
+5. Press `Escape` to close without saving
+
+To confirm an entry was written:
+
+```bash
+node -e "
+const { listEntries } = require('./src/backend/db/entries');
+listEntries().then(rows => { console.log(rows); process.exit(0); });
+"
+```
 
 ---
 
