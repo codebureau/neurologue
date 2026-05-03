@@ -1,0 +1,21 @@
+{
+  "name": "neurologue",
+  "version": "0.1.0",
+  "description": "A local-first cognitive system for capturing, organising, and understanding your thoughts.",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "keywords": [],
+  "author": "Codebureau",
+  "license": "TBD",
+  "dependencies": {
+    "@lancedb/lancedb": "^0.17.0",
+    "sql.js": "^1.12.0",
+    "electron": "^35.0.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^25.1.8"
+  }
+}
