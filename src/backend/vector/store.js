@@ -22,7 +22,7 @@ async function initVectorStore() {
     // Create table with a placeholder row then delete it, to establish the schema.
     // Schema: entry_id (string), model_name (string), vector (fixed-size float32 list)
     _table = await _db.createTable(TABLE_NAME, [
-      { entry_id: '__init__', model_name: '__init__', vector: new Array(384).fill(0) },
+      { entry_id: '__init__', model_name: '__init__', vector: new Array(768).fill(0) },
     ]);
     await _table.delete("entry_id = '__init__'");
   }

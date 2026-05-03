@@ -127,7 +127,7 @@ Neurologue is designed to be:
 - **LanceDB** — embedded local vector store
 
 ### AI
-- Embeddings: `bge-small-en` or `gte-small` via **Ollama**
+- Embeddings: `nomic-embed-text` via **Ollama**
 - LLM: **Phi‑3 Mini** or **Qwen 2.5 3B** via Ollama
 - Background worker for asynchronous processing
 
@@ -235,7 +235,7 @@ Ollama is only needed once the background worker is implemented (Phase 3). To pr
 ```bash
 # Install Ollama, then pull the required models
 ollama pull phi3:mini
-ollama pull bge-small-en   # for embeddings (via ollama or direct)
+ollama pull nomic-embed-text   # for embeddings
 ```
 
 Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is configurable in `src/config.js`.
@@ -304,7 +304,7 @@ The worker starts automatically when the app runs. It polls every 10 seconds for
 
 ```bash
 ollama serve              # if not already running as a service
-ollama pull bge-small-en  # or the model set in src/config.js
+ollama pull nomic-embed-text  # or the model set in src/config.js
 ```
 
 **To validate:**
@@ -359,7 +359,7 @@ The background worker now automatically clusters entries into themes after every
 **Prerequisites:** Ollama running with both models:
 
 ```bash
-ollama pull bge-small-en   # embeddings
+ollama pull nomic-embed-text   # embeddings
 ollama pull phi3:mini      # LLM summaries
 ```
 

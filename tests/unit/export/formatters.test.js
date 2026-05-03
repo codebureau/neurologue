@@ -48,8 +48,8 @@ const THEMES = [
 ];
 
 const EMBEDDINGS = [
-  { entry_id: 'e1', model_name: 'bge-small-en', vector: new Float32Array([0.1, 0.2, 0.3]) },
-  { entry_id: 'e2', model_name: 'bge-small-en', vector: new Float32Array([0.4, 0.5, 0.6]) },
+  { entry_id: 'e1', model_name: 'nomic-embed-text', vector: new Float32Array([0.1, 0.2, 0.3]) },
+  { entry_id: 'e2', model_name: 'nomic-embed-text', vector: new Float32Array([0.4, 0.5, 0.6]) },
 ];
 
 // ── entriesToJson ──────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ describe('embeddingsToJsonl', () => {
     const lines = embeddingsToJsonl(EMBEDDINGS).split('\n').filter(Boolean);
     const obj = JSON.parse(lines[0]);
     expect(obj).toHaveProperty('entry_id', 'e1');
-    expect(obj).toHaveProperty('model_name', 'bge-small-en');
+    expect(obj).toHaveProperty('model_name', 'nomic-embed-text');
     expect(Array.isArray(obj.vector)).toBe(true);
     expect(obj.vector).toHaveLength(3);
   });
