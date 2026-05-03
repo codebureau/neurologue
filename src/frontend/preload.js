@@ -1,9 +1,14 @@
 'use strict';
-// Preload script — runs in a sandboxed context between main and renderer.
-// Exposes a safe API to the renderer via contextBridge (to be expanded in Phase 2+).
-
-const { contextBridge } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('neurologue', {
   version: '0.1.0',
+
+  // ── Library ──────────────────────────────────────────────────────────────
+  list: (opts) => ipcRenderer.invoke('library:list', opts),
+  searchText: (query, opts) => ipcRenderer.invoke('library:search-text', { query, ...opts }),
+  searchSemantic: (query, opts) => ipcRenderer.invoke('library:search-semantic', { query, ...opts }),
+  getEntry: (id) => ipcRenderer.invoke('library:get-entry', { id }),
+  listTags: () => ipcRenderer.invoke('library:list-tags'),
 });
+
