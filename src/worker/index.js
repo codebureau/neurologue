@@ -14,14 +14,18 @@ const { listEntriesWithoutEmbedding, upsertEmbedding } = require('../backend/db/
 const { getEntryById } = require('../backend/db/entries');
 const { upsertVector } = require('../backend/vector/store');
 const { generateEmbedding, isOllamaAvailable } = require('./ollama');
+const { runClustering } = require('../backend/clustering/themes');
 const config = require('../config');
 
 const POLL_INTERVAL_MS = 10_000; // check every 10 seconds
 const BATCH_SIZE = 5;            // process up to 5 entries per tick
+// Re-cluster after this many new embeddings are added in one session
+const CLUSTER_AFTER = 5;
 
 let _timer = null;
 let _running = false;
 let _paused = false;
+let _embeddedSinceCluster = 0;
 
 // ── Core processing ───────────────────────────────────────────────────────
 
@@ -55,9 +59,25 @@ async function processBatch() {
       await upsertVector(id, vector, modelName);
 
       console.log(`[worker] Embedded entry ${id.slice(0, 8)}…`);
+      _embeddedSinceCluster++;
     } catch (err) {
       // Log and continue — a single failure must not stop the batch
       console.error(`[worker] Failed to embed entry ${id.slice(0, 8)}…: ${err.message}`);
+    }
+  }
+
+  // Trigger clustering after enough new embeddings
+  if (_embeddedSinceCluster >= CLUSTER_AFTER) {
+    _embeddedSinceCluster = 0;
+    try {
+      const result = await runClustering();
+      if (result.skipped) {
+        console.log(`[worker] Clustering skipped: ${result.reason}`);
+      } else {
+        console.log(`[worker] Clustering complete — ${result.themes} themes`);
+      }
+    } catch (err) {
+      console.error('[worker] Clustering error:', err.message);
     }
   }
 }

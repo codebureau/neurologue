@@ -11,6 +11,7 @@ let _state = {
   mode: 'text',      // 'text' | 'semantic'
   tagFilter: null,   // tag name string or null
   selectedId: null,
+  activeThemeId: null,
 };
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
@@ -22,8 +23,10 @@ const timelineList  = document.getElementById('timeline-list');
 const loadMoreBtn   = document.getElementById('load-more-btn');
 const tagList       = document.getElementById('tag-list');
 const tagAll        = document.getElementById('tag-all');
-const detailPlaceholder = document.getElementById('detail-placeholder');
-const detailContent = document.getElementById('detail-content');
+const themeList     = document.getElementById('theme-list');
+const detailPlaceholder      = document.getElementById('detail-placeholder');
+const detailContent          = document.getElementById('detail-content');
+const themeDetailContent     = document.getElementById('theme-detail-content');
 const detailDate    = document.getElementById('detail-date');
 const detailSource  = document.getElementById('detail-source');
 const detailText    = document.getElementById('detail-text');
@@ -225,8 +228,76 @@ async function selectEntry(id) {
 
 function clearDetail() {
   _state.selectedId = null;
+  _state.activeThemeId = null;
   detailPlaceholder.style.display = 'flex';
   detailContent.style.display = 'none';
+  themeDetailContent.style.display = 'none';
+}
+
+// ── Theme sidebar + detail ─────────────────────────────────────────────────
+
+async function loadThemes() {
+  try {
+    const themes = await window.neurologue.listThemes();
+    themeList.innerHTML = '';
+    if (themes.length === 0) return;
+    themes.forEach((theme) => {
+      const item = document.createElement('div');
+      item.className = 'theme-item' + (theme.id === _state.activeThemeId ? ' active' : '');
+      item.dataset.id = theme.id;
+      item.innerHTML =
+        `<span class="theme-icon">◆</span>` +
+        `<span class="theme-name">${theme.name}</span>`;
+      item.addEventListener('click', () => selectTheme(theme.id));
+      themeList.appendChild(item);
+    });
+  } catch (err) {
+    console.error('[library] loadThemes failed:', err);
+  }
+}
+
+async function selectTheme(id) {
+  _state.activeThemeId = id;
+  _state.selectedId = null;
+  document.querySelectorAll('.theme-item').forEach((el) => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+  document.querySelectorAll('.tag-item').forEach((el) => el.classList.remove('active'));
+
+  try {
+    const theme = await window.neurologue.getTheme(id);
+    if (!theme) return;
+
+    document.getElementById('theme-detail-name').textContent = theme.name;
+    document.getElementById('theme-detail-summary').textContent =
+      theme.description || 'No summary yet — clustering will generate one when Ollama is available.';
+
+    const entriesEl = document.getElementById('theme-detail-entries');
+    entriesEl.innerHTML = '';
+    (theme.entries || []).forEach((entry) => {
+      const card = document.createElement('div');
+      card.className = 'theme-entry-card';
+      card.innerHTML =
+        `<div class="te-meta">` +
+        `<span class="te-date">${formatDate(entry.created_at)}</span>` +
+        `<span class="te-score">${entry.score !== undefined ? entry.score.toFixed(2) : ''}</span>` +
+        `</div>` +
+        `<div class="te-preview">${entry.content}</div>`;
+      card.addEventListener('click', () => {
+        // Jump to entry detail
+        _state.activeThemeId = null;
+        document.querySelectorAll('.theme-item').forEach((el) => el.classList.remove('active'));
+        selectEntry(entry.id);
+      });
+      entriesEl.appendChild(card);
+    });
+
+    detailPlaceholder.style.display = 'none';
+    detailContent.style.display = 'none';
+    themeDetailContent.style.display = 'flex';
+  } catch (err) {
+    console.error('[library] selectTheme failed:', err);
+  }
 }
 
 // ── Search mode toggle ─────────────────────────────────────────────────────
@@ -261,5 +332,6 @@ loadMoreBtn.addEventListener('click', () => loadEntries(true));
 
 (async () => {
   await loadTags();
+  await loadThemes();
   await loadEntries();
 })();
