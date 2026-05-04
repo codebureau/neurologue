@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron');
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
@@ -116,6 +116,12 @@ ipcMain.handle('themes:get', async (_event, { id }) => {
 // Manually trigger clustering (for dev/debug)
 ipcMain.handle('themes:cluster', async () => {
   return runClustering();
+});
+
+// ── Help IPC ─────────────────────────────────────────────────────────────────
+
+ipcMain.handle('help:open', () => {
+  shell.openExternal('https://codebureau.github.io/neurologue');
 });
 
 // ── Export IPC ───────────────────────────────────────────────────────────────

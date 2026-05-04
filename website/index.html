@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Neurologue — Documentation</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">Neurologue</a>
+    <nav class="site-nav">
+      <a href="index.html" class="active">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="export.html">Export</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Neurologue</h1>
+  <p class="page-subtitle">A local-first personal cognitive system — capture thoughts instantly, rediscover them intelligently.</p>
+
+  <h2>What is Neurologue?</h2>
+  <p>
+    Neurologue is a desktop application that lets you capture thoughts, notes, and ideas in under two seconds — no context switching required. In the background it generates vector embeddings of everything you write, clusters related entries into <strong>Themes</strong>, and gives you semantic search so you can find ideas by meaning rather than exact words.
+  </p>
+  <p>
+    Everything runs <strong>locally</strong>. No accounts, no cloud sync, no telemetry. Your data stays on your machine.
+  </p>
+
+  <h2>How it works</h2>
+
+  <div class="flow">
+    <div class="flow-step"><strong>Capture</strong><span>Press <kbd>Ctrl+Shift+Space</kbd></span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><strong>Store</strong><span>SQLite + tags</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><strong>Embed</strong><span>Background worker</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><strong>Cluster</strong><span>k-means → Themes</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><strong>Retrieve</strong><span>Search + Browse</span></div>
+  </div>
+
+  <p>
+    After capture, the <strong>background worker</strong> picks up your entry within 10 seconds, generates a semantic embedding via Ollama, and after every 5 new embeddings automatically re-clusters everything into themes. This happens silently — you don't need to trigger it.
+  </p>
+
+  <h2>Requirements</h2>
+
+  <table>
+    <thead><tr><th>Requirement</th><th>Details</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Operating System</strong></td>
+        <td>Windows 10/11, macOS 12+, or Linux</td>
+      </tr>
+      <tr>
+        <td><strong>Ollama</strong></td>
+        <td>Required for embeddings and theme summaries. <a href="https://ollama.com/download" target="_blank" rel="noopener">Download from ollama.com</a></td>
+      </tr>
+      <tr>
+        <td><strong>nomic-embed-text</strong></td>
+        <td>Embedding model (~274 MB). Run: <code>ollama pull nomic-embed-text</code></td>
+      </tr>
+      <tr>
+        <td><strong>phi3:mini</strong></td>
+        <td>LLM for theme summaries (~2.3 GB). Run: <code>ollama pull phi3:mini</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <p><strong>Ollama must be running</strong> for embeddings and theme summaries to work. The app functions without it (capture and text search still work), but semantic search will fall back to text mode and themes won't be generated.</p>
+  </div>
+
+  <h2>Quick start</h2>
+
+  <ol class="steps">
+    <li>
+      <div>
+        <p><strong>Install Ollama</strong> and pull both models:</p>
+        <pre><code>ollama pull nomic-embed-text
+ollama pull phi3:mini</code></pre>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>Start Neurologue</strong> with <code>npm start</code> from the project folder.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>Capture your first thought</strong> — press <kbd>Ctrl+Shift+Space</kbd> from anywhere, type something, press <kbd>Ctrl+Enter</kbd> to save.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>Open the library</strong> — the main window shows your entry. Wait ~10 seconds for the background worker to embed it. After 4+ entries are embedded, themes will start appearing in the sidebar.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>Try semantic search</strong> — click <strong>Semantic</strong> in the toolbar and type a concept. Results are ranked by meaning, not keywords.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h2>Sections in this guide</h2>
+
+  <table>
+    <thead><tr><th>Section</th><th>What it covers</th></tr></thead>
+    <tbody>
+      <tr><td><a href="capture.html">Capture</a></td><td>Global hotkey, popup UI, keyboard shortcuts, tags</td></tr>
+      <tr><td><a href="library.html">Library</a></td><td>Timeline, text &amp; semantic search, tag filtering, entry detail</td></tr>
+      <tr><td><a href="themes.html">Themes</a></td><td>How themes are generated, timing, viewing and understanding them</td></tr>
+      <tr><td><a href="export.html">Export</a></td><td>Export output files and using them with external AI tools</td></tr>
+      <tr><td><a href="troubleshooting.html">Troubleshooting</a></td><td>Ollama issues, no themes appearing, semantic search fallback</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>

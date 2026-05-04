@@ -1,0 +1,322 @@
+/* Neurologue Docs — shared styles */
+:root {
+  --neuro-blue:   #1C2A3A;
+  --cortex-teal:  #2AA6A1;
+  --teal-hover:   #238c88;
+  --synapse-gold: #C9A84C;
+  --bg:           #0F1923;
+  --surface:      #192534;
+  --surface2:     #1f2f40;
+  --border:       #2a3d52;
+  --text:         #E8EFF5;
+  --text-muted:   #7a9ab5;
+  --text-dim:     #4a6a85;
+  --danger:       #e05c5c;
+  --radius:       6px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 16px; }
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ── Layout ── */
+
+.site-header {
+  background: var(--neuro-blue);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 52px;
+}
+
+.site-logo {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--cortex-teal);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-nav {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.site-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: var(--radius);
+  transition: color 0.15s, background 0.15s;
+}
+
+.site-nav a:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+.site-nav a.active {
+  color: var(--cortex-teal);
+  background: var(--surface2);
+}
+
+.page-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+/* ── Typography ── */
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 48px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cortex-teal);
+  margin-top: 28px;
+  margin-bottom: 8px;
+}
+
+p { margin-bottom: 16px; color: var(--text); }
+p:last-child { margin-bottom: 0; }
+
+a { color: var(--cortex-teal); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+ul, ol {
+  padding-left: 24px;
+  margin-bottom: 16px;
+}
+
+li { margin-bottom: 6px; }
+li:last-child { margin-bottom: 0; }
+
+strong { color: var(--text); font-weight: 600; }
+
+code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.85em;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--cortex-teal);
+}
+
+pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  color: var(--text);
+}
+
+kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8em;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 7px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ── Components ── */
+
+.callout {
+  background: var(--surface);
+  border-left: 3px solid var(--cortex-teal);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.callout.warning {
+  border-color: var(--synapse-gold);
+}
+
+.callout.danger {
+  border-color: var(--danger);
+}
+
+.callout p:last-child { margin-bottom: 0; }
+
+/* ── Steps ── */
+
+.steps {
+  list-style: none;
+  padding: 0;
+  counter-reset: steps;
+}
+
+.steps li {
+  counter-increment: steps;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.steps li::before {
+  content: counter(steps);
+  min-width: 28px;
+  height: 28px;
+  background: var(--cortex-teal);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.steps li > div { flex: 1; }
+.steps li > div p { margin-bottom: 6px; }
+
+/* ── Flow diagram ── */
+
+.flow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 24px 0;
+}
+
+.flow-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.flow-step strong {
+  display: block;
+  color: var(--cortex-teal);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.flow-arrow {
+  color: var(--text-dim);
+  font-size: 18px;
+  padding: 0 8px;
+}
+
+/* ── Table ── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+th {
+  text-align: left;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface); }
+
+/* ── Badge ── */
+
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.badge.teal { background: rgba(42,166,161,0.15); border-color: var(--cortex-teal); color: var(--cortex-teal); }
+.badge.gold { background: rgba(201,168,76,0.15); border-color: var(--synapse-gold); color: var(--synapse-gold); }
+
+/* ── Footer ── */
+
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.site-footer a { color: var(--text-dim); }
+.site-footer a:hover { color: var(--cortex-teal); text-decoration: none; }
