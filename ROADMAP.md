@@ -1,113 +1,157 @@
 # Neurologue Roadmap
 
-Neurologue is a local‑first cognitive system built around four layers:
-1. Capture  
-2. Library  
-3. Processing  
-4. Export  
+Neurologue is evolving into a stable, local‑first cognitive layer that captures thoughts, identifies themes, and surfaces meaningful patterns over time. This roadmap outlines the planned feature areas and the sequence in which they will be developed.
 
-This roadmap outlines the staged development plan from prototype to v1.  
-Each milestone is intentionally small, buildable, and testable.
+Each roadmap item is written to be convertible into GitHub Issues.
 
 ---
 
-# Phase 0 — Foundations (Design & Scaffolding)
+## 0.2.x — Foundations & Runtime
 
-**Goal:** Establish structure, constraints, and development workflow.
+### 0.2.1 Application Packaging
+- Package Neurologue as a standalone desktop app (Windows/macOS/Linux)
+- Provide installer and portable modes
+- Ensure global hotkey works in packaged builds
+- Add UI to configure global hotkey
 
-### Tasks
-- [x] Create repository structure
-- [x] Add README
-- [x] Add architecture documents
-- [x] Add requirements documents
-- [x] Add Copilot bootstrap prompt
-- [ ] Choose Electron vs Tauri for frontend
-- [ ] Choose Node vs Python for backend worker
-- [ ] Finalise embedding + LLM model selection
+### 0.2.2 Ollama Detection & Setup
+- Detect whether Ollama is installed
+- Provide guided installation flow
+- Detect installed models
+- Pull required models automatically (`nomic-embed-text`, `phi3:mini`)
+- Allow user to choose alternative models
 
-**Output:** A fully scaffolded repo ready for implementation.
+### 0.2.3 Ollama Runtime Control
+- Detect whether Ollama is running
+- Start/stop Ollama from within Neurologue
+- Display model load status and basic resource usage
+- Provide graceful fallback when Ollama is offline
 
----
-
-# Phase 1 — Core Data Layer (SQLite + Embeddings)
-
-**Goal:** Implement the storage foundation Neurologue relies on.
-
-### Tasks
-- [ ] Implement SQLite schema (`entries`, `tags`, `entry_tags`, `embeddings`, `themes`, `theme_entries`)
-- [ ] Add DB migration system
-- [ ] Add DB access layer (CRUD operations)
-- [ ] Add local vector DB integration (Chroma or LanceDB)
-- [ ] Add configuration file for model paths and settings
-
-**Output:** A working local datastore with structured + vector storage.
+### 0.2.4 Background Worker Visibility
+- Add worker status indicator (online/offline)
+- Show queue length and last processed entry
+- Display embedding model in use
+- Auto‑refresh UI when new entries/themes are processed
 
 ---
 
-# Phase 2 — Capture Layer (Fast Input)
+## 0.3.x — Capture & Library Enhancements
 
-**Goal:** Build the frictionless capture experience.
+### 0.3.1 Markdown Support
+- Add optional Markdown formatting in the capture popup
+- Provide inline formatting toolbar
+- Add “paste as plain text” toggle
+- Evaluate embedding impact of Markdown tokens
 
-### Tasks
-- [ ] Implement global hotkey
-- [ ] Build capture popup UI
-- [ ] Add text input
-- [ ] Add tag input
-- [ ] Add clipboard paste support
-- [ ] Save entries to SQLite
-- [ ] Add minimal UX polish (animations, auto-close, etc.)
+### 0.3.2 Editing Model
+- Support soft edits (edit text but preserve original in metadata)
+- Support append‑only edits (new version as new entry)
+- Optional full edit mode (user‑configurable)
+- Display version history when applicable
 
-**Output:** A fast, reliable way to capture thoughts instantly.
+### 0.3.3 Entry Categorisation (Implicit)
+- Use LLM inference to classify entries as:
+  - Task
+  - Thought
+  - Reminder
+  - Idea
+  - Question
+  - Decision
+- Store category as metadata
+- Allow user override
 
----
+### 0.3.4 Tag UX Improvements
+- Add visual styling for tags (chips, colours)
+- Add tag suggestions (LLM‑generated)
+- Support tag merging and renaming
 
-# Phase 3 — Library Layer (Views & Retrieval)
-
-**Goal:** Provide a usable interface for browsing and searching entries.
-
-### Tasks
-- [ ] Build timeline view (chronological entries)
-- [ ] Build tag view (manual tags)
-- [ ] Build entry detail view
-- [ ] Add full‑text search
-- [ ] Add semantic search (query → embedding → similarity)
-- [ ] Add related entries panel (nearest neighbours)
-
-**Output:** A functional personal library with semantic recall.
-
----
-
-# Phase 4 — Processing Layer (Background AI)
-
-**Goal:** Add intelligence that organises thoughts automatically.
-
-### Tasks
-- [ ] Implement background worker
-- [ ] Generate embeddings for new entries
-- [ ] Implement clustering (k‑means or hierarchical)
-- [ ] Create themes from clusters
-- [ ] Generate theme summaries using small LLM
-- [ ] Suggest tags based on content
-- [ ] Detect contradictions within themes
-- [ ] Identify “open loops” (tasks, unresolved items)
-
-**Output:** Automated organisation and insight generation.
+### 0.3.5 Timeline Improvements
+- Infinite scroll
+- Group entries by day/week/month
+- Add activity heatmap (GitHub‑style)
 
 ---
 
-# Phase 5 — Export Layer (Portability)
+## 0.4.x — Themes & Cognitive Layer
 
-**Goal:** Make Neurologue’s knowledge usable by external AI tools.
+### 0.4.1 Theme Naming & Summaries
+- Generate human‑readable theme names
+- Allow user to rename themes
+- Improve theme summaries using LLM
 
-### Tasks
-- [ ] Export raw entries (JSON / Markdown)
-- [ ] Export themes + summaries
-- [ ] Export embeddings (JSONL or vector DB folder)
-- [ ] Add “Export All” UI
-- [ ] Add scheduled auto‑export (optional)
+### 0.4.2 Theme Evolution Over Time
+- Track theme prevalence over time
+- Show trend lines (increasing/decreasing)
+- Detect theme birth/merge/split events
+- Add “What’s on your mind lately?” view
 
-**Output:** A portable personal knowledge corpus.
+### 0.4.3 Semantic Neighbours
+- Show related entries for any entry
+- Show nearest‑neighbour clusters
+- Provide “similar thoughts” navigation
+
+### 0.4.4 Contradiction Detection
+- Detect conflicting statements
+- Group contradictions into clusters
+- Provide “resolve contradiction” workflow
 
 ---
 
-# Phase 6 — UX & Quality
+## 0.5.x — Interoperability & Export
+
+### 0.5.1 Export Formats
+- Markdown bundle export
+- JSONL export
+- Vector DB export
+- OneNote export (pages grouped by theme)
+- NotebookLM‑ready export
+- Microsoft Copilot‑ready export
+
+### 0.5.2 Scheduled Exports
+- Daily/weekly automatic export
+- Export diff since last export
+- Export to custom folder locations
+
+---
+
+## 0.6.x — Advanced Insights
+
+### 0.6.1 Cognitive Dashboard
+- Unified dashboard showing:
+  - Active themes
+  - Emerging themes
+  - Open loops
+  - Contradictions
+  - Recent captures
+  - Thought density over time
+
+### 0.6.2 Knowledge Graph
+- Visual graph of entries, themes, and relationships
+- Force‑directed layout
+- Click to explore clusters
+
+### 0.6.3 Memory Replay
+- “What was I thinking about last month”
+- “What changed between two time periods”
+- “What ideas have I abandoned”
+
+### 0.6.4 Agentic Extensions
+- Local agents that operate on your corpus
+- Example actions:
+  - Summarise my week
+  - Find all tasks I haven’t closed
+  - Identify emerging priorities
+  - Suggest focus areas for today
+
+---
+
+## Issue Generation Guide (Optional)
+
+<!--
+ISSUE_GENERATION_GUIDE:
+- Each roadmap item should become one GitHub Issue.
+- Use the title exactly as written.
+- Include acceptance criteria.
+- Include technical notes where relevant.
+- Link issues to the appropriate milestone (0.2.x, 0.3.x, etc.).
+-->
