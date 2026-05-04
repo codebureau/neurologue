@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">Neurologue</a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html" class="active">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="export.html">Export</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Library</h1>
+  <p class="page-subtitle">Browse, search, and explore everything you've captured.</p>
+
+  <h2>Layout overview</h2>
+  <p>The main library window has three panels side by side:</p>
+
+  <table>
+    <thead><tr><th>Panel</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Left sidebar</strong></td><td>Tags and Themes for filtering and navigation</td></tr>
+      <tr><td><strong>Timeline (centre)</strong></td><td>Chronological list of entries matching the current filter or search</td></tr>
+      <tr><td><strong>Detail (right)</strong></td><td>Full content of the selected entry, or details of the selected theme</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Toolbar</h2>
+  <p>The toolbar at the top contains:</p>
+  <ul>
+    <li><strong>Search bar</strong> — type to search; results update as you type (300 ms debounce). Press <kbd>Escape</kbd> to clear.</li>
+    <li><strong>Text / Semantic toggle</strong> — switches the search mode (see below).</li>
+    <li><strong>Entry count</strong> — shows how many entries match the current view.</li>
+    <li><strong>Export…</strong> — opens the <a href="export.html">export</a> workflow.</li>
+    <li><strong>Help</strong> — opens this documentation in your browser.</li>
+  </ul>
+
+  <h2>Search modes</h2>
+
+  <h3>Text search</h3>
+  <p>
+    The default mode. Uses SQLite full-text search to match entries whose content contains the words you type. Fast and works entirely offline. Results are paginated — 50 per page, with a <strong>Load more</strong> button at the bottom.
+  </p>
+
+  <h3>Semantic search</h3>
+  <p>
+    Click the <strong>Semantic</strong> button to switch modes. Instead of matching keywords, Neurologue embeds your query using <code>nomic-embed-text</code> and finds the 10 entries most similar in <em>meaning</em> — even if they share no words with your query.
+  </p>
+  <p>Each result shows a <strong>match score</strong> from 0.00 to 1.00 — the cosine similarity between your query embedding and the entry embedding. Higher is more similar.</p>
+
+  <div class="callout warning">
+    <p><strong>Requires Ollama.</strong> If Ollama is not running when you switch to Semantic mode, a notice appears and results fall back to text search automatically.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>Tip:</strong> Semantic search only returns the top 10 results. If you need to browse more, use Text mode.</p>
+  </div>
+
+  <h2>Tag filtering</h2>
+  <p>
+    The left sidebar lists all tags across all entries. Click any tag to filter the timeline to only entries with that tag. The active tag is highlighted.
+  </p>
+  <ul>
+    <li>Click <strong>All entries</strong> at the top of the tag list to clear the filter.</li>
+    <li>Click the <strong>✕</strong> next to an active tag to deselect it.</li>
+    <li>You can only have one tag filter active at a time.</li>
+    <li>Applying a tag filter clears any active search query.</li>
+    <li>Clicking a tag in the entry detail panel also applies that tag filter.</li>
+  </ul>
+
+  <h2>Entry timeline</h2>
+  <p>Each card in the timeline shows:</p>
+  <ul>
+    <li><strong>Date/time</strong> — when the entry was captured</li>
+    <li><strong>Match score</strong> — only in semantic search mode</li>
+    <li><strong>Preview</strong> — first ~50 characters of content</li>
+    <li><strong>Tag pills</strong> — up to 6 tags shown as small badges</li>
+  </ul>
+  <p>Click any card to open the full entry in the detail panel. The selected card is highlighted.</p>
+  <p>In text search and tag filter views, entries are paginated at 50 per page. A <strong>Load more</strong> button appears at the bottom when more results exist.</p>
+
+  <h2>Entry detail</h2>
+  <p>Clicking an entry opens its full detail in the right panel, showing:</p>
+  <ul>
+    <li>Full content text</li>
+    <li>Source and type metadata</li>
+    <li>All tags as clickable pills — clicking a tag applies that tag filter to the timeline</li>
+  </ul>
+
+  <h2>Theme sidebar</h2>
+  <p>
+    Below the tag list is a <strong>Themes</strong> section. This lists all auto-generated theme clusters. Click any theme to open its detail view in the right panel. See the <a href="themes.html">Themes</a> section for more.
+  </p>
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>

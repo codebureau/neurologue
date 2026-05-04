@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Themes — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">Neurologue</a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html" class="active">Themes</a>
+      <a href="export.html">Export</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Themes</h1>
+  <p class="page-subtitle">Automatically discovered clusters of related entries, summarised by a local AI.</p>
+
+  <h2>What are themes?</h2>
+  <p>
+    A <strong>theme</strong> is a group of entries that are semantically similar — they're about the same subject, even if you never labelled them that way. Neurologue discovers themes automatically by running k-means clustering on your entry embeddings.
+  </p>
+  <p>
+    Once clusters are found, Neurologue sends the top entries from each cluster to a local LLM (Phi-3 Mini via Ollama) and asks it to write a short natural-language summary. That summary becomes the theme's description.
+  </p>
+
+  <div class="callout">
+    <p><strong>Themes are not fixed.</strong> Every time 5 new entries are embedded, the entire entry set is re-clustered and themes are replaced. A theme that existed yesterday might merge with another, split, or disappear as your collection grows.</p>
+  </div>
+
+  <h2>How themes are generated</h2>
+
+  <ol class="steps">
+    <li>
+      <div>
+        <p><strong>Embeddings are generated</strong> — the background worker picks up newly captured entries (batches of 5, every 10 seconds) and calls Ollama (<code>nomic-embed-text</code>) to produce a 768-dimensional vector for each entry.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>Clustering triggers</strong> — after every 5 new embeddings in a session, clustering runs automatically. It requires at least 4 entries with embeddings.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>k-means++ clustering</strong> — the number of clusters is chosen automatically: <code>k = round(√(n/2))</code>, clamped between 2 and 20 (where <em>n</em> is the number of embedded entries).</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p><strong>LLM summaries</strong> — Neurologue sends the top 5 entries from each cluster to Phi-3 Mini and asks for a short summary. This becomes the theme description. If Ollama is unavailable, themes are still created but show "No summary yet" until Ollama comes back.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h2>Timing expectations</h2>
+
+  <table>
+    <thead><tr><th>Event</th><th>When it happens</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Entry saved</td>
+        <td>Immediately after pressing <kbd>Ctrl</kbd>+<kbd>Enter</kbd> in the popup</td>
+      </tr>
+      <tr>
+        <td>Embedding generated</td>
+        <td>Within ~10 seconds of saving (next worker poll cycle)</td>
+      </tr>
+      <tr>
+        <td>Themes generated</td>
+        <td>After 5 new embeddings in the current session AND at least 4 total embedded entries</td>
+      </tr>
+      <tr>
+        <td>Theme summaries</td>
+        <td>Shortly after clustering, if Ollama is running and <code>phi3:mini</code> is pulled</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <p><strong>There is currently no visible indicator</strong> that the background worker is running or that clustering is in progress. If themes don't appear, check that Ollama is running and you have at least 4 captured entries. See <a href="troubleshooting.html">Troubleshooting</a>.</p>
+  </div>
+
+  <h2>Viewing themes</h2>
+  <p>
+    Themes appear in the <strong>Themes</strong> section of the left sidebar in the library. Each theme is listed by name (e.g. "Theme 1", "Theme 2").
+  </p>
+  <p>Click a theme to open the theme detail panel on the right, which shows:</p>
+  <ul>
+    <li><strong>Theme name</strong></li>
+    <li><strong>Summary</strong> — the LLM-generated description, or a placeholder if not yet generated</li>
+    <li><strong>Member entries</strong> — up to 20 entries from the cluster, sorted by similarity score (how close each entry is to the cluster centre). Click any entry to jump to its full detail view.</li>
+  </ul>
+
+  <h2>Understanding the similarity score</h2>
+  <p>
+    Each entry in a theme has a <strong>score</strong> — the cosine similarity between that entry's embedding and the cluster centroid. A score of <code>1.00</code> would mean the entry is the perfect centre of the theme. Scores closer to <code>0</code> mean the entry is a weaker match but still closest to that cluster compared to all others.
+  </p>
+
+  <h3>Cluster count heuristic</h3>
+  <p>
+    The number of themes is set automatically using the formula <code>k = round(√(n/2))</code> where <em>n</em> is the total number of embedded entries. This means:
+  </p>
+  <table>
+    <thead><tr><th>Embedded entries</th><th>Themes created</th></tr></thead>
+    <tbody>
+      <tr><td>4–7</td><td>2</td></tr>
+      <tr><td>8–17</td><td>2–3</td></tr>
+      <tr><td>18–31</td><td>3–4</td></tr>
+      <tr><td>50</td><td>5</td></tr>
+      <tr><td>200</td><td>10</td></tr>
+      <tr><td>800+</td><td>20 (maximum)</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>

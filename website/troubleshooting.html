@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Troubleshooting — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">Neurologue</a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="export.html">Export</a>
+      <a href="troubleshooting.html" class="active">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Troubleshooting</h1>
+  <p class="page-subtitle">Solutions to the most common issues.</p>
+
+  <h2>Ollama is not running</h2>
+
+  <p><strong>Symptoms:</strong> Semantic search shows "Ollama not available — showing text results instead". Themes never appear. No embeddings are generated.</p>
+
+  <h3>Check if Ollama is running</h3>
+  <p>Open a terminal and run:</p>
+  <pre><code>curl http://127.0.0.1:11434/api/tags</code></pre>
+  <p>If you get a JSON response listing your models, Ollama is running. If you get a connection error, it's not.</p>
+
+  <h3>Start Ollama</h3>
+  <p>On Windows, Ollama runs as a system tray application. Look for it in the system tray near the clock. If it's not there, launch it from the Start menu or run:</p>
+  <pre><code>ollama serve</code></pre>
+
+  <h3>Pull the required models</h3>
+  <p>If Ollama is running but models are missing:</p>
+  <pre><code>ollama pull nomic-embed-text
+ollama pull phi3:mini</code></pre>
+
+  <div class="callout">
+    <p><code>nomic-embed-text</code> is required for embeddings and semantic search. <code>phi3:mini</code> is only needed for theme summaries — themes will still be created without it, just without the LLM description.</p>
+  </div>
+
+  <h2>No themes appearing</h2>
+
+  <p><strong>Cause:</strong> Themes require at least 4 entries to have been embedded, and clustering only runs after every 5 new embeddings in the current session.</p>
+
+  <h3>Check your entry count</h3>
+  <p>The entry count is shown in the top toolbar. You need at least 4 entries captured.</p>
+
+  <h3>Wait for embeddings</h3>
+  <p>
+    The background worker runs every 10 seconds and processes entries in batches of 5. If you've just started the app with many unembedded entries, it may take a minute or two to embed them all. Embeddings require Ollama to be running.
+  </p>
+
+  <h3>Trigger clustering manually (developer option)</h3>
+  <p>If you have 4+ embedded entries but no themes, open the DevTools console (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> in the library window) and run:</p>
+  <pre><code>await window.neurologue.triggerClustering()</code></pre>
+
+  <h2>Semantic search not working</h2>
+
+  <p><strong>Symptom:</strong> A yellow notice appears: "Ollama not available — showing text results instead."</p>
+  <p>This means Ollama was not reachable when you ran the search. The app falls back to text search automatically.</p>
+  <ul>
+    <li>Ensure Ollama is running (see above).</li>
+    <li>Ensure the <code>nomic-embed-text</code> model is pulled: <code>ollama list</code> should show it.</li>
+    <li>Try the search again — if Ollama just started, it may need a moment to be ready.</li>
+  </ul>
+
+  <h2>Theme summaries show "No summary yet"</h2>
+
+  <p>This means clustering ran successfully but the LLM summary step couldn't complete. This happens when:</p>
+  <ul>
+    <li><code>phi3:mini</code> is not pulled yet — run <code>ollama pull phi3:mini</code></li>
+    <li>Ollama was unavailable or slow at the time clustering ran — summaries will be generated the next time clustering runs</li>
+  </ul>
+
+  <h2>Entries saved but not appearing in library</h2>
+
+  <p>The library loads entries when the window opens. If you captured an entry while the library was already open, it should appear immediately. If it doesn't:</p>
+  <ul>
+    <li>Check the entry count in the toolbar — it updates in real time.</li>
+    <li>If you have an active tag filter or search query, the new entry may be filtered out. Click <strong>All entries</strong> in the sidebar to clear filters.</li>
+  </ul>
+
+  <h2>Hotkey not working</h2>
+
+  <ul>
+    <li>Ensure Neurologue is running (check the taskbar or system tray).</li>
+    <li>The hotkey is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>. Another application may have registered the same combination — check for conflicts in your OS keyboard settings or other running apps.</li>
+  </ul>
+
+  <h2>Data location</h2>
+  <p>Neurologue stores all data under your OS user data directory:</p>
+  <table>
+    <thead><tr><th>OS</th><th>Path</th></tr></thead>
+    <tbody>
+      <tr><td>Windows</td><td><code>%APPDATA%\Neurologue\</code></td></tr>
+      <tr><td>macOS</td><td><code>~/Library/Application Support/Neurologue/</code></td></tr>
+      <tr><td>Linux</td><td><code>~/.config/Neurologue/</code></td></tr>
+    </tbody>
+  </table>
+  <p>Inside you'll find <code>neurologue.db</code> (SQLite) and <code>vector-store/</code> (LanceDB).</p>
+
+  <div class="callout danger">
+    <p><strong>Do not delete the data folder</strong> unless you want to start fresh. There is currently no built-in backup — use <a href="export.html">Export</a> to take snapshots of your data.</p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>

@@ -33,6 +33,7 @@ const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
 const exportBtn     = document.getElementById('btn-export');
 const exportToast   = document.getElementById('export-toast');
+const helpBtn       = document.getElementById('btn-help');
 const semanticNotice = document.getElementById('semantic-notice');
 
 // ── Utilities ──────────────────────────────────────────────────────────────
@@ -361,6 +362,10 @@ exportBtn.addEventListener('click', async () => {
     exportBtn.disabled = false;
     exportBtn.textContent = 'Export…';
   }
+});
+
+helpBtn.addEventListener('click', () => {
+  window.neurologue.openHelp();
 });
 
 // ── Init ───────────────────────────────────────────────────────────────────

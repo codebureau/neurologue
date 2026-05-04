@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Capture — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">Neurologue</a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html" class="active">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="export.html">Export</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Capture</h1>
+  <p class="page-subtitle">Capture any thought in under two seconds, without leaving what you're doing.</p>
+
+  <h2>Global hotkey</h2>
+  <p>
+    Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> from anywhere on your desktop — even when Neurologue is in the background or minimised. A small floating popup appears instantly on top of your current window.
+  </p>
+
+  <div class="callout">
+    <p>The hotkey is registered globally when Neurologue is running. You don't need to switch to the app first.</p>
+  </div>
+
+  <h2>The capture popup</h2>
+  <p>The popup is a compact 560×260px window with two fields:</p>
+
+  <table>
+    <thead><tr><th>Field</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Content</strong></td>
+        <td>The main text area. Accepts multi-line input. Spellcheck is enabled. This field is automatically focused when the popup opens.</td>
+      </tr>
+      <tr>
+        <td><strong>Tags</strong></td>
+        <td>Optional comma-separated tags, e.g. <code>work, ideas, todo</code>. Whitespace around each tag is trimmed automatically.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Keyboard shortcuts</h2>
+
+  <table>
+    <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd></td><td>Open the capture popup (global)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Save the entry and close the popup</td></tr>
+      <tr><td><kbd>Escape</kbd></td><td>Dismiss the popup without saving</td></tr>
+    </tbody>
+  </table>
+
+  <p>The popup also closes automatically if you click anywhere outside it.</p>
+
+  <h2>What gets saved</h2>
+  <p>Each captured entry is stored with the following metadata automatically:</p>
+
+  <table>
+    <thead><tr><th>Field</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td><code>content</code></td><td>Your text</td></tr>
+      <tr><td><code>tags</code></td><td>Parsed from the tags field</td></tr>
+      <tr><td><code>source</code></td><td><code>manual</code></td></tr>
+      <tr><td><code>type</code></td><td><code>note</code></td></tr>
+      <tr><td><code>created_at</code></td><td>Current timestamp (UTC)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>After capture</h2>
+  <p>
+    Once saved, the entry appears immediately in your <a href="library.html">Library</a>. The background worker will pick it up within 10 seconds and generate a vector embedding. You don't need to do anything — this happens silently.
+  </p>
+
+  <div class="callout warning">
+    <p><strong>Ollama must be running</strong> for embeddings to be generated. If Ollama isn't available, the entry is still saved and will be embedded the next time Ollama is running and the worker picks it up.</p>
+  </div>
+
+  <h3>Tips for good entries</h3>
+  <ul>
+    <li>Write naturally — semantic search works on meaning, not keywords, so there's no need to craft perfectly worded entries.</li>
+    <li>Tags are optional but useful for quick filtering. Use them for categories (<code>work</code>, <code>health</code>) or status (<code>todo</code>, <code>idea</code>).</li>
+    <li>Short fragments and half-formed thoughts are fine. The system clusters similar entries into themes, so even brief notes contribute to patterns over time.</li>
+  </ul>
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>

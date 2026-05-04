@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Export — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">Neurologue</a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="export.html" class="active">Export</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Export</h1>
+  <p class="page-subtitle">Export your entire knowledge base to portable files for use with external AI tools.</p>
+
+  <h2>Running an export</h2>
+
+  <ol class="steps">
+    <li>
+      <div><p>Click the <strong>Export…</strong> button in the top-right of the library toolbar.</p></div>
+    </li>
+    <li>
+      <div><p>A native folder picker opens. Choose an existing folder or create a new one.</p></div>
+    </li>
+    <li>
+      <div><p>Neurologue writes all five output files to that folder. A <strong>toast notification</strong> at the bottom-right of the window confirms success, showing the entry and theme counts and the destination path.</p></div>
+    </li>
+  </ol>
+
+  <div class="callout">
+    <p>Exports are non-destructive — they copy data out of Neurologue's database. Nothing in the app is modified or deleted.</p>
+  </div>
+
+  <h2>Output files</h2>
+
+  <table>
+    <thead><tr><th>File</th><th>Format</th><th>Contents</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>entries.json</code></td>
+        <td>JSON array</td>
+        <td>All entries with <code>id</code>, <code>content</code>, <code>source</code>, <code>type</code>, <code>created_at</code>, and <code>tags</code> (array of strings)</td>
+      </tr>
+      <tr>
+        <td><code>entries.md</code></td>
+        <td>Markdown</td>
+        <td>All entries formatted as a single Markdown document — H2 per entry with content, tags, and metadata</td>
+      </tr>
+      <tr>
+        <td><code>themes.json</code></td>
+        <td>JSON array</td>
+        <td>All themes with <code>id</code>, <code>name</code>, <code>summary</code>, and <code>entries</code> (array of <code>{ entry_id, score }</code>)</td>
+      </tr>
+      <tr>
+        <td><code>themes.md</code></td>
+        <td>Markdown</td>
+        <td>All themes formatted as a Markdown document — H2 per theme with summary and member entries</td>
+      </tr>
+      <tr>
+        <td><code>embeddings.jsonl</code></td>
+        <td>JSONL (one object per line)</td>
+        <td>All entry embeddings: <code>{ entry_id, model_name, vector: [768 floats] }</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Using the export with external AI tools</h2>
+
+  <h3>NotebookLM (Google)</h3>
+  <p>
+    Upload <code>entries.md</code> and/or <code>themes.md</code> as sources in a new notebook. NotebookLM can then answer questions about your captured thoughts, generate summaries, and find connections — with citations back to the original entries.
+  </p>
+
+  <h3>Claude (Anthropic)</h3>
+  <p>
+    Paste or upload <code>entries.md</code> directly into a conversation. Claude handles large documents well. Ask it to find patterns, summarise by theme, or identify contradictions or open questions in your notes.
+  </p>
+
+  <h3>GitHub Copilot / ChatGPT</h3>
+  <p>
+    Upload <code>entries.json</code> for structured analysis, or <code>entries.md</code> for readability. Useful for asking "what are the recurring ideas in this?" or "what have I been thinking about work lately?".
+  </p>
+
+  <h3>Custom pipelines</h3>
+  <p>
+    <code>embeddings.jsonl</code> contains the raw vectors in a standard format. You can import these directly into other vector stores (Chroma, Pinecone, Weaviate, etc.) to build your own retrieval pipelines on top of your Neurologue data.
+  </p>
+  <p>Example entry from <code>embeddings.jsonl</code>:</p>
+  <pre><code>{"entry_id": "abc123...", "model_name": "nomic-embed-text", "vector": [0.021, -0.014, ...]}</code></pre>
+
+  <h2>Export scope</h2>
+  <p>
+    Each export captures a <strong>full snapshot</strong> of all entries, themes, and embeddings at the time of export. There is currently no incremental or scheduled export — run it manually whenever you want a fresh copy.
+  </p>
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>
