@@ -382,8 +382,10 @@ function updateStatus({ worker, ollama } = {}) {
       : 'Ollama not running';
     statusOllama.innerHTML = `<span class="status-dot ${dot}"></span>${label}`;
 
-    const stopBtn = document.getElementById('btn-stop-ollama');
-    if (stopBtn) stopBtn.classList.toggle('hidden', !ollama.running);
+    const stopBtn  = document.getElementById('btn-stop-ollama');
+    const startBtn = document.getElementById('btn-start-ollama-bar');
+    if (stopBtn)  stopBtn.classList.toggle('hidden', !ollama.running);
+    if (startBtn) startBtn.classList.toggle('hidden', ollama.running);
   }
   if (worker) {
     const processing = worker.queueLength > 0;
@@ -552,9 +554,22 @@ document.getElementById('btn-stop-ollama').addEventListener('click', async () =>
     await new Promise((r) => setTimeout(r, 500));
     const status = await window.neurologue.getStatus();
     updateStatus(status);
-    if (!status.ollama.running) {
-      showSetupModal('start');
-    }
+    // Don't show the setup modal — the user deliberately stopped Ollama.
+    // The status bar now shows "Ollama not running"; they can restart anytime.
+  }
+});
+
+document.getElementById('btn-start-ollama-bar').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-start-ollama-bar');
+  btn.disabled = true;
+  btn.textContent = 'Starting…';
+  const result = await window.neurologue.startOllama();
+  btn.textContent = 'Start';
+  btn.disabled = false;
+  if (result.ok) {
+    const status = await window.neurologue.getStatus();
+    updateStatus(status);
+    await runModelCheck(status);
   }
 });
 
