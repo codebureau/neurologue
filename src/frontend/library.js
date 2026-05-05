@@ -35,6 +35,8 @@ const exportBtn     = document.getElementById('btn-export');
 const exportToast   = document.getElementById('export-toast');
 const helpBtn       = document.getElementById('btn-help');
 const semanticNotice = document.getElementById('semantic-notice');
+const statusOllama  = document.getElementById('status-ollama');
+const statusWorker  = document.getElementById('status-worker');
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -368,10 +370,45 @@ helpBtn.addEventListener('click', () => {
   window.neurologue.openHelp();
 });
 
-// ── Init ───────────────────────────────────────────────────────────────────
+// ── Status bar ──────────────────────────────────────────────────────
+
+function updateStatus({ worker, ollama } = {}) {
+  if (ollama) {
+    const dot = ollama.running ? 'active' : '';
+    const label = ollama.running
+      ? `Ollama — ${ollama.availableModels.join(', ') || 'no models'}`
+      : 'Ollama not running';
+    statusOllama.innerHTML = `<span class="status-dot ${dot}"></span>${label}`;
+  }
+  if (worker) {
+    const processing = worker.queueLength > 0;
+    const dot = processing ? 'processing' : (worker.running ? 'active' : '');
+    let label;
+    if (!worker.running) {
+      label = 'Worker stopped';
+    } else if (processing) {
+      label = `Processing (${worker.queueLength} queued)`;
+    } else if (worker.lastProcessed) {
+      const d = new Date(worker.lastProcessed);
+      const ts = d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      label = `Worker idle — last: ${ts}`;
+    } else {
+      label = 'Worker idle';
+    }
+    statusWorker.innerHTML = `<span class="status-dot ${dot}"></span>${label}`;
+  }
+}
+
+window.neurologue.onWorkerStatus(updateStatus);
+window.neurologue.onEntriesUpdated(() => { loadEntries(); loadTags(); });
+window.neurologue.onThemesUpdated(() => loadThemes());
+
+// ── Init ────────────────────────────────────────────────────────────
 
 (async () => {
   await loadTags();
   await loadThemes();
   await loadEntries();
+  // Fetch initial status (worker + Ollama) before first push event arrives
+  window.neurologue.getStatus().then(updateStatus).catch(() => {});
 })();

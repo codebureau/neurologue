@@ -104,6 +104,44 @@
   <p>
     Below the tag list is a <strong>Themes</strong> section. This lists all auto-generated theme clusters. Click any theme to open its detail view in the right panel. See the <a href="themes.html">Themes</a> section for more.
   </p>
+
+  <h2>Status bar</h2>
+  <p>
+    A thin bar at the bottom of the window shows live status for Ollama and the background worker. It updates automatically — you never need to refresh or restart the app to see current state.
+  </p>
+
+  <h3>Indicators</h3>
+  <p>Each indicator has a coloured dot followed by a short description:</p>
+  <table>
+    <thead><tr><th>Dot colour</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Teal</strong></td><td>Running / active — Ollama is reachable, or the worker is running and idle</td></tr>
+      <tr><td><strong>Gold</strong></td><td>Processing — the worker is currently embedding entries</td></tr>
+      <tr><td><strong>Dim grey</strong></td><td>Stopped / not reachable — Ollama is not running, or the worker has stopped</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Ollama indicator</h3>
+  <p>Shows one of:</p>
+  <ul>
+    <li><strong>Ollama — nomic-embed-text:latest, phi3:mini</strong> (teal dot) — Ollama is running and those models are available</li>
+    <li><strong>Ollama not running</strong> (grey dot) — Ollama is not reachable; semantic search and embedding will not work</li>
+  </ul>
+
+  <h3>Worker indicator</h3>
+  <p>Shows one of:</p>
+  <ul>
+    <li><strong>Processing (N queued)</strong> (gold dot) — the background worker is actively embedding entries; N is how many remain</li>
+    <li><strong>Worker idle — last: Mon DD HH:MM</strong> (teal dot) — all entries are embedded; shows when the last one was processed</li>
+    <li><strong>Worker idle</strong> (teal dot) — running but no entries have been embedded yet in this session</li>
+    <li><strong>Worker stopped</strong> (grey dot) — the worker is not running</li>
+  </ul>
+
+  <h3>Auto-refresh</h3>
+  <p>
+    When the worker finishes embedding new entries, the timeline and tag list refresh automatically — you will see newly captured entries appear without any manual action.
+    When clustering completes and new themes are generated, the themes sidebar also refreshes automatically.
+  </p>
 </main>
 
 <footer class="site-footer">

@@ -20,5 +20,11 @@ contextBridge.exposeInMainWorld('neurologue', {
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
+
+  // ── Status ───────────────────────────────────────────────────────────────
+  getStatus: () => ipcRenderer.invoke('status:get'),
+  onWorkerStatus:     (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },
+  onEntriesUpdated:   (cb) => { ipcRenderer.on('worker:entries-updated',  (_e, d) => cb(d)); },
+  onThemesUpdated:    (cb) => { ipcRenderer.on('worker:themes-updated',   (_e, d) => cb(d)); },
 });
 

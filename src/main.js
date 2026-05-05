@@ -15,15 +15,18 @@ const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/t
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey } = require('./capture/hotkey');
-const { startWorker, stopWorker } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus } = require('./worker/index');
+const { getOllamaStatus } = require('./worker/ollama');
 
 async function initialise() {
   await runMigrations();
   await initVectorStore();
 }
 
+let _mainWindow = null;
+
 function createMainWindow() {
-  const win = new BrowserWindow({
+  _mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
@@ -33,7 +36,8 @@ function createMainWindow() {
     },
   });
 
-  win.loadFile(path.join(__dirname, 'frontend', 'index.html'));
+  _mainWindow.loadFile(path.join(__dirname, 'frontend', 'index.html'));
+  _mainWindow.on('closed', () => { _mainWindow = null; });
 }
 
 // IPC: renderer sends { content, tags } → main writes to DB
@@ -146,12 +150,24 @@ app.whenReady().then(async () => {
   createMainWindow();
   registerCaptureHotkey();
   startWorker();
+  // Wire the worker to push IPC events to the library window once it is ready
+  _mainWindow.webContents.on('did-finish-load', () => {
+    setMainWindow(_mainWindow.webContents);
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
     }
   });
+});
+
+// ── Status IPC ────────────────────────────────────────────────────────────
+
+// Renderer calls this on startup to get initial status before the first push
+ipcMain.handle('status:get', async () => {
+  const ollama = await getOllamaStatus();
+  return { worker: workerStatus(), ollama };
 });
 
 app.on('window-all-closed', () => {

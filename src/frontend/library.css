@@ -443,3 +443,29 @@ html, body {
 }
 #export-toast.success { border-color: var(--cortex-teal); color: var(--cortex-teal); }
 #export-toast.error   { border-color: var(--danger);      color: var(--danger); }
+
+/* ── Status bar ───────────────────────────────────────────────────────── */
+#status-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--neuro-blue);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+  background: var(--text-dim);
+}
+.status-dot.active     { background: var(--cortex-teal); }
+.status-dot.processing { background: var(--synapse-gold); }
