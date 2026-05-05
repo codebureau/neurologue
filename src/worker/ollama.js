@@ -8,9 +8,12 @@
  */
 
 const http   = require('http');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const config = require('../config');
 const { getSettings } = require('../backend/settings');
+
+/** Tracks the Ollama process we started (null if not started by us). */
+let _ollamaProcess = null;
 
 /**
  * Send a JSON request to the Ollama API.
@@ -228,4 +231,75 @@ function pullModel(name, onProgress) {
   });
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel };
+/**
+ * Start the Ollama server by spawning `ollama serve` in the background.
+ * Resolves quickly; the caller should poll isOllamaAvailable() to confirm readiness.
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+function startOllama() {
+  return new Promise((resolve) => {
+    if (_ollamaProcess) {
+      resolve({ ok: true });
+      return;
+    }
+    try {
+      const proc = spawn('ollama', ['serve'], {
+        detached: false,
+        stdio: 'ignore',
+        windowsHide: true,
+      });
+      let resolved = false;
+      _ollamaProcess = proc;
+      proc.on('error', (err) => {
+        _ollamaProcess = null;
+        if (!resolved) { resolved = true; resolve({ ok: false, error: err.message }); }
+      });
+      proc.on('exit', (code) => {
+        _ollamaProcess = null;
+        if (!resolved) { resolved = true; resolve({ ok: false, error: `ollama exited with code ${code}` }); }
+      });
+      // Give the process one event-loop tick to fail fast; then assume it started ok
+      setImmediate(() => {
+        if (!resolved) { resolved = true; resolve({ ok: true }); }
+      });
+    } catch (err) {
+      resolve({ ok: false, error: err.message });
+    }
+  });
+}
+
+/**
+ * Stop the Ollama server.
+ * If Neurologue started it, the tracked process is killed.
+ * Otherwise an OS-level kill command is used.
+ * @returns {Promise<{ok: boolean, error?: string}>}
+ */
+function stopOllama() {
+  return new Promise((resolve) => {
+    if (_ollamaProcess) {
+      try {
+        _ollamaProcess.kill();
+        _ollamaProcess = null;
+        resolve({ ok: true });
+      } catch (err) {
+        _ollamaProcess = null;
+        resolve({ ok: false, error: err.message });
+      }
+      return;
+    }
+    // Not our process — use an OS-level kill
+    const cmd = process.platform === 'win32'
+      ? 'taskkill /F /IM ollama.exe'
+      : 'pkill -x ollama';
+    exec(cmd, { timeout: 5000 }, (err) => {
+      // exit code 1 from pkill means "no process found" — not a real error
+      if (err && err.code !== 1 && !err.killed) {
+        resolve({ ok: false, error: err.message });
+      } else {
+        resolve({ ok: true });
+      }
+    });
+  });
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, startOllama, stopOllama };

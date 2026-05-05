@@ -114,6 +114,14 @@
     Settings are stored in <code>settings.json</code> alongside your database in the app’s user data directory.
   </p>
 
+  <h2>Starting and stopping Ollama</h2>
+  <p>
+    When Ollama is not running, a setup modal appears with a <strong>Start Ollama</strong> button. Clicking it spawns <code>ollama serve</code> in the background and waits until the server is reachable before closing the modal.
+  </p>
+  <p>
+    When Ollama is running, a <strong>Stop</strong> button appears in the status bar at the bottom of the window. This is useful if you want to free VRAM or shut Ollama down without leaving the app.
+  </p>
+
   <h2>Status bar</h2>
   <p>
     A thin bar at the bottom of the window shows live status for Ollama and the background worker. It updates automatically — you never need to refresh or restart the app to see current state.

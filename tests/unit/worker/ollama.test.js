@@ -7,10 +7,10 @@
  */
 
 jest.mock('http', () => ({ request: jest.fn() }));
-jest.mock('child_process', () => ({ exec: jest.fn() }));
+jest.mock('child_process', () => ({ exec: jest.fn(), spawn: jest.fn() }));
 const http = require('http');
-const { exec } = require('child_process');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('../../../src/worker/ollama');
+const { exec, spawn } = require('child_process');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, startOllama, stopOllama } = require('../../../src/worker/ollama');
 
 // ---------------------------------------------------------------------------
 // Helpers to build fake HTTP request/response pairs
@@ -314,5 +314,61 @@ describe('pullModel', () => {
       };
     });
     await expect(pullModel('some-model')).rejects.toThrow('ECONNREFUSED');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// startOllama / stopOllama
+// NOTE: these tests are order-dependent because _ollamaProcess is module-level
+// state. Run in sequence: start → stop (kills ours) → stop (OS kill) → start error
+// ---------------------------------------------------------------------------
+
+describe('startOllama / stopOllama', () => {
+  beforeEach(() => {
+    exec.mockClear();
+    spawn.mockClear();
+  });
+
+  test('startOllama: resolves ok when spawn succeeds', async () => {
+    const mockProc = { on: jest.fn(), kill: jest.fn() };
+    spawn.mockReturnValue(mockProc);
+
+    const result = await startOllama();
+
+    expect(result).toEqual({ ok: true });
+    expect(spawn).toHaveBeenCalledWith('ollama', ['serve'], expect.any(Object));
+  });
+
+  test('stopOllama: kills our tracked process without using exec', async () => {
+    // _ollamaProcess was set by the previous test
+    const result = await stopOllama();
+
+    expect(result).toEqual({ ok: true });
+    // Should have used proc.kill(), not the OS exec command
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  test('stopOllama: uses OS kill command when no process tracked', async () => {
+    // _ollamaProcess is now null (cleared by previous stopOllama)
+    exec.mockImplementation((_cmd, _opts, cb) => cb(null, '', ''));
+
+    const result = await stopOllama();
+
+    expect(result).toEqual({ ok: true });
+    expect(exec).toHaveBeenCalled();
+  });
+
+  test('startOllama: returns error when spawn fires error event', async () => {
+    // _ollamaProcess is null (cleared by stopOllama above)
+    const mockProc = { on: jest.fn(), kill: jest.fn() };
+    mockProc.on.mockImplementation((event, handler) => {
+      if (event === 'error') handler(new Error('ENOENT: ollama not found'));
+    });
+    spawn.mockReturnValue(mockProc);
+
+    const result = await startOllama();
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/ENOENT/);
   });
 });

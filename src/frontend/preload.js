@@ -36,5 +36,9 @@ contextBridge.exposeInMainWorld('neurologue', {
   checkOllamaInstalled: ()    => ipcRenderer.invoke('ollama:check-installed'),
   pullModel:           (name) => ipcRenderer.invoke('ollama:pull-model', { name }),
   onPullProgress:      (cb)   => { ipcRenderer.on('ollama:pull-progress', (_e, d) => cb(d)); },
+
+  // ── Ollama runtime control ────────────────────────────────────────────────
+  startOllama: () => ipcRenderer.invoke('ollama:start'),
+  stopOllama:  () => ipcRenderer.invoke('ollama:stop'),
 });
 

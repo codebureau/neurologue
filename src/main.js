@@ -10,7 +10,7 @@ const { listTags } = require('./backend/db/tags');
 const { listEntries } = require('./backend/db/entries');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('./worker/ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, startOllama, stopOllama } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
@@ -195,6 +195,22 @@ ipcMain.handle('ollama:pull-model', async (event, { name }) => {
   } catch (err) {
     return { ok: false, error: err.message };
   }
+});
+
+// Start Ollama — spawns ollama serve, polls until available (up to 8 s)
+ipcMain.handle('ollama:start', async () => {
+  const result = await startOllama();
+  if (!result.ok) return result;
+  for (let i = 0; i < 16; i++) {
+    await new Promise((r) => setTimeout(r, 500));
+    if (await isOllamaAvailable()) return { ok: true };
+  }
+  return { ok: false, error: 'Ollama did not become available within 8 seconds' };
+});
+
+// Stop Ollama — kills our process or uses an OS-level kill
+ipcMain.handle('ollama:stop', async () => {
+  return stopOllama();
 });
 
 app.on('window-all-closed', () => {
