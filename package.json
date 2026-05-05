@@ -74,7 +74,10 @@
     }
   },
   "keywords": [],
-  "author": "Codebureau",
+  "author": {
+    "name": "Codebureau",
+    "email": "neurologue@codebureau.com"
+  },
   "license": "TBD",
   "dependencies": {
     "@lancedb/lancedb": "^0.17.0",
