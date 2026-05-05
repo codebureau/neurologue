@@ -10,8 +10,9 @@ Each roadmap item is written to be convertible into GitHub Issues.
 
 ### 0.2.1 Application Packaging
 - Package Neurologue as a standalone desktop app (Windows/macOS/Linux)
-- Provide installer and portable modes
+- Provide installer and portable modes (NSIS installer + portable ZIP on Windows; DMG + ZIP on macOS; AppImage + deb on Linux)
 - Ensure global hotkey works in packaged builds
+- GitHub Actions workflow builds and attaches artifacts on version tags
 - ~~Add UI to configure global hotkey~~ — delivered in 0.2.3
 
 ### 0.2.2 Ollama Detection & Setup
