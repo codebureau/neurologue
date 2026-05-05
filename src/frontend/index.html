@@ -85,8 +85,6 @@
     <!-- ── Status bar ───────────────────────────────────────────────── -->
     <div id="status-bar">
       <span id="status-ollama"></span>
-      <button id="btn-stop-ollama" class="status-action-btn hidden" title="Stop Ollama">Stop</button>
-      <button id="btn-start-ollama-bar" class="status-action-btn start hidden" title="Start Ollama">Start</button>
       <span id="status-worker"></span>
     </div>
 
@@ -110,8 +108,7 @@
         <div class="setup-icon">⚡</div>
         <h2>Ollama is not running</h2>
         <p>Ollama is installed but not running. Start it to enable semantic search and theme generation.</p>
-        <button class="btn-setup-primary" id="btn-start-ollama">Start Ollama</button>
-        <p class="setup-hint" id="hint-start-ollama">Or start manually from the system tray / Start menu, then click <strong>Check again</strong>.</p>
+        <p class="setup-hint">Launch Ollama from your system tray or Start menu, then click <strong>Check again</strong>.</p>
         <button class="btn-setup-secondary" id="btn-recheck-running">Check again</button>
       </div>
 

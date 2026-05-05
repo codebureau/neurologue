@@ -41,9 +41,7 @@
   <p>If you get a JSON response listing your models, Ollama is running. If you get a connection error, it's not.</p>
 
   <h3>Start Ollama</h3>
-  <p>The easiest way to start Ollama from within Neurologue is to click the <strong>Start Ollama</strong> button in the setup modal. Neurologue will spawn <code>ollama serve</code> in the background and poll until it becomes available.</p>
-  <p>You can also start it manually from the system tray or a terminal:</p>
-  <pre><code>ollama serve</code></pre>
+  <p>On Windows, Ollama runs as a system tray application. Look for it in the system tray near the clock. If it’s not there, launch it from the Start menu. Once it’s running, click <strong>Check again</strong> in the setup modal.</p>
 
   <h3>Pull the required models</h3>
   <p>If Ollama is running but models are missing, the setup modal will appear automatically with a <strong>Pull all missing models</strong> button. Click it to download each model with a live progress bar.</p>
@@ -54,11 +52,6 @@ ollama pull phi3:mini</code></pre>
   <div class="callout">
     <p><code>nomic-embed-text</code> is required for embeddings and semantic search. <code>phi3:mini</code> is only needed for theme summaries — themes will still be created without it, just without the LLM description.</p>
   </div>
-
-  <h2>Stopping Ollama</h2>
-
-  <p>A <strong>Stop</strong> button appears in the status bar at the bottom of the library window whenever Ollama is running. Clicking it will stop the Ollama server. If Neurologue started Ollama, the process it spawned is killed directly; otherwise an OS-level kill command is used (<code>taskkill</code> on Windows, <code>pkill</code> on macOS/Linux).</p>
-  <p>After stopping, the setup modal will appear so you can restart Ollama when you’re ready.</p>
 
   <h2>Changing the embedding or LLM model</h2>
 

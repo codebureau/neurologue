@@ -470,22 +470,6 @@ html, body {
 .status-dot.active     { background: var(--cortex-teal); }
 .status-dot.processing { background: var(--synapse-gold); }
 
-.status-action-btn {
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 3px;
-  color: var(--text-dim);
-  font-size: 10px;
-  padding: 1px 6px;
-  cursor: pointer;
-  line-height: 18px;
-  vertical-align: middle;
-  margin-left: -8px;
-}
-.status-action-btn:hover { border-color: var(--danger); color: var(--danger); }
-.status-action-btn.start:hover { border-color: var(--cortex-teal); color: var(--cortex-teal); }
-.status-action-btn.hidden { display: none; }
-
 /* ── Modals (setup + settings) ───────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
