@@ -375,8 +375,10 @@ helpBtn.addEventListener('click', () => {
 function updateStatus({ worker, ollama } = {}) {
   if (ollama) {
     const dot = ollama.running ? 'active' : '';
+    const loaded = ollama.loadedModels || [];
+    const loadedStr = loaded.length > 0 ? ` · ${loaded.length} active` : '';
     const label = ollama.running
-      ? `Ollama — ${ollama.availableModels.join(', ') || 'no models'}`
+      ? `Ollama — ${ollama.availableModels.join(', ') || 'no models'}${loadedStr}`
       : 'Ollama not running';
     statusOllama.innerHTML = `<span class="status-dot ${dot}"></span>${label}`;
   }

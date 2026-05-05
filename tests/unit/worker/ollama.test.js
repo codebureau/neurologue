@@ -316,3 +316,4 @@ describe('pullModel', () => {
     await expect(pullModel('some-model')).rejects.toThrow('ECONNREFUSED');
   });
 });
+
