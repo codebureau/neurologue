@@ -339,13 +339,15 @@ describe('startOllama / stopOllama', () => {
     expect(spawn).toHaveBeenCalledWith('ollama', ['serve'], expect.any(Object));
   });
 
-  test('stopOllama: kills our tracked process without using exec', async () => {
-    // _ollamaProcess was set by the previous test
+  test('stopOllama: uses OS kill command and clears the tracked process', async () => {
+    // _ollamaProcess was set by the previous test; stopOllama should clear it
+    // and fall through to taskkill/pkill regardless
+    exec.mockImplementation((_cmd, _opts, cb) => cb(null, '', ''));
+
     const result = await stopOllama();
 
     expect(result).toEqual({ ok: true });
-    // Should have used proc.kill(), not the OS exec command
-    expect(exec).not.toHaveBeenCalled();
+    expect(exec).toHaveBeenCalled();
   });
 
   test('stopOllama: uses OS kill command when no process tracked', async () => {

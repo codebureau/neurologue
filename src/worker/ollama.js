@@ -247,6 +247,7 @@ function startOllama() {
         detached: false,
         stdio: 'ignore',
         windowsHide: true,
+        shell: true,  // required on Windows to resolve PATH
       });
       let resolved = false;
       _ollamaProcess = proc;
@@ -276,18 +277,13 @@ function startOllama() {
  */
 function stopOllama() {
   return new Promise((resolve) => {
+    // Clear our reference so startOllama can be called again
     if (_ollamaProcess) {
-      try {
-        _ollamaProcess.kill();
-        _ollamaProcess = null;
-        resolve({ ok: true });
-      } catch (err) {
-        _ollamaProcess = null;
-        resolve({ ok: false, error: err.message });
-      }
-      return;
+      try { _ollamaProcess.kill(); } catch { /* ignore */ }
+      _ollamaProcess = null;
     }
-    // Not our process — use an OS-level kill
+    // Always use an OS-level kill — when started via shell:true, proc.kill()
+    // only kills the shell wrapper, not the ollama process itself.
     const cmd = process.platform === 'win32'
       ? 'taskkill /F /IM ollama.exe'
       : 'pkill -x ollama';
