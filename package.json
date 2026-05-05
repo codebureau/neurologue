@@ -7,7 +7,59 @@
     "start": "electron .",
     "dev": "electron . --dev",
     "test": "jest",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never"
+  },
+  "build": {
+    "appId": "com.codebureau.neurologue",
+    "productName": "Neurologue",
+    "copyright": "Copyright © 2025 Codebureau",
+    "icon": "build/icon.png",
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!**/*.test.js",
+      "!**/__tests__/**",
+      "!**/tests/**"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/@lancedb/**",
+      "**/*.node"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        { "target": "nsis",     "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["x64", "arm64"] },
+        { "target": "zip", "arch": ["x64", "arm64"] }
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb",      "arch": ["x64"] }
+      ],
+      "category": "Office"
+    }
   },
   "jest": {
     "testEnvironment": "node",
