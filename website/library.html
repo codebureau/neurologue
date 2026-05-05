@@ -45,7 +45,7 @@
     <li><strong>Text / Semantic toggle</strong> — switches the search mode (see below).</li>
     <li><strong>Entry count</strong> — shows how many entries match the current view.</li>
     <li><strong>Export…</strong> — opens the <a href="export.html">export</a> workflow.</li>
-    <li><strong>⚙</strong> — opens the <a href="#model-settings">Model settings</a> panel to change which Ollama models are used.</li>
+    <li><strong>⚙</strong> — opens the <a href="#settings">Settings</a> panel to change Ollama models and the capture hotkey.</li>
     <li><strong>Help</strong> — opens this documentation in your browser.</li>
   </ul>
 
@@ -106,9 +106,28 @@
     Below the tag list is a <strong>Themes</strong> section. This lists all auto-generated theme clusters. Click any theme to open its detail view in the right panel. See the <a href="themes.html">Themes</a> section for more.
   </p>
 
-  <h2 id="model-settings">Model settings</h2>
+  <h2 id="settings">Settings</h2>
   <p>
-    Click the <strong>⚙</strong> button in the toolbar to open the Model settings panel. From here you can choose which locally installed Ollama models are used for embeddings and theme summaries. The dropdowns are populated from your available Ollama models; any changes take effect immediately on the next worker tick.
+    Click the <strong>⚙</strong> button in the toolbar to open the Settings panel.
+  </p>
+
+  <h3 id="model-settings">Model settings</h3>
+  <p>
+    Choose which locally installed Ollama models are used for embeddings and theme summaries. The dropdowns are populated from your available Ollama models; any changes take effect immediately on the next worker tick.
+  </p>
+
+  <h3 id="capture-hotkey">Capture hotkey</h3>
+  <p>
+    The <strong>Global shortcut</strong> field shows the current key combination that opens the capture popup from anywhere on your desktop. To change it:
+  </p>
+  <ol>
+    <li>Click the <strong>Change</strong> button next to the hotkey field.</li>
+    <li>The field will show <em>Press keys…</em> — press the combination you want (e.g. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>).</li>
+    <li>The new shortcut appears in the field. Press <kbd>Escape</kbd> or click <strong>Cancel</strong> to discard.</li>
+    <li>Click <strong>Save settings</strong>. If the shortcut is already claimed by another application, a conflict warning is shown and the old shortcut is kept.</li>
+  </ol>
+  <p>
+    The shortcut must include at least one modifier key (Ctrl, Alt, or Shift).
   </p>
   <p>
     Settings are stored in <code>settings.json</code> alongside your database in the app’s user data directory.

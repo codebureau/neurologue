@@ -15,7 +15,7 @@ const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
-const { registerCaptureHotkey } = require('./capture/hotkey');
+const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus } = require('./worker/index');
 // getOllamaStatus and getSettings imported above
 
@@ -152,7 +152,8 @@ ipcMain.handle('export:run', async (_event, { includeEmbeddings = true } = {}) =
 app.whenReady().then(async () => {
   await initialise();
   createMainWindow();
-  registerCaptureHotkey();
+  const { captureHotkey } = getSettings();
+  registerCaptureHotkey(captureHotkey);
   startWorker();
   // Wire the worker to push IPC events to the library window once it is ready
   _mainWindow.webContents.on('did-finish-load', () => {
@@ -178,6 +179,19 @@ ipcMain.handle('status:get', async () => {
 
 ipcMain.handle('settings:get', () => getSettings());
 ipcMain.handle('settings:save', (_e, updates) => saveSettings(updates));
+
+// ── Hotkey IPC ────────────────────────────────────────────────────────────
+
+ipcMain.handle('hotkey:set', (_e, { accelerator }) => {
+  const result = reRegisterCaptureHotkey(accelerator);
+  if (result.ok) saveSettings({ captureHotkey: accelerator });
+  return result;
+});
+
+ipcMain.handle('hotkey:pause',  () => { pauseCaptureHotkey(); });
+ipcMain.handle('hotkey:resume', () => { resumeCaptureHotkey(); });
+
+ipcMain.handle('capture:open',  () => { openCaptureWindow(); });
 
 // ── Ollama setup IPC ───────────────────────────────────────────────────────
 

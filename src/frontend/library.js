@@ -33,6 +33,7 @@ const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
 const exportBtn     = document.getElementById('btn-export');
 const exportToast   = document.getElementById('export-toast');
+const newNoteBtn    = document.getElementById('btn-new-note');
 const helpBtn       = document.getElementById('btn-help');
 const semanticNotice = document.getElementById('semantic-notice');
 const statusOllama  = document.getElementById('status-ollama');
@@ -370,6 +371,10 @@ helpBtn.addEventListener('click', () => {
   window.neurologue.openHelp();
 });
 
+newNoteBtn.addEventListener('click', () => {
+  window.neurologue.openCapture();
+});
+
 // ── Status bar ──────────────────────────────────────────────────────
 
 function updateStatus({ worker, ollama } = {}) {
@@ -526,7 +531,83 @@ document.getElementById('btn-pull-all').addEventListener('click', pullAllMissing
 
 // ── Settings modal ─────────────────────────────────────────────────
 
+// ── Hotkey recorder ─────────────────────────────────────────────────────────
+let _recordingHotkey = false;
+let _pendingHotkey   = null;
+
+const hotkeyDisplay  = document.getElementById('hotkey-display');
+const btnRecord      = document.getElementById('btn-record-hotkey');
+const hotkeyConflict = document.getElementById('hotkey-conflict');
+
+/** Convert a keyboard event to an Electron accelerator string, or null if invalid. */
+function keyEventToAccelerator(e) {
+  if (['Control', 'Shift', 'Alt', 'Meta', 'Command'].includes(e.key)) return null;
+  if (e.key === 'Escape') return null; // Escape cancels recording
+
+  const parts = [];
+  if (e.ctrlKey || e.metaKey) parts.push('CommandOrControl');
+  if (e.altKey)  parts.push('Alt');
+  if (e.shiftKey) parts.push('Shift');
+  if (parts.length === 0) return null; // require at least one modifier
+
+  const KEY_MAP = {
+    ' ': 'Space', 'ArrowUp': 'Up', 'ArrowDown': 'Down',
+    'ArrowLeft': 'Left', 'ArrowRight': 'Right',
+    'Enter': 'Return',
+  };
+  const mapped = KEY_MAP[e.key] ?? (e.key.length === 1 ? e.key.toUpperCase() : e.key);
+  parts.push(mapped);
+  return parts.join('+');
+}
+
+/** Format an Electron accelerator for display (e.g. 'CommandOrControl+Shift+Space' → 'Ctrl+Shift+Space'). */
+function formatAccelerator(acc) {
+  return acc.replace('CommandOrControl', 'Ctrl');
+}
+
+function onHotkeyKeydown(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (e.key === 'Escape') { stopHotkeyRecording(true); return; }
+  const acc = keyEventToAccelerator(e);
+  if (!acc) return;
+  _pendingHotkey = acc;
+  hotkeyDisplay.textContent = formatAccelerator(acc);
+  stopHotkeyRecording(false);
+}
+
+function startHotkeyRecording() {
+  _recordingHotkey = true;
+  hotkeyDisplay.textContent = 'Press keys…';
+  hotkeyDisplay.classList.add('recording');
+  btnRecord.textContent = 'Cancel';
+  btnRecord.classList.add('recording');
+  hotkeyConflict.classList.add('hidden');
+  document.addEventListener('keydown', onHotkeyKeydown, { capture: true });
+}
+
+function stopHotkeyRecording(restore) {
+  _recordingHotkey = false;
+  document.removeEventListener('keydown', onHotkeyKeydown, { capture: true });
+  hotkeyDisplay.classList.remove('recording');
+  btnRecord.textContent = 'Change';
+  btnRecord.classList.remove('recording');
+  if (restore) {
+    // Revert display to the last saved or pending hotkey
+    const current = _pendingHotkey || hotkeyDisplay.dataset.saved || '';
+    hotkeyDisplay.textContent = current ? formatAccelerator(current) : '';
+  }
+}
+
+btnRecord.addEventListener('click', () => {
+  if (_recordingHotkey) stopHotkeyRecording(true);
+  else startHotkeyRecording();
+});
+// ────────────────────────────────────────────────────────────────────────────
+
 btnSettings.addEventListener('click', async () => {
+  _pendingHotkey = null;
+  hotkeyConflict.classList.add('hidden');
   const [settings, status] = await Promise.all([
     window.neurologue.getSettings(),
     window.neurologue.getStatus(),
@@ -549,16 +630,38 @@ btnSettings.addEventListener('click', async () => {
 
   buildOptions('select-embed-model', available, settings.embeddingModel);
   buildOptions('select-llm-model',   available, settings.llmModel);
+
+  // Populate hotkey display
+  const currentHotkey = settings.captureHotkey || 'CommandOrControl+Shift+Space';
+  hotkeyDisplay.dataset.saved = currentHotkey;
+  hotkeyDisplay.textContent   = formatAccelerator(currentHotkey);
+
   settingsModal.classList.remove('hidden');
+  window.neurologue.pauseHotkey();
 });
 
 document.getElementById('settings-close').addEventListener('click', () => {
+  if (_recordingHotkey) stopHotkeyRecording(true);
   settingsModal.classList.add('hidden');
+  window.neurologue.resumeHotkey();
 });
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
   const embedModel = document.getElementById('select-embed-model').value;
   const llmModel   = document.getElementById('select-llm-model').value;
+
+  // Apply hotkey change first if the user recorded a new one
+  if (_pendingHotkey) {
+    const result = await window.neurologue.setHotkey(_pendingHotkey);
+    if (!result.ok) {
+      hotkeyConflict.classList.remove('hidden');
+      return; // Don't close — let user pick a different shortcut
+    }
+    hotkeyConflict.classList.add('hidden');
+    hotkeyDisplay.dataset.saved = _pendingHotkey;
+    _pendingHotkey = null;
+  }
+
   await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');

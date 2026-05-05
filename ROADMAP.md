@@ -12,7 +12,7 @@ Each roadmap item is written to be convertible into GitHub Issues.
 - Package Neurologue as a standalone desktop app (Windows/macOS/Linux)
 - Provide installer and portable modes
 - Ensure global hotkey works in packaged builds
-- Add UI to configure global hotkey
+- ~~Add UI to configure global hotkey~~ — delivered in 0.2.3
 
 ### 0.2.2 Ollama Detection & Setup
 - Detect whether Ollama is installed
@@ -23,9 +23,10 @@ Each roadmap item is written to be convertible into GitHub Issues.
 
 ### 0.2.3 Ollama Runtime Control
 - Detect whether Ollama is running
-- Start/stop Ollama from within Neurologue
+- ~~Start/stop Ollama from within Neurologue~~ — not supported; Ollama on Windows manages its own lifecycle as a tray application
 - Display model load status and basic resource usage
 - Provide graceful fallback when Ollama is offline
+- Configure global capture hotkey (conflict detection, persisted setting)
 
 ### 0.2.4 Background Worker Visibility
 - Add worker status indicator (online/offline)

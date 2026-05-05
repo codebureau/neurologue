@@ -12,10 +12,11 @@ const app = {
     return os.tmpdir();
   },
   quit: jest.fn(),
+  on:   jest.fn(),
 };
 
 const BrowserWindow = jest.fn();
-const globalShortcut = { register: jest.fn(), unregisterAll: jest.fn() };
+const globalShortcut = { register: jest.fn(), unregister: jest.fn(), unregisterAll: jest.fn() };
 const ipcMain = { handle: jest.fn(), on: jest.fn() };
 
 module.exports = { app, BrowserWindow, globalShortcut, ipcMain };

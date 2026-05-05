@@ -21,7 +21,8 @@
       </div>
       <span id="entry-count"></span>
       <button id="btn-export" class="mode-btn">Export…</button>
-      <button id="btn-settings" class="mode-btn" title="Model settings">⚙</button>
+      <button id="btn-new-note" class="mode-btn btn-new-note" title="New note (Ctrl+Shift+Space)">+ New note</button>
+      <button id="btn-settings" class="mode-btn" title="Settings">⚙</button>
       <button id="btn-help" class="mode-btn">Help</button>
     </div>
 
@@ -126,7 +127,9 @@
   <div id="settings-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <button class="modal-close" id="settings-close" title="Close">✕</button>
-      <h2>Model settings</h2>
+      <h2>Settings</h2>
+
+      <h3 class="settings-section-heading">Model settings</h3>
       <p>Choose which Ollama models Neurologue uses. Only models available in your local Ollama install are shown.</p>
       <div class="settings-field">
         <label for="select-embed-model">Embedding model</label>
@@ -138,6 +141,18 @@
         <select id="select-llm-model"></select>
         <span class="settings-hint">Used to generate human-readable theme descriptions.</span>
       </div>
+
+      <h3 class="settings-section-heading">Capture hotkey</h3>
+      <div class="settings-field">
+        <label>Global shortcut</label>
+        <div class="hotkey-row">
+          <span id="hotkey-display" class="hotkey-display"></span>
+          <button id="btn-record-hotkey" class="btn-record-hotkey">Change</button>
+        </div>
+        <span class="settings-hint">Global shortcut to open the capture popup. Must include at least one modifier key (Ctrl, Alt, Shift).</span>
+        <span class="hotkey-conflict hidden" id="hotkey-conflict">⚠ That shortcut is already claimed by another application.</span>
+      </div>
+
       <div class="settings-actions">
         <button class="btn-setup-primary" id="btn-save-settings">Save settings</button>
         <span class="settings-saved hidden" id="settings-saved-msg">✓ Saved</span>

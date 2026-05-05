@@ -91,6 +91,14 @@ html, body {
 }
 .mode-btn:hover:not(.active) { border-color: var(--cortex-teal); color: var(--text); }
 
+#btn-new-note {
+  background: var(--cortex-teal);
+  border-color: var(--cortex-teal);
+  color: #fff;
+  font-weight: 600;
+}
+#btn-new-note:hover { background: var(--teal-hover, #1ab8a0); border-color: var(--teal-hover, #1ab8a0); color: #fff; }
+
 #entry-count {
   font-size: 12px;
   color: var(--text-dim);
@@ -631,3 +639,54 @@ html, body {
 }
 .settings-saved          { font-size: 12px; color: var(--cortex-teal); }
 .settings-saved.hidden   { display: none; }
+
+/* ── Settings section headings ──────────────────────────────────────────── */
+.settings-section-heading {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-section-heading:first-of-type { margin-top: 8px; }
+
+/* ── Hotkey recorder ────────────────────────────────────────────────────── */
+.hotkey-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hotkey-display {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: monospace;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+}
+.hotkey-display.recording {
+  border-color: var(--cortex-teal);
+  color: var(--text-muted);
+}
+.btn-record-hotkey {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 7px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-record-hotkey:hover { background: var(--surface); }
+.btn-record-hotkey.recording { border-color: var(--cortex-teal); color: var(--cortex-teal); }
+.hotkey-conflict { display: block; font-size: 11px; color: var(--danger); margin-top: 5px; }
+.hotkey-conflict.hidden { display: none; }
