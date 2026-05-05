@@ -10,13 +10,14 @@ const { listTags } = require('./backend/db/tags');
 const { listEntries } = require('./backend/db/entries');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
-const { generateEmbedding, isOllamaAvailable } = require('./worker/ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('./worker/ollama');
+const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus } = require('./worker/index');
-const { getOllamaStatus } = require('./worker/ollama');
+// getOllamaStatus and getSettings imported above
 
 async function initialise() {
   await runMigrations();
@@ -127,7 +128,10 @@ ipcMain.handle('themes:cluster', async () => {
 ipcMain.handle('help:open', () => {
   shell.openExternal('https://codebureau.github.io/neurologue');
 });
-
+// Open the Ollama download page in the system browser
+ipcMain.handle('ollama:open-download', () => {
+  shell.openExternal('https://ollama.ai');
+});
 // ── Export IPC ───────────────────────────────────────────────────────────────
 
 // Show native folder picker and run export to chosen directory
@@ -168,6 +172,29 @@ app.whenReady().then(async () => {
 ipcMain.handle('status:get', async () => {
   const ollama = await getOllamaStatus();
   return { worker: workerStatus(), ollama };
+});
+
+// ── Settings IPC ──────────────────────────────────────────────────────────
+
+ipcMain.handle('settings:get', () => getSettings());
+ipcMain.handle('settings:save', (_e, updates) => saveSettings(updates));
+
+// ── Ollama setup IPC ───────────────────────────────────────────────────────
+
+ipcMain.handle('ollama:check-installed', () => checkOllamaInstalled());
+
+// Pull a model — long-running; streams NDJSON progress back to renderer
+ipcMain.handle('ollama:pull-model', async (event, { name }) => {
+  try {
+    await pullModel(name, (progress) => {
+      if (!event.sender.isDestroyed()) {
+        event.sender.send('ollama:pull-progress', { name, ...progress });
+      }
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
 });
 
 app.on('window-all-closed', () => {

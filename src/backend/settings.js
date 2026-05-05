@@ -1,0 +1,51 @@
+'use strict';
+
+/**
+ * User-editable runtime settings (model choices etc.).
+ *
+ * Persisted as JSON in the app's user-data directory alongside the SQLite DB.
+ * Falls back to hard-coded defaults from config.js when the file is absent.
+ *
+ * All reads are synchronous — the file is tiny and only called from the main
+ * process.  Do not require this module from the renderer.
+ */
+
+const fs   = require('fs');
+const path = require('path');
+const config = require('../config');
+
+const SETTINGS_PATH = config.settings.path;
+
+/** @type {{ embeddingModel: string, llmModel: string }} */
+const DEFAULTS = {
+  embeddingModel: config.ollama.embeddingModel,
+  llmModel:       config.ollama.llmModel,
+};
+
+/**
+ * Read persisted settings, merged over defaults.
+ * Returns defaults when the settings file does not exist or is malformed.
+ * @returns {{ embeddingModel: string, llmModel: string }}
+ */
+function getSettings() {
+  try {
+    const raw = fs.readFileSync(SETTINGS_PATH, 'utf8');
+    return { ...DEFAULTS, ...JSON.parse(raw) };
+  } catch {
+    return { ...DEFAULTS };
+  }
+}
+
+/**
+ * Persist a partial settings update and return the merged result.
+ * @param {Partial<{embeddingModel: string, llmModel: string}>} updates
+ * @returns {{ embeddingModel: string, llmModel: string }}
+ */
+function saveSettings(updates) {
+  const next = { ...getSettings(), ...updates };
+  fs.mkdirSync(path.dirname(SETTINGS_PATH), { recursive: true });
+  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(next, null, 2), 'utf8');
+  return next;
+}
+
+module.exports = { getSettings, saveSettings };

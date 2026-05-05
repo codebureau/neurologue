@@ -14,6 +14,7 @@ const { kmeans, cosineSimilarity } = require('./kmeans');
 const { openDb } = require('../db/connection');
 const { upsertTheme, setThemeEntries, listThemes } = require('../db/themes');
 const { isOllamaAvailable } = require('../../worker/ollama');
+const { getSettings } = require('../settings');
 const config = require('../../config');
 const http = require('http');
 
@@ -134,7 +135,7 @@ async function runClustering() {
 function generateTextCompletion(prompt) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: config.ollama.llmModel,
+      model: getSettings().llmModel,
       prompt,
       stream: false,
     });

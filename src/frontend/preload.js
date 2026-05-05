@@ -26,5 +26,15 @@ contextBridge.exposeInMainWorld('neurologue', {
   onWorkerStatus:     (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },
   onEntriesUpdated:   (cb) => { ipcRenderer.on('worker:entries-updated',  (_e, d) => cb(d)); },
   onThemesUpdated:    (cb) => { ipcRenderer.on('worker:themes-updated',   (_e, d) => cb(d)); },
+
+  // ── Settings ─────────────────────────────────────────────────────────────
+  getSettings:  ()        => ipcRenderer.invoke('settings:get'),
+  saveSettings: (updates) => ipcRenderer.invoke('settings:save', updates),
+
+  // ── Ollama setup ─────────────────────────────────────────────────────────
+  openOllamaDownload:  ()     => ipcRenderer.invoke('ollama:open-download'),
+  checkOllamaInstalled: ()    => ipcRenderer.invoke('ollama:check-installed'),
+  pullModel:           (name) => ipcRenderer.invoke('ollama:pull-model', { name }),
+  onPullProgress:      (cb)   => { ipcRenderer.on('ollama:pull-progress', (_e, d) => cb(d)); },
 });
 

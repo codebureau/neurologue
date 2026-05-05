@@ -7,8 +7,10 @@
  * All requests go to the base URL defined in src/config.js.
  */
 
-const http = require('http');
+const http   = require('http');
+const { exec } = require('child_process');
 const config = require('../config');
+const { getSettings } = require('../backend/settings');
 
 /**
  * Send a JSON request to the Ollama API.
@@ -66,8 +68,9 @@ function ollamaRequest(path, body) {
  * @returns {Promise<Float32Array>}
  */
 async function generateEmbedding(text) {
+  const model = getSettings().embeddingModel;
   const response = await ollamaRequest('/api/embeddings', {
-    model: config.ollama.embeddingModel,
+    model,
     prompt: text,
   });
 
@@ -150,4 +153,79 @@ async function getOllamaStatus() {
   return { running: true, availableModels, loadedModels };
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus };
+/**
+ * Check whether the `ollama` CLI is installed on this machine.
+ * @returns {Promise<{installed: boolean, version: string|null}>}
+ */
+function checkOllamaInstalled() {
+  return new Promise((resolve) => {
+    exec('ollama --version', { timeout: 5000 }, (err, stdout) => {
+      if (err) {
+        resolve({ installed: false, version: null });
+      } else {
+        const match = stdout.match(/(\d+\.\d+\.\d+)/);
+        resolve({ installed: true, version: match ? match[1] : stdout.trim() });
+      }
+    });
+  });
+}
+
+/**
+ * Pull an Ollama model, streaming progress events to the caller.
+ * @param {string} name  e.g. 'nomic-embed-text'
+ * @param {function} [onProgress]  called with each NDJSON progress object
+ * @returns {Promise<void>}
+ */
+function pullModel(name, onProgress) {
+  return new Promise((resolve, reject) => {
+    const url     = new URL(config.ollama.baseUrl);
+    const payload = JSON.stringify({ name, stream: true });
+
+    const req = http.request(
+      {
+        hostname: url.hostname,
+        port: url.port || 11434,
+        path: '/api/pull',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+        },
+      },
+      (res) => {
+        let buf = '';
+        res.on('data', (chunk) => {
+          buf += chunk.toString('utf8');
+          // NDJSON: split on newlines, keep any incomplete tail
+          const lines = buf.split('\n');
+          buf = lines.pop();
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const obj = JSON.parse(line);
+              if (onProgress) onProgress(obj);
+            } catch { /* ignore malformed line */ }
+          }
+        });
+        res.on('end', () => {
+          // Flush any remaining buffer
+          if (buf.trim()) {
+            try {
+              const obj = JSON.parse(buf);
+              if (onProgress) onProgress(obj);
+            } catch { /* ignore */ }
+          }
+          resolve();
+        });
+      }
+    );
+
+    // 5-minute hard cap for large model downloads
+    req.setTimeout(300_000, () => req.destroy(new Error('pullModel timed out after 5 min')));
+    req.on('error', reject);
+    req.write(payload);
+    req.end();
+  });
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel };

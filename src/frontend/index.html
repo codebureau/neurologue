@@ -21,6 +21,7 @@
       </div>
       <span id="entry-count"></span>
       <button id="btn-export" class="mode-btn">Export…</button>
+      <button id="btn-settings" class="mode-btn" title="Model settings">⚙</button>
       <button id="btn-help" class="mode-btn">Help</button>
     </div>
 
@@ -88,6 +89,62 @@
     </div>
 
   </div><!-- /#app -->
+
+  <!-- ── Setup modal (Ollama not installed / not running / models missing) ─── -->
+  <div id="setup-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <button class="modal-close" id="setup-close" title="Skip for now">✕</button>
+
+      <div class="setup-step" id="step-install">
+        <div class="setup-icon">⚡</div>
+        <h2>Ollama is not installed</h2>
+        <p>Neurologue uses Ollama to generate embeddings and theme summaries. Without it, semantic search and themes won’t work — but text search and capture still do.</p>
+        <button class="btn-setup-primary" id="btn-ollama-download">Download Ollama →</button>
+        <p class="setup-hint">After installing, click <strong>Check again</strong>.</p>
+        <button class="btn-setup-secondary" id="btn-recheck-install">Check again</button>
+      </div>
+
+      <div class="setup-step hidden" id="step-start">
+        <div class="setup-icon">⚡</div>
+        <h2>Ollama is not running</h2>
+        <p>Ollama is installed but not running. Start it to enable semantic search and theme generation.</p>
+        <pre class="setup-code">ollama serve</pre>
+        <p class="setup-hint">Or launch Ollama from your system tray / Start menu, then click <strong>Check again</strong>.</p>
+        <button class="btn-setup-secondary" id="btn-recheck-running">Check again</button>
+      </div>
+
+      <div class="setup-step hidden" id="step-models">
+        <div class="setup-icon">📦</div>
+        <h2>Required models not found</h2>
+        <p>Neurologue needs the following Ollama models to be pulled locally. Click <strong>Pull all</strong> to download them now.</p>
+        <div id="model-pull-list"></div>
+        <button class="btn-setup-primary" id="btn-pull-all">Pull all missing models</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Settings modal ────────────────────────────────────────────────────── -->
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <button class="modal-close" id="settings-close" title="Close">✕</button>
+      <h2>Model settings</h2>
+      <p>Choose which Ollama models Neurologue uses. Only models available in your local Ollama install are shown.</p>
+      <div class="settings-field">
+        <label for="select-embed-model">Embedding model</label>
+        <select id="select-embed-model"></select>
+        <span class="settings-hint">Used for semantic search. Changing this will re-embed your entries over time.</span>
+      </div>
+      <div class="settings-field">
+        <label for="select-llm-model">LLM model (theme summaries)</label>
+        <select id="select-llm-model"></select>
+        <span class="settings-hint">Used to generate human-readable theme descriptions.</span>
+      </div>
+      <div class="settings-actions">
+        <button class="btn-setup-primary" id="btn-save-settings">Save settings</button>
+        <span class="settings-saved hidden" id="settings-saved-msg">✓ Saved</span>
+      </div>
+    </div>
+  </div>
 
   <script src="library.js"></script>
 </body>
