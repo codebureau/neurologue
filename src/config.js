@@ -26,6 +26,9 @@ const config = {
     // User-editable runtime preferences (model choices etc.)
     path: path.join(userDataPath, 'settings.json'),
   },
+  hotkey: {
+    capture: 'CommandOrControl+Shift+Space',
+  },
   ollama: {
     baseUrl: 'http://127.0.0.1:11434',
     // Defaults — overridden at runtime by src/backend/settings.js

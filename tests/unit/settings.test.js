@@ -82,3 +82,25 @@ describe('saveSettings', () => {
     expect(fs.existsSync(SETTINGS_FILE)).toBe(true);
   });
 });
+
+describe('captureHotkey default', () => {
+  test('default captureHotkey is a non-empty string', () => {
+    const s = getSettings();
+    expect(typeof s.captureHotkey).toBe('string');
+    expect(s.captureHotkey.length).toBeGreaterThan(0);
+  });
+
+  test('captureHotkey can be saved and retrieved', () => {
+    const result = saveSettings({ captureHotkey: 'CommandOrControl+Shift+N' });
+    expect(result.captureHotkey).toBe('CommandOrControl+Shift+N');
+    expect(getSettings().captureHotkey).toBe('CommandOrControl+Shift+N');
+  });
+
+  test('captureHotkey update preserves other settings', () => {
+    saveSettings({ embeddingModel: 'mxbai-embed-large' });
+    saveSettings({ captureHotkey: 'CommandOrControl+Alt+N' });
+    const s = getSettings();
+    expect(s.embeddingModel).toBe('mxbai-embed-large');
+    expect(s.captureHotkey).toBe('CommandOrControl+Alt+N');
+  });
+});

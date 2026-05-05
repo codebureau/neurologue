@@ -3,7 +3,10 @@
 const { BrowserWindow, globalShortcut, app } = require('electron');
 const path = require('path');
 
-const HOTKEY = 'CommandOrControl+Shift+Space';
+const DEFAULT_HOTKEY = 'CommandOrControl+Shift+Space';
+
+/** Currently registered accelerator — set by registerCaptureHotkey. */
+let _currentHotkey = null;
 
 let _captureWin = null;
 
@@ -61,16 +64,38 @@ function closeCaptureWindow() {
 
 /**
  * Register the global hotkey. Call once after app.whenReady().
+ * @param {string} [accelerator] - Electron accelerator; defaults to DEFAULT_HOTKEY.
  */
-function registerCaptureHotkey() {
-  const registered = globalShortcut.register(HOTKEY, openCaptureWindow);
+function registerCaptureHotkey(accelerator) {
+  _currentHotkey = accelerator || DEFAULT_HOTKEY;
+  const registered = globalShortcut.register(_currentHotkey, openCaptureWindow);
   if (!registered) {
-    console.warn(`[hotkey] Failed to register ${HOTKEY} — it may already be in use by another app.`);
+    console.warn(`[hotkey] Failed to register ${_currentHotkey} — it may already be in use by another app.`);
   }
 
   app.on('will-quit', () => {
-    globalShortcut.unregister(HOTKEY);
+    globalShortcut.unregister(_currentHotkey);
   });
 }
 
-module.exports = { registerCaptureHotkey, openCaptureWindow, closeCaptureWindow };
+/**
+ * Unregister the current hotkey and register a new one.
+ * Returns { ok: true } on success, { ok: false, conflict: true } if the new
+ * shortcut is already claimed by another application.
+ * @param {string} accelerator
+ * @returns {{ ok: boolean, conflict?: boolean }}
+ */
+function reRegisterCaptureHotkey(accelerator) {
+  const prev = _currentHotkey;
+  globalShortcut.unregister(prev);
+  const registered = globalShortcut.register(accelerator, openCaptureWindow);
+  if (registered) {
+    _currentHotkey = accelerator;
+    return { ok: true };
+  }
+  // Conflict — restore the previous hotkey
+  globalShortcut.register(prev, openCaptureWindow);
+  return { ok: false, conflict: true };
+}
+
+module.exports = { registerCaptureHotkey, reRegisterCaptureHotkey, openCaptureWindow, closeCaptureWindow, DEFAULT_HOTKEY };

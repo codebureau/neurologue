@@ -16,10 +16,11 @@ const config = require('../config');
 
 const SETTINGS_PATH = config.settings.path;
 
-/** @type {{ embeddingModel: string, llmModel: string }} */
+/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string }} */
 const DEFAULTS = {
   embeddingModel: config.ollama.embeddingModel,
   llmModel:       config.ollama.llmModel,
+  captureHotkey:  config.hotkey.capture,
 };
 
 /**

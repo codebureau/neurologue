@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Settings ─────────────────────────────────────────────────────────────
   getSettings:  ()        => ipcRenderer.invoke('settings:get'),
   saveSettings: (updates) => ipcRenderer.invoke('settings:save', updates),
+  setHotkey:    (accelerator) => ipcRenderer.invoke('hotkey:set', { accelerator }),
 
   // ── Ollama setup ─────────────────────────────────────────────────────────
   openOllamaDownload:  ()     => ipcRenderer.invoke('ollama:open-download'),
