@@ -98,4 +98,56 @@ function isOllamaAvailable() {
   });
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable };
+/**
+ * GET helper for Ollama (no request body).
+ * @param {string} path
+ * @param {number} timeoutMs
+ * @returns {Promise<object|null>} parsed JSON or null on error/timeout
+ */
+function ollamaGet(path, timeoutMs = 3000) {
+  return new Promise((resolve) => {
+    const url = new URL(config.ollama.baseUrl);
+    const req = http.request(
+      { hostname: url.hostname, port: url.port || 11434, path, method: 'GET' },
+      (res) => {
+        const chunks = [];
+        res.on('data', (c) => chunks.push(c));
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+          } catch {
+            resolve(null);
+          }
+        });
+      }
+    );
+    req.setTimeout(timeoutMs, () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
+/**
+ * Get detailed Ollama runtime status.
+ * @returns {Promise<{running: boolean, availableModels: string[], loadedModels: Array<{name:string,sizeVram:number}>}>}
+ */
+async function getOllamaStatus() {
+  const [tags, ps] = await Promise.all([
+    ollamaGet('/api/tags'),
+    ollamaGet('/api/ps'),
+  ]);
+
+  if (!tags) {
+    return { running: false, availableModels: [], loadedModels: [] };
+  }
+
+  const availableModels = (tags.models || []).map((m) => m.name);
+  const loadedModels = (ps && ps.models ? ps.models : []).map((m) => ({
+    name: m.name,
+    sizeVram: m.size_vram || 0,
+  }));
+
+  return { running: true, availableModels, loadedModels };
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus };

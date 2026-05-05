@@ -8,7 +8,7 @@
 
 jest.mock('http', () => ({ request: jest.fn() }));
 const http = require('http');
-const { generateEmbedding, isOllamaAvailable } = require('../../../src/worker/ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus } = require('../../../src/worker/ollama');
 
 // ---------------------------------------------------------------------------
 // Helpers to build fake HTTP request/response pairs
@@ -147,5 +147,90 @@ describe('isOllamaAvailable', () => {
     mockHttpTimeout();
     const result = await isOllamaAvailable();
     expect(result).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getOllamaStatus
+// ---------------------------------------------------------------------------
+
+/**
+ * Build a mock for a single GET request that returns the given body.
+ * Returns the mock implementation function (for use with mockImplementationOnce).
+ */
+function makeGetMock(statusCode, body) {
+  return (_opts, callback) => {
+    const resHandlers = {};
+    const mockRes = {
+      statusCode,
+      on: jest.fn((event, handler) => { resHandlers[event] = handler; }),
+    };
+    return {
+      setTimeout: jest.fn(),
+      on: jest.fn(),
+      end: jest.fn(() => {
+        callback(mockRes);
+        if (resHandlers.data) {
+          resHandlers.data(Buffer.from(typeof body === 'string' ? body : JSON.stringify(body)));
+        }
+        if (resHandlers.end) resHandlers.end();
+      }),
+    };
+  };
+}
+
+/** Build a connection-error mock for a GET (no callback). */
+function makeGetErrorMock(message) {
+  return () => {
+    const errHandlers = {};
+    return {
+      setTimeout: jest.fn(),
+      on: jest.fn((event, handler) => { errHandlers[event] = handler; }),
+      end: jest.fn(() => {
+        if (errHandlers.error) errHandlers.error(new Error(message));
+      }),
+    };
+  };
+}
+
+describe('getOllamaStatus', () => {
+  test('returns running=true with model lists when Ollama responds', async () => {
+    const tagBody = { models: [{ name: 'nomic-embed-text:latest' }, { name: 'phi3:mini' }] };
+    const psBody  = { models: [{ name: 'phi3:mini', size_vram: 1234567 }] };
+    http.request
+      .mockImplementationOnce(makeGetMock(200, tagBody))
+      .mockImplementationOnce(makeGetMock(200, psBody));
+
+    const result = await getOllamaStatus();
+
+    expect(result.running).toBe(true);
+    expect(result.availableModels).toEqual(['nomic-embed-text:latest', 'phi3:mini']);
+    expect(result.loadedModels).toEqual([{ name: 'phi3:mini', sizeVram: 1234567 }]);
+  });
+
+  test('returns running=true with empty loadedModels when /api/ps returns empty list', async () => {
+    const tagBody = { models: [{ name: 'nomic-embed-text:latest' }] };
+    const psBody  = { models: [] };
+    http.request
+      .mockImplementationOnce(makeGetMock(200, tagBody))
+      .mockImplementationOnce(makeGetMock(200, psBody));
+
+    const result = await getOllamaStatus();
+
+    expect(result.running).toBe(true);
+    expect(result.availableModels).toEqual(['nomic-embed-text:latest']);
+    expect(result.loadedModels).toEqual([]);
+  });
+
+  test('returns running=false when Ollama is not reachable', async () => {
+    http.request
+      .mockImplementationOnce(makeGetErrorMock('connect ECONNREFUSED'))
+      .mockImplementationOnce(makeGetErrorMock('connect ECONNREFUSED'));
+
+    const result = await getOllamaStatus();
+
+    expect(result.running).toBe(false);
+    expect(result.availableModels).toEqual([]);
+    expect(result.loadedModels).toEqual([]);
   });
 });

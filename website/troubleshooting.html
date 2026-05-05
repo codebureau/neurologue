@@ -28,7 +28,7 @@
 
   <h2>Ollama is not running</h2>
 
-  <p><strong>Symptoms:</strong> Semantic search shows "Ollama not available — showing text results instead". Themes never appear. No embeddings are generated.</p>
+  <p><strong>Symptoms:</strong> The status bar at the bottom of the library window shows <strong>Ollama not running</strong> (grey dot). Semantic search shows "Ollama not available — showing text results instead". Themes never appear. No embeddings are generated.</p>
 
   <h3>Check if Ollama is running</h3>
   <p>Open a terminal and run:</p>
@@ -59,6 +59,9 @@ ollama pull phi3:mini</code></pre>
   <p>
     The background worker runs every 10 seconds and processes entries in batches of 5. If you've just started the app with many unembedded entries, it may take a minute or two to embed them all. Embeddings require Ollama to be running.
   </p>
+  <p>
+    Watch the <strong>Worker indicator</strong> in the status bar at the bottom of the window — a gold dot labelled <strong>Processing (N queued)</strong> means embeddings are in progress. Once it turns teal and the themes sidebar auto-refreshes, clustering has completed.
+  </p>
 
   <h3>Trigger clustering manually (developer option)</h3>
   <p>If you have 4+ embedded entries but no themes, open the DevTools console (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> in the library window) and run:</p>
@@ -84,9 +87,10 @@ ollama pull phi3:mini</code></pre>
 
   <h2>Entries saved but not appearing in library</h2>
 
-  <p>The library loads entries when the window opens. If you captured an entry while the library was already open, it should appear immediately. If it doesn't:</p>
+  <p>The timeline refreshes automatically once the background worker has embedded a new entry. If a captured entry is not appearing:</p>
   <ul>
-    <li>Check the entry count in the toolbar — it updates in real time.</li>
+    <li>Check the <strong>Worker indicator</strong> in the status bar — if it shows <strong>Processing</strong>, the worker is still running; wait a moment and the timeline will update on its own.</li>
+    <li>Check the entry count in the toolbar — it updates whenever the timeline refreshes.</li>
     <li>If you have an active tag filter or search query, the new entry may be filtered out. Click <strong>All entries</strong> in the sidebar to clear filters.</li>
   </ul>
 
