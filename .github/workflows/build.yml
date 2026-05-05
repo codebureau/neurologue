@@ -4,7 +4,13 @@ on:
   push:
     tags:
       - 'v*'
+      - '[0-9]*'
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a GitHub Release after building'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # needed to upload release assets
@@ -65,7 +71,7 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref_type == 'tag'
+    if: github.ref_type == 'tag' || inputs.create_release == true
 
     steps:
       - name: Download all artifacts
@@ -74,8 +80,14 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: "Neurologue ${{ github.ref_name }}"
           files: artifacts/**
           generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
