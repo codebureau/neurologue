@@ -80,14 +80,11 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "Neurologue ${{ github.ref_name }}"
-          files: artifacts/**
+          files: artifacts/*
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
