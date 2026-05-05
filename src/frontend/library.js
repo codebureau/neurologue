@@ -403,12 +403,207 @@ window.neurologue.onWorkerStatus(updateStatus);
 window.neurologue.onEntriesUpdated(() => { loadEntries(); loadTags(); });
 window.neurologue.onThemesUpdated(() => loadThemes());
 
+// ── Setup + settings modals ────────────────────────────────────────
+
+const setupModal    = document.getElementById('setup-modal');
+const settingsModal = document.getElementById('settings-modal');
+const btnSettings   = document.getElementById('btn-settings');
+
+function showSetupStep(stepId) {
+  document.querySelectorAll('.setup-step').forEach((el) => el.classList.add('hidden'));
+  document.getElementById(stepId).classList.remove('hidden');
+}
+
+function showSetupModal(step, data = {}) {
+  if (step === 'install') showSetupStep('step-install');
+  if (step === 'start')   showSetupStep('step-start');
+  if (step === 'models') {
+    showSetupStep('step-models');
+    renderModelPullList(data.missing || []);
+  }
+  setupModal.classList.remove('hidden');
+}
+
+function hideSetupModal() { setupModal.classList.add('hidden'); }
+
+// Build the per-model rows in the pull step
+function renderModelPullList(missing) {
+  const list = document.getElementById('model-pull-list');
+  list.innerHTML = '';
+  missing.forEach((name) => {
+    const safeId = name.replace(/[^a-z0-9]/gi, '-');
+    const row = document.createElement('div');
+    row.className = 'model-row';
+    row.innerHTML =
+      `<div class="model-row-header">` +
+      `<span class="model-name">${name}</span>` +
+      `<span class="model-status" id="mstatus-${safeId}">Not pulled</span>` +
+      `</div>` +
+      `<div class="progress-bar-outer hidden" id="mbar-outer-${safeId}">` +
+      `<div class="progress-bar-inner" id="mbar-${safeId}"></div>` +
+      `</div>`;
+    list.appendChild(row);
+  });
+}
+
+// Stream progress from ollama:pull-progress IPC events
+window.neurologue.onPullProgress((progress) => {
+  const safeId    = (progress.name || '').replace(/[^a-z0-9]/gi, '-');
+  const statusEl  = document.getElementById(`mstatus-${safeId}`);
+  const barOuter  = document.getElementById(`mbar-outer-${safeId}`);
+  const barInner  = document.getElementById(`mbar-${safeId}`);
+  if (!statusEl) return;
+
+  if (progress.total && progress.completed !== undefined) {
+    barOuter && barOuter.classList.remove('hidden');
+    const pct = Math.round((progress.completed / progress.total) * 100);
+    if (barInner) barInner.style.width = pct + '%';
+    statusEl.textContent = `Downloading… ${pct}%`;
+  } else if (progress.status === 'success') {
+    barOuter && barOuter.classList.add('hidden');
+    statusEl.textContent = '✓ Ready';
+  } else {
+    statusEl.textContent = progress.status || 'Working…';
+  }
+});
+
+async function pullAllMissing() {
+  const pullAllBtn = document.getElementById('btn-pull-all');
+  const missing = Array.from(
+    document.querySelectorAll('#model-pull-list .model-name')
+  ).map((el) => el.textContent);
+
+  pullAllBtn.disabled    = true;
+  pullAllBtn.textContent = 'Pulling…';
+
+  for (const name of missing) {
+    const result = await window.neurologue.pullModel(name);
+    if (!result.ok) {
+      const safeId = name.replace(/[^a-z0-9]/gi, '-');
+      const statusEl = document.getElementById(`mstatus-${safeId}`);
+      if (statusEl) statusEl.textContent = `Error: ${result.error}`;
+    }
+  }
+
+  pullAllBtn.disabled    = false;
+  pullAllBtn.textContent = 'Pull all missing models';
+
+  const newStatus = await window.neurologue.getStatus();
+  updateStatus(newStatus);
+  hideSetupModal();
+}
+
+document.getElementById('setup-close').addEventListener('click', hideSetupModal);
+
+document.getElementById('btn-ollama-download').addEventListener('click', () => {
+  window.neurologue.openOllamaDownload();
+});
+
+document.getElementById('btn-recheck-install').addEventListener('click', async () => {
+  const result = await window.neurologue.checkOllamaInstalled();
+  if (result.installed) {
+    const status = await window.neurologue.getStatus();
+    updateStatus(status);
+    if (!status.ollama.running) {
+      showSetupModal('start');
+    } else {
+      await runModelCheck(status);
+    }
+  }
+});
+
+document.getElementById('btn-recheck-running').addEventListener('click', async () => {
+  const status = await window.neurologue.getStatus();
+  updateStatus(status);
+  if (status.ollama.running) {
+    await runModelCheck(status);
+  }
+});
+
+document.getElementById('btn-pull-all').addEventListener('click', pullAllMissing);
+
+// ── Settings modal ─────────────────────────────────────────────────
+
+btnSettings.addEventListener('click', async () => {
+  const [settings, status] = await Promise.all([
+    window.neurologue.getSettings(),
+    window.neurologue.getStatus(),
+  ]);
+  const available = status.ollama.availableModels;
+
+  function buildOptions(selectId, models, current) {
+    const select = document.getElementById(selectId);
+    select.innerHTML = '';
+    // Always include the currently configured model even if Ollama is offline
+    const allModels = [...new Set([current, ...models])].filter(Boolean);
+    allModels.forEach((m) => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      opt.selected = (m === current);
+      select.appendChild(opt);
+    });
+  }
+
+  buildOptions('select-embed-model', available, settings.embeddingModel);
+  buildOptions('select-llm-model',   available, settings.llmModel);
+  settingsModal.classList.remove('hidden');
+});
+
+document.getElementById('settings-close').addEventListener('click', () => {
+  settingsModal.classList.add('hidden');
+});
+
+document.getElementById('btn-save-settings').addEventListener('click', async () => {
+  const embedModel = document.getElementById('select-embed-model').value;
+  const llmModel   = document.getElementById('select-llm-model').value;
+  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel });
+  const msg = document.getElementById('settings-saved-msg');
+  msg.classList.remove('hidden');
+  setTimeout(() => msg.classList.add('hidden'), 2000);
+});
+
+// ── Startup setup check ────────────────────────────────────────────
+
+// True if a model name from settings matches one of the available model strings
+function modelAvailable(model, available) {
+  const base = model.split(':')[0];
+  return available.some((a) => a === model || a.split(':')[0] === base);
+}
+
+async function runModelCheck(status) {
+  const settings = await window.neurologue.getSettings();
+  const required = [settings.embeddingModel, settings.llmModel];
+  const missing  = required.filter((m) => !modelAvailable(m, status.ollama.availableModels));
+  if (missing.length > 0) {
+    showSetupModal('models', { missing });
+  } else {
+    hideSetupModal();
+  }
+}
+
+async function runSetupCheck() {
+  try {
+    const status = await window.neurologue.getStatus();
+    updateStatus(status);
+
+    if (!status.ollama.running) {
+      const installed = await window.neurologue.checkOllamaInstalled();
+      showSetupModal(installed.installed ? 'start' : 'install');
+      return;
+    }
+
+    await runModelCheck(status);
+  } catch (err) {
+    console.error('[library] setup check failed:', err);
+  }
+}
+
 // ── Init ────────────────────────────────────────────────────────────
 
 (async () => {
   await loadTags();
   await loadThemes();
   await loadEntries();
-  // Fetch initial status (worker + Ollama) before first push event arrives
-  window.neurologue.getStatus().then(updateStatus).catch(() => {});
+  runSetupCheck(); // checks Ollama install + models, shows modal if needed
 })();

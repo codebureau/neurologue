@@ -26,9 +26,14 @@
   <h1>Troubleshooting</h1>
   <p class="page-subtitle">Solutions to the most common issues.</p>
 
+  <h2>Ollama is not installed</h2>
+
+  <p>When Neurologue starts up, it checks whether Ollama is installed. If it isn’t, a <strong>setup modal</strong> appears automatically with a <strong>Download Ollama</strong> button.</p>
+  <p>Click the button to open <a href="https://ollama.ai" target="_blank" rel="noopener">ollama.ai</a>, install Ollama, then click <strong>Check again</strong> in the modal.</p>
+
   <h2>Ollama is not running</h2>
 
-  <p><strong>Symptoms:</strong> The status bar at the bottom of the library window shows <strong>Ollama not running</strong> (grey dot). Semantic search shows "Ollama not available — showing text results instead". Themes never appear. No embeddings are generated.</p>
+  <p><strong>Symptoms:</strong> The status bar at the bottom of the library window shows <strong>Ollama not running</strong> (grey dot). A setup modal also appears on startup if Ollama is installed but not yet started.</p>
 
   <h3>Check if Ollama is running</h3>
   <p>Open a terminal and run:</p>
@@ -40,12 +45,21 @@
   <pre><code>ollama serve</code></pre>
 
   <h3>Pull the required models</h3>
-  <p>If Ollama is running but models are missing:</p>
+  <p>If Ollama is running but models are missing, the setup modal will appear automatically with a <strong>Pull all missing models</strong> button. Click it to download each model with a live progress bar.</p>
+  <p>You can also pull models manually in a terminal:</p>
   <pre><code>ollama pull nomic-embed-text
 ollama pull phi3:mini</code></pre>
 
   <div class="callout">
     <p><code>nomic-embed-text</code> is required for embeddings and semantic search. <code>phi3:mini</code> is only needed for theme summaries — themes will still be created without it, just without the LLM description.</p>
+  </div>
+
+  <h2>Changing the embedding or LLM model</h2>
+
+  <p>Click the <strong>⚙</strong> (gear) button in the top toolbar to open the <strong>Model settings</strong> panel. The dropdowns are populated from your locally available Ollama models. Choose your preferred models and click <strong>Save settings</strong>.</p>
+
+  <div class="callout warning">
+    <p><strong>Note:</strong> Changing the embedding model means existing entries were embedded with the old model. The background worker will re-embed them over time using the new model. During the transition, semantic search results may be inconsistent.</p>
   </div>
 
   <h2>No themes appearing</h2>

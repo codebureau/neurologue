@@ -7,8 +7,10 @@
  */
 
 jest.mock('http', () => ({ request: jest.fn() }));
+jest.mock('child_process', () => ({ exec: jest.fn() }));
 const http = require('http');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus } = require('../../../src/worker/ollama');
+const { exec } = require('child_process');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('../../../src/worker/ollama');
 
 // ---------------------------------------------------------------------------
 // Helpers to build fake HTTP request/response pairs
@@ -232,5 +234,85 @@ describe('getOllamaStatus', () => {
     expect(result.running).toBe(false);
     expect(result.availableModels).toEqual([]);
     expect(result.loadedModels).toEqual([]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkOllamaInstalled
+// ---------------------------------------------------------------------------
+
+describe('checkOllamaInstalled', () => {
+  test('returns installed=true with version when ollama CLI is found', async () => {
+    exec.mockImplementation((_cmd, _opts, cb) => cb(null, 'ollama version 0.7.1', ''));
+    const result = await checkOllamaInstalled();
+    expect(result.installed).toBe(true);
+    expect(result.version).toBe('0.7.1');
+  });
+
+  test('returns installed=false when ollama CLI is not found', async () => {
+    exec.mockImplementation((_cmd, _opts, cb) => cb(new Error('not found'), '', ''));
+    const result = await checkOllamaInstalled();
+    expect(result.installed).toBe(false);
+    expect(result.version).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// pullModel
+// ---------------------------------------------------------------------------
+
+describe('pullModel', () => {
+  /** Build a streaming NDJSON response mock for /api/pull */
+  function makePullMock(lines) {
+    return (_opts, callback) => {
+      const resHandlers = {};
+      const mockRes = {
+        on: jest.fn((event, handler) => { resHandlers[event] = handler; }),
+      };
+      return {
+        setTimeout: jest.fn(),
+        on: jest.fn(),
+        write: jest.fn(),
+        end: jest.fn(() => {
+          callback(mockRes);
+          for (const line of lines) {
+            if (resHandlers.data) resHandlers.data(Buffer.from(line + '\n'));
+          }
+          if (resHandlers.end) resHandlers.end();
+        }),
+      };
+    };
+  }
+
+  test('resolves successfully and calls onProgress for each NDJSON line', async () => {
+    const lines = [
+      JSON.stringify({ status: 'pulling manifest' }),
+      JSON.stringify({ status: 'pulling abc', total: 1000, completed: 500 }),
+      JSON.stringify({ status: 'success' }),
+    ];
+    http.request.mockImplementation(makePullMock(lines));
+
+    const progress = [];
+    await pullModel('nomic-embed-text', (p) => progress.push(p));
+
+    expect(progress).toHaveLength(3);
+    expect(progress[0].status).toBe('pulling manifest');
+    expect(progress[1].completed).toBe(500);
+    expect(progress[2].status).toBe('success');
+  });
+
+  test('rejects on connection error', async () => {
+    http.request.mockImplementation(() => {
+      const errHandlers = {};
+      return {
+        setTimeout: jest.fn(),
+        on: jest.fn((event, handler) => { errHandlers[event] = handler; }),
+        write: jest.fn(),
+        end: jest.fn(() => {
+          if (errHandlers.error) errHandlers.error(new Error('ECONNREFUSED'));
+        }),
+      };
+    });
+    await expect(pullModel('some-model')).rejects.toThrow('ECONNREFUSED');
   });
 });

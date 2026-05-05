@@ -45,6 +45,7 @@
     <li><strong>Text / Semantic toggle</strong> — switches the search mode (see below).</li>
     <li><strong>Entry count</strong> — shows how many entries match the current view.</li>
     <li><strong>Export…</strong> — opens the <a href="export.html">export</a> workflow.</li>
+    <li><strong>⚙</strong> — opens the <a href="#model-settings">Model settings</a> panel to change which Ollama models are used.</li>
     <li><strong>Help</strong> — opens this documentation in your browser.</li>
   </ul>
 
@@ -103,6 +104,14 @@
   <h2>Theme sidebar</h2>
   <p>
     Below the tag list is a <strong>Themes</strong> section. This lists all auto-generated theme clusters. Click any theme to open its detail view in the right panel. See the <a href="themes.html">Themes</a> section for more.
+  </p>
+
+  <h2 id="model-settings">Model settings</h2>
+  <p>
+    Click the <strong>⚙</strong> button in the toolbar to open the Model settings panel. From here you can choose which locally installed Ollama models are used for embeddings and theme summaries. The dropdowns are populated from your available Ollama models; any changes take effect immediately on the next worker tick.
+  </p>
+  <p>
+    Settings are stored in <code>settings.json</code> alongside your database in the app’s user data directory.
   </p>
 
   <h2>Status bar</h2>

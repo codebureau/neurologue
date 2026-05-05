@@ -15,6 +15,7 @@ const { getEntryById } = require('../backend/db/entries');
 const { upsertVector } = require('../backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus } = require('./ollama');
 const { runClustering } = require('../backend/clustering/themes');
+const { getSettings } = require('../backend/settings');
 const config = require('../config');
 
 const POLL_INTERVAL_MS = 10_000; // check every 10 seconds
@@ -66,8 +67,8 @@ async function processBatch() {
       const entry = await getEntryById(id);
       if (!entry) continue;
 
-      const vector = await generateEmbedding(entry.content);
-      const modelName = config.ollama.embeddingModel;
+      const vector    = await generateEmbedding(entry.content);
+      const modelName = getSettings().embeddingModel;
 
       // Store in SQLite (compact BLOB backup)
       await upsertEmbedding(id, vector, modelName);
