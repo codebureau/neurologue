@@ -98,4 +98,18 @@ function reRegisterCaptureHotkey(accelerator) {
   return { ok: false, conflict: true };
 }
 
-module.exports = { registerCaptureHotkey, reRegisterCaptureHotkey, openCaptureWindow, closeCaptureWindow, DEFAULT_HOTKEY };
+/**
+ * Temporarily unregister the capture hotkey (e.g. while the settings modal is open).
+ */
+function pauseCaptureHotkey() {
+  if (_currentHotkey) globalShortcut.unregister(_currentHotkey);
+}
+
+/**
+ * Re-register the capture hotkey after a pause.
+ */
+function resumeCaptureHotkey() {
+  if (_currentHotkey) globalShortcut.register(_currentHotkey, openCaptureWindow);
+}
+
+module.exports = { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow, closeCaptureWindow, DEFAULT_HOTKEY };

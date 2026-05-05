@@ -33,6 +33,7 @@ const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
 const exportBtn     = document.getElementById('btn-export');
 const exportToast   = document.getElementById('export-toast');
+const newNoteBtn    = document.getElementById('btn-new-note');
 const helpBtn       = document.getElementById('btn-help');
 const semanticNotice = document.getElementById('semantic-notice');
 const statusOllama  = document.getElementById('status-ollama');
@@ -370,6 +371,10 @@ helpBtn.addEventListener('click', () => {
   window.neurologue.openHelp();
 });
 
+newNoteBtn.addEventListener('click', () => {
+  window.neurologue.openCapture();
+});
+
 // ── Status bar ──────────────────────────────────────────────────────
 
 function updateStatus({ worker, ollama } = {}) {
@@ -632,11 +637,13 @@ btnSettings.addEventListener('click', async () => {
   hotkeyDisplay.textContent   = formatAccelerator(currentHotkey);
 
   settingsModal.classList.remove('hidden');
+  window.neurologue.pauseHotkey();
 });
 
 document.getElementById('settings-close').addEventListener('click', () => {
   if (_recordingHotkey) stopHotkeyRecording(true);
   settingsModal.classList.add('hidden');
+  window.neurologue.resumeHotkey();
 });
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {

@@ -15,7 +15,7 @@ const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
-const { registerCaptureHotkey, reRegisterCaptureHotkey } = require('./capture/hotkey');
+const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus } = require('./worker/index');
 // getOllamaStatus and getSettings imported above
 
@@ -187,6 +187,11 @@ ipcMain.handle('hotkey:set', (_e, { accelerator }) => {
   if (result.ok) saveSettings({ captureHotkey: accelerator });
   return result;
 });
+
+ipcMain.handle('hotkey:pause',  () => { pauseCaptureHotkey(); });
+ipcMain.handle('hotkey:resume', () => { resumeCaptureHotkey(); });
+
+ipcMain.handle('capture:open',  () => { openCaptureWindow(); });
 
 // ── Ollama setup IPC ───────────────────────────────────────────────────────
 

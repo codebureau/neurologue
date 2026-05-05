@@ -91,6 +91,14 @@ html, body {
 }
 .mode-btn:hover:not(.active) { border-color: var(--cortex-teal); color: var(--text); }
 
+#btn-new-note {
+  background: var(--cortex-teal);
+  border-color: var(--cortex-teal);
+  color: #fff;
+  font-weight: 600;
+}
+#btn-new-note:hover { background: var(--teal-hover, #1ab8a0); border-color: var(--teal-hover, #1ab8a0); color: #fff; }
+
 #entry-count {
   font-size: 12px;
   color: var(--text-dim);
