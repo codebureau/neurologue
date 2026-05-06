@@ -2,13 +2,53 @@
 
 const { BrowserWindow, globalShortcut, app } = require('electron');
 const path = require('path');
+const fs   = require('fs');
 
 const DEFAULT_HOTKEY = 'CommandOrControl+Shift+Space';
+
+const DEFAULT_BOUNDS  = { width: 560, height: 340 };
+const MIN_BOUNDS      = { width: 440, height: 280 };
 
 /** Currently registered accelerator — set by registerCaptureHotkey. */
 let _currentHotkey = null;
 
 let _captureWin = null;
+
+// ── Bounds persistence ────────────────────────────────────────────────────
+
+function _boundsFile() {
+  try {
+    return path.join(app.getPath('userData'), 'capture-window.json');
+  } catch {
+    return null;
+  }
+}
+
+function _loadBounds() {
+  try {
+    const file = _boundsFile();
+    if (!file) return DEFAULT_BOUNDS;
+    const raw = fs.readFileSync(file, 'utf8');
+    const saved = JSON.parse(raw);
+    return {
+      width:  Math.max(MIN_BOUNDS.width,  Number(saved.width)  || DEFAULT_BOUNDS.width),
+      height: Math.max(MIN_BOUNDS.height, Number(saved.height) || DEFAULT_BOUNDS.height),
+    };
+  } catch {
+    return DEFAULT_BOUNDS;
+  }
+}
+
+function _saveBounds(win) {
+  try {
+    const file = _boundsFile();
+    if (!file || win.isDestroyed()) return;
+    const { width, height } = win.getBounds();
+    fs.writeFileSync(file, JSON.stringify({ width, height }), 'utf8');
+  } catch {
+    // non-fatal
+  }
+}
 
 /**
  * Open (or focus) the capture popup window.
@@ -19,11 +59,15 @@ function openCaptureWindow() {
     return;
   }
 
+  const { width, height } = _loadBounds();
+
   _captureWin = new BrowserWindow({
-    width: 560,
-    height: 260,
+    width,
+    height,
+    minWidth:  MIN_BOUNDS.width,
+    minHeight: MIN_BOUNDS.height,
     frame: false,
-    resizable: false,
+    resizable: true,
     alwaysOnTop: true,
     skipTaskbar: true,
     show: false,
@@ -45,6 +89,14 @@ function openCaptureWindow() {
     // Close the popup if it loses focus (user clicked away)
     if (_captureWin && !_captureWin.isDestroyed()) {
       _captureWin.close();
+    }
+  });
+
+  // Save bounds on every close regardless of how the window is closed
+  // (blur, Escape, Ctrl+Enter save, direct win.close() from IPC, etc.)
+  _captureWin.on('close', () => {
+    if (_captureWin && !_captureWin.isDestroyed()) {
+      _saveBounds(_captureWin);
     }
   });
 
