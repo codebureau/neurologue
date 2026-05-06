@@ -40,7 +40,7 @@
   </p>
 
   <h2>The capture popup</h2>
-  <p>The popup is a compact 560×260px window with two fields:</p>
+  <p>The popup is a compact 560×260px window with two fields and optional Markdown support:</p>
 
   <table>
     <thead><tr><th>Field</th><th>Description</th></tr></thead>
@@ -56,6 +56,36 @@
     </tbody>
   </table>
 
+  <h2 id="markdown">Markdown mode</h2>
+  <p>
+    Tick the <strong>Markdown</strong> checkbox in the footer to enable Markdown formatting. A formatting toolbar appears with shortcuts for common syntax.
+  </p>
+
+  <table>
+    <thead><tr><th>Toolbar button</th><th>Inserts</th></tr></thead>
+    <tbody>
+      <tr><td><strong>B</strong></td><td><code>**bold text**</code></td></tr>
+      <tr><td><em>I</em></td><td><code>*italic text*</code></td></tr>
+      <tr><td><code>`</code></td><td><code>`inline code`</code></td></tr>
+      <tr><td>• ≡</td><td><code>- </code> prefix on selected lines (bullet list)</td></tr>
+      <tr><td>"</td><td><code>&gt; </code> prefix (blockquote)</td></tr>
+      <tr><td>🔗</td><td><code>[link text](https://)</code></td></tr>
+    </tbody>
+  </table>
+
+  <p>
+    Click <strong>Preview</strong> in the toolbar to toggle a rendered preview of your Markdown. The raw text is always what gets saved — the preview is for reference only.
+  </p>
+
+  <div class="callout">
+    <p>Markdown tokens are stored verbatim in the database. The semantic embedding is generated from the raw Markdown text, which means formatting characters (<code>**</code>, <code>#</code> etc.) have minimal impact on search relevance.</p>
+  </div>
+
+  <h2 id="paste-plain">Paste plain text</h2>
+  <p>
+    Click <strong>Paste plain</strong> in the footer to toggle paste-without-formatting mode. When active, any paste into the content or tags field strips rich text and HTML — only the plain text value is inserted. Useful when copying from browsers or Word documents.
+  </p>
+
   <h2>Keyboard shortcuts</h2>
 
   <table>
@@ -64,6 +94,8 @@
       <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd></td><td>Open the capture popup (global)</td></tr>
       <tr><td><kbd>Ctrl</kbd>+<kbd>Enter</kbd></td><td>Save the entry and close the popup</td></tr>
       <tr><td><kbd>Escape</kbd></td><td>Dismiss the popup without saving</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td><td>Bold (Markdown mode only)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>Italic (Markdown mode only)</td></tr>
     </tbody>
   </table>
 

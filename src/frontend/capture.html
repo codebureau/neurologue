@@ -34,7 +34,6 @@
       font-family: var(--font);
       font-size: 14px;
       color: var(--ink);
-      /* Allow the frameless window to be dragged by the title bar area */
       -webkit-app-region: drag;
       user-select: none;
     }
@@ -65,14 +64,68 @@
       flex-shrink: 0;
     }
 
-    .titlebar__label {
-      opacity: 0.85;
+    .titlebar__label { opacity: 0.85; }
+    .titlebar__hint  { opacity: 0.45; font-size: 11px; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: none;
+      align-items: center;
+      gap: 2px;
+      padding: 4px 10px;
+      background: var(--cloud);
+      border-bottom: 1px solid var(--fog);
+      flex-shrink: 0;
+      -webkit-app-region: no-drag;
+      user-select: none;
     }
 
-    .titlebar__hint {
-      opacity: 0.45;
-      font-size: 11px;
+    .toolbar.visible { display: flex; }
+
+    .toolbar__btn {
+      width: 26px;
+      height: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 13px;
+      color: var(--slate);
+      transition: background 0.1s, color 0.1s;
+      padding: 0;
     }
+
+    .toolbar__btn:hover { background: var(--fog); color: var(--ink); }
+    .toolbar__btn.active { background: var(--cortex-teal); color: var(--white); }
+
+    .toolbar__sep {
+      width: 1px;
+      height: 16px;
+      background: var(--fog);
+      margin: 0 4px;
+      flex-shrink: 0;
+    }
+
+    .toolbar__spacer { flex: 1; }
+
+    .toolbar__toggle {
+      font-size: 11px;
+      color: var(--slate);
+      background: transparent;
+      border: 1px solid var(--fog);
+      border-radius: 4px;
+      padding: 2px 7px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color 0.1s, color 0.1s;
+    }
+
+    .toolbar__toggle:hover { border-color: var(--cortex-teal); color: var(--ink); }
+    .toolbar__toggle.active { border-color: var(--cortex-teal); color: var(--cortex-teal); }
 
     /* ── Body ── */
     .body {
@@ -99,15 +152,18 @@
       transition: border-color 0.15s;
     }
 
-    textarea:focus, input:focus {
-      border-color: var(--cortex-teal);
-    }
+    textarea:focus, input:focus { border-color: var(--cortex-teal); }
 
     #content {
       flex: 1;
       padding: 8px 10px;
       line-height: 1.5;
       min-height: 0;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    #content.plain-font {
+      font-family: var(--font);
     }
 
     #tags {
@@ -116,10 +172,82 @@
       font-size: 13px;
     }
 
-    #tags::placeholder, #content::placeholder {
-      color: var(--slate);
-      opacity: 0.55;
+    #tags::placeholder, #content::placeholder { color: var(--slate); opacity: 0.55; }
+
+    /* ── Preview ── */
+    #preview {
+      display: none;
+      flex: 1;
+      padding: 8px 10px;
+      line-height: 1.6;
+      overflow-y: auto;
+      background: var(--cloud);
+      border: 1px solid var(--fog);
+      border-radius: var(--radius);
+      min-height: 0;
+      font-size: 14px;
+      color: var(--ink);
     }
+
+    #preview.visible { display: block; }
+
+    #preview h1, #preview h2, #preview h3 {
+      margin-bottom: 4px;
+      margin-top: 8px;
+      color: var(--neuro-blue);
+    }
+    #preview h1 { font-size: 18px; }
+    #preview h2 { font-size: 16px; }
+    #preview h3 { font-size: 14px; }
+    #preview p  { margin-bottom: 6px; }
+    #preview ul, #preview ol { padding-left: 18px; margin-bottom: 6px; }
+    #preview li { margin-bottom: 2px; }
+    #preview code {
+      background: var(--fog);
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 12px;
+    }
+    #preview pre {
+      background: var(--fog);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      overflow-x: auto;
+      margin-bottom: 6px;
+    }
+    #preview pre code { background: none; padding: 0; }
+    #preview blockquote {
+      border-left: 3px solid var(--cortex-teal);
+      padding-left: 10px;
+      color: var(--slate);
+      margin-bottom: 6px;
+    }
+    #preview a { color: var(--cortex-teal); }
+    #preview strong { font-weight: 600; }
+    #preview em { font-style: italic; }
+    #preview hr { border: none; border-top: 1px solid var(--fog); margin: 8px 0; }
+
+    /* ── Mode toggle row ── */
+    .mode-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+      -webkit-app-region: no-drag;
+      user-select: none;
+    }
+
+    .md-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--slate);
+      cursor: pointer;
+    }
+
+    .md-toggle input[type="checkbox"] { cursor: pointer; accent-color: var(--cortex-teal); }
 
     /* ── Footer ── */
     .footer {
@@ -131,11 +259,28 @@
       -webkit-app-region: no-drag;
     }
 
-    .footer__hint {
+    .footer__left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer__hint { font-size: 11px; color: var(--slate); opacity: 0.55; }
+
+    .btn-paste-plain {
       font-size: 11px;
       color: var(--slate);
-      opacity: 0.55;
+      background: transparent;
+      border: 1px solid var(--fog);
+      border-radius: 4px;
+      padding: 2px 7px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: border-color 0.1s, color 0.1s;
     }
+
+    .btn-paste-plain:hover { border-color: var(--cortex-teal); color: var(--ink); }
+    .btn-paste-plain.active { border-color: var(--cortex-teal); color: var(--cortex-teal); background: rgba(42,166,161,0.08); }
 
     .btn-save {
       padding: 6px 20px;
@@ -150,14 +295,8 @@
       transition: background 0.15s;
     }
 
-    .btn-save:hover {
-      background: var(--insight-cyan);
-    }
-
-    .btn-save:disabled {
-      opacity: 0.45;
-      cursor: default;
-    }
+    .btn-save:hover    { background: var(--insight-cyan); }
+    .btn-save:disabled { opacity: 0.45; cursor: default; }
 
     /* ── Error banner ── */
     .error {
@@ -167,9 +306,7 @@
       padding: 0 12px 6px;
     }
 
-    .error.visible {
-      display: block;
-    }
+    .error.visible { display: block; }
   </style>
 </head>
 <body>
@@ -179,6 +316,19 @@
       <span class="titlebar__hint">Esc to cancel</span>
     </div>
 
+    <!-- Markdown formatting toolbar (shown when MD mode is active) -->
+    <div class="toolbar" id="toolbar">
+      <button class="toolbar__btn" id="tb-bold"   title="Bold (Ctrl+B)"><b>B</b></button>
+      <button class="toolbar__btn" id="tb-italic" title="Italic (Ctrl+I)"><i>I</i></button>
+      <button class="toolbar__btn" id="tb-code"   title="Inline code">`</button>
+      <div class="toolbar__sep"></div>
+      <button class="toolbar__btn" id="tb-ul"     title="Bullet list">• ≡</button>
+      <button class="toolbar__btn" id="tb-quote"  title="Blockquote">"</button>
+      <button class="toolbar__btn" id="tb-link"   title="Link">🔗</button>
+      <div class="toolbar__spacer"></div>
+      <button class="toolbar__toggle" id="tb-preview">Preview</button>
+    </div>
+
     <div class="body">
       <textarea
         id="content"
@@ -186,6 +336,7 @@
         spellcheck="true"
         autofocus
       ></textarea>
+      <div id="preview" aria-label="Markdown preview"></div>
       <input
         id="tags"
         type="text"
@@ -198,7 +349,14 @@
     <p class="error" id="error-msg"></p>
 
     <div class="footer">
-      <span class="footer__hint">Ctrl+Enter to save</span>
+      <div class="footer__left">
+        <span class="footer__hint">Ctrl+Enter to save</span>
+        <label class="md-toggle" title="Enable Markdown formatting">
+          <input type="checkbox" id="md-toggle" />
+          Markdown
+        </label>
+        <button class="btn-paste-plain" id="btn-paste-plain" title="Paste without formatting">Paste plain</button>
+      </div>
       <button class="btn-save" id="btn-save" disabled>Save</button>
     </div>
   </div>
