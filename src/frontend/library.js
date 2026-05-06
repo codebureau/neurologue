@@ -33,13 +33,16 @@ const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
 const detailRead    = document.getElementById('detail-read');
 const detailEdit    = document.getElementById('detail-edit');
+const detailHistory = document.getElementById('detail-history');
+const historyList   = document.getElementById('history-list');
 const editTextarea  = document.getElementById('edit-textarea');
+const editPreview   = document.getElementById('edit-preview');
 const btnEditSave   = document.getElementById('btn-edit-save');
 const btnEditCancel = document.getElementById('btn-edit-cancel');
 const btnEdit       = document.getElementById('btn-edit');
 const btnHistory    = document.getElementById('btn-history');
-const revisionDrawer = document.getElementById('revision-drawer');
-const revisionList   = document.getElementById('revision-list');
+const detailFooterRead    = document.getElementById('detail-footer-read');
+const detailFooterHistory = document.getElementById('detail-footer-history');
 const exportBtn     = document.getElementById('btn-export');
 const exportToast   = document.getElementById('export-toast');
 const newNoteBtn    = document.getElementById('btn-new-note');
@@ -206,10 +209,9 @@ function applyTagFilter(tagName) {
 async function selectEntry(id) {
   _state.selectedId = id;
 
-  // Reset edit mode
+  // Reset any sub-mode
   exitEditMode();
-  revisionDrawer.style.display = 'none';
-  btnHistory.classList.remove('active');
+  exitHistoryMode();
 
   // Update card selection highlight
   document.querySelectorAll('.entry-card').forEach((c) => {
@@ -220,10 +222,11 @@ async function selectEntry(id) {
     const entry = await window.neurologue.getEntry(id);
     if (!entry) return;
 
-    detailDate.textContent = formatDate(entry.edited_at
-      ? `${formatDate(entry.created_at)} · edited ${formatDate(entry.edited_at)}`
-      : entry.created_at);
-    detailSource.textContent = `Source: ${entry.source || 'manual'}  ·  Type: ${entry.type || 'note'}`;
+    // Fix: pass raw date strings to formatDate, not already-formatted strings
+    detailDate.textContent = entry.edited_at
+      ? `${formatDate(entry.created_at)} \u00b7 edited ${formatDate(entry.edited_at)}`
+      : formatDate(entry.created_at);
+    detailSource.textContent = `Source: ${entry.source || 'manual'}  \u00b7  Type: ${entry.type || 'note'}`;
     detailText.textContent = entry.content;
 
     detailTags.innerHTML = '';
@@ -252,8 +255,7 @@ function clearDetail() {
   _state.selectedId = null;
   _state.activeThemeId = null;
   exitEditMode();
-  revisionDrawer.style.display = 'none';
-  btnHistory.classList.remove('active');
+  exitHistoryMode();
   detailPlaceholder.style.display = 'flex';
   detailContent.style.display = 'none';
   themeDetailContent.style.display = 'none';
@@ -353,10 +355,112 @@ btnSemantic.addEventListener('click', () => setMode('semantic'));
 tagAll.addEventListener('click', () => applyTagFilter(null));
 loadMoreBtn.addEventListener('click', () => loadEntries(true));
 
+// ── Markdown utilities (used by edit panel) ────────────────────────────────
+
+function escHtml(str) {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function inlineHtml(text) {
+  return escHtml(text)
+    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" rel="noopener">$1</a>');
+}
+
+function parseMarkdown(md) {
+  const lines = md.split('\n');
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (/^```/.test(line)) {
+      const code = [];
+      i++;
+      while (i < lines.length && !/^```/.test(lines[i])) { code.push(escHtml(lines[i])); i++; }
+      out.push(`<pre><code>${code.join('\n')}</code></pre>`);
+      i++; continue;
+    }
+    const hm = line.match(/^(#{1,6})\s+(.*)/);
+    if (hm) { out.push(`<h${hm[1].length}>${inlineHtml(hm[2])}</h${hm[1].length}>`); i++; continue; }
+    if (/^---+$/.test(line.trim())) { out.push('<hr>'); i++; continue; }
+    if (/^>\s?/.test(line)) {
+      const bq = [];
+      while (i < lines.length && /^>\s?/.test(lines[i])) { bq.push(lines[i].replace(/^>\s?/, '')); i++; }
+      out.push(`<blockquote>${inlineHtml(bq.join(' '))}</blockquote>`); continue;
+    }
+    if (/^[-*+]\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^[-*+]\s/.test(lines[i])) { items.push(`<li>${inlineHtml(lines[i].replace(/^[-*+]\s/, ''))}</li>`); i++; }
+      out.push(`<ul>${items.join('')}</ul>`); continue;
+    }
+    if (/^\d+\.\s/.test(line)) {
+      const items = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) { items.push(`<li>${inlineHtml(lines[i].replace(/^\d+\.\s/, ''))}</li>`); i++; }
+      out.push(`<ol>${items.join('')}</ol>`); continue;
+    }
+    if (line.trim() === '') { i++; continue; }
+    out.push(`<p>${inlineHtml(line)}</p>`);
+    i++;
+  }
+  return out.join('');
+}
+
 // ── Edit mode ──────────────────────────────────────────────────────────────
 
+let _editPreviewMode = false;
+const etbPreviewBtn = document.getElementById('etb-preview');
+
+function wrapEditSelection(before, after, placeholder) {
+  if (_editPreviewMode) return;
+  const start = editTextarea.selectionStart;
+  const end   = editTextarea.selectionEnd;
+  const sel   = editTextarea.value.slice(start, end) || placeholder;
+  editTextarea.setRangeText(before + sel + after, start, end, 'select');
+  editTextarea.focus();
+}
+
+function prependEditLines(prefix) {
+  if (_editPreviewMode) return;
+  const text  = editTextarea.value;
+  const start = editTextarea.selectionStart;
+  const end   = editTextarea.selectionEnd;
+  const lineStart = text.lastIndexOf('\n', start - 1) + 1;
+  const lineEnd   = text.indexOf('\n', end);
+  const block = text.slice(lineStart, lineEnd === -1 ? undefined : lineEnd);
+  const prefixed = block.split('\n').map(l => prefix + l).join('\n');
+  editTextarea.setRangeText(prefixed, lineStart, lineEnd === -1 ? text.length : lineEnd, 'select');
+  editTextarea.focus();
+}
+
+function setEditPreviewMode(on) {
+  _editPreviewMode = on;
+  etbPreviewBtn.classList.toggle('active', on);
+  if (on) {
+    editPreview.innerHTML = parseMarkdown(editTextarea.value);
+    editTextarea.style.display = 'none';
+    editPreview.style.display = 'block';
+  } else {
+    editTextarea.style.display = '';
+    editPreview.style.display = 'none';
+    if (document.activeElement !== editTextarea) editTextarea.focus();
+  }
+}
+
+document.getElementById('etb-bold')  .addEventListener('click', () => wrapEditSelection('**', '**', 'bold text'));
+document.getElementById('etb-italic').addEventListener('click', () => wrapEditSelection('*',  '*',  'italic text'));
+document.getElementById('etb-code')  .addEventListener('click', () => wrapEditSelection('`',  '`',  'code'));
+document.getElementById('etb-ul')    .addEventListener('click', () => prependEditLines('- '));
+document.getElementById('etb-quote') .addEventListener('click', () => prependEditLines('> '));
+document.getElementById('etb-link')  .addEventListener('click', () => wrapEditSelection('[', '](https://)', 'link text'));
+etbPreviewBtn.addEventListener('click', () => setEditPreviewMode(!_editPreviewMode));
+
 function enterEditMode() {
+  exitHistoryMode();
   editTextarea.value = detailText.textContent;
+  setEditPreviewMode(false);
   detailRead.style.display = 'none';
   detailEdit.style.display = 'flex';
   btnEdit.classList.add('active');
@@ -368,6 +472,7 @@ function enterEditMode() {
 function exitEditMode() {
   detailRead.style.display = 'block';
   detailEdit.style.display = 'none';
+  setEditPreviewMode(false);
   btnEdit.classList.remove('active');
   btnEdit.textContent = 'Edit';
 }
@@ -393,7 +498,6 @@ btnEditSave.addEventListener('click', async () => {
     const result = await window.neurologue.updateEntry(_state.selectedId, newContent);
     if (result.ok) {
       exitEditMode();
-      // Refresh detail view and timeline card
       await selectEntry(_state.selectedId);
       document.querySelectorAll('.entry-card').forEach((c) => {
         if (c.dataset.id === _state.selectedId) {
@@ -412,61 +516,99 @@ btnEditSave.addEventListener('click', async () => {
   }
 });
 
-// Ctrl+Enter to save from the edit textarea
 editTextarea.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-    e.preventDefault();
-    btnEditSave.click();
-  }
-  if (e.key === 'Escape') {
-    e.preventDefault();
-    exitEditMode();
-  }
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); btnEditSave.click(); }
+  if (e.key === 'Escape') { e.preventDefault(); exitEditMode(); }
+  if ((e.key === 'b') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); wrapEditSelection('**', '**', 'bold text'); }
+  if ((e.key === 'i') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); wrapEditSelection('*', '*', 'italic text'); }
 });
 
 // ── Revision history ───────────────────────────────────────────────────────
 
-btnHistory.addEventListener('click', async () => {
-  const isOpen = revisionDrawer.style.display !== 'none';
-  if (isOpen) {
-    revisionDrawer.style.display = 'none';
-    btnHistory.classList.remove('active');
-    return;
-  }
+function exitHistoryMode() {
+  detailHistory.style.display = 'none';
+  detailRead.style.display    = 'block';
+  detailFooterRead.style.display    = 'flex';
+  detailFooterHistory.style.display = 'none';
+  btnHistory.classList.remove('active');
+}
 
+btnHistory.addEventListener('click', async () => {
+  if (detailHistory.style.display !== 'none') { exitHistoryMode(); return; }
   if (!_state.selectedId) return;
 
-  try {
-    const revisions = await window.neurologue.getRevisions(_state.selectedId);
-    revisionList.innerHTML = '';
+  exitEditMode();
 
-    if (revisions.length === 0) {
-      const empty = document.createElement('div');
-      empty.style.cssText = 'padding:12px 16px;font-size:12px;color:var(--text-dim)';
-      empty.textContent = 'No edit history yet.';
-      revisionList.appendChild(empty);
+  try {
+    const [entry, revisions] = await Promise.all([
+      window.neurologue.getEntry(_state.selectedId),
+      window.neurologue.getRevisions(_state.selectedId),
+    ]);
+
+    historyList.innerHTML = '';
+
+    const versions = [
+      { label: 'Current version', date: entry.edited_at || entry.created_at, content: entry.content },
+      ...revisions.map((r, idx) => ({
+        label: `Version ${revisions.length - idx}`,
+        date: r.created_at,
+        content: r.content,
+      })),
+    ];
+
+    if (versions.length === 1 && !entry.edited_at) {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'padding:12px;font-size:12px;color:var(--text-dim)';
+      msg.textContent = 'This entry has not been edited yet.';
+      historyList.appendChild(msg);
     } else {
-      revisions.forEach((rev) => {
-        const item = document.createElement('div');
-        item.className = 'revision-item';
-        item.innerHTML =
-          `<div class="revision-item-meta">${formatDate(rev.created_at)}</div>` +
-          `<div class="revision-item-preview">${rev.content.slice(0, 120)}</div>`;
-        item.title = rev.content;
-        revisionList.appendChild(item);
+      versions.forEach((v) => {
+        const card = document.createElement('div');
+        card.className = 'history-card';
+        card.innerHTML =
+          `<div class="history-card-header">` +
+          `<span class="history-card-date">${v.label} · ${formatDate(v.date)}</span>` +
+          `<button class="history-card-copy">Copy</button>` +
+          `</div>` +
+          `<div class="history-card-body"></div>`;
+        card.querySelector('.history-card-body').textContent = v.content;
+        card.querySelector('.history-card-copy').addEventListener('click', () => {
+          navigator.clipboard.writeText(v.content).catch(() => {});
+        });
+        historyList.appendChild(card);
       });
     }
 
-    revisionDrawer.style.display = 'flex';
+    detailRead.style.display    = 'none';
+    detailHistory.style.display = 'flex';
+    detailFooterRead.style.display    = 'none';
+    detailFooterHistory.style.display = 'flex';
     btnHistory.classList.add('active');
   } catch (err) {
     console.error('[library] getRevisions failed:', err);
   }
 });
 
-document.getElementById('btn-revision-close').addEventListener('click', () => {
-  revisionDrawer.style.display = 'none';
-  btnHistory.classList.remove('active');
+document.getElementById('btn-history-back').addEventListener('click', exitHistoryMode);
+
+document.getElementById('btn-history-export').addEventListener('click', async () => {
+  if (!_state.selectedId) return;
+  try {
+    const [entry, revisions] = await Promise.all([
+      window.neurologue.getEntry(_state.selectedId),
+      window.neurologue.getRevisions(_state.selectedId),
+    ]);
+    const lines = [
+      `=== Current version (${formatDate(entry.edited_at || entry.created_at)}) ===`,
+      entry.content,
+      ...revisions.map((r, idx) =>
+        `\n=== Version ${revisions.length - idx} (${formatDate(r.created_at)}) ===\n${r.content}`
+      ),
+    ];
+    await navigator.clipboard.writeText(lines.join('\n'));
+  } catch (err) {
+    console.error('[library] copy history failed:', err);
+  }
 });
 
 // ── Export ─────────────────────────────────────────────────────────────────

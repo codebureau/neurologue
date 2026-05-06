@@ -72,24 +72,38 @@
             </div>
             <!-- Edit form (hidden by default) -->
             <div id="detail-edit" style="display:none">
+              <div id="edit-toolbar">
+                <button class="edit-tb-btn" id="etb-bold"   title="Bold (Ctrl+B)"><b>B</b></button>
+                <button class="edit-tb-btn" id="etb-italic" title="Italic (Ctrl+I)"><i>I</i></button>
+                <button class="edit-tb-btn" id="etb-code"   title="Inline code">`</button>
+                <div class="edit-tb-sep"></div>
+                <button class="edit-tb-btn" id="etb-ul"     title="Bullet list">• ≡</button>
+                <button class="edit-tb-btn" id="etb-quote"  title="Blockquote">"</button>
+                <button class="edit-tb-btn" id="etb-link"   title="Link">🔗</button>
+                <div class="edit-tb-spacer"></div>
+                <button class="edit-tb-toggle" id="etb-preview">Preview</button>
+              </div>
               <textarea id="edit-textarea" spellcheck="true"></textarea>
+              <div id="edit-preview" style="display:none"></div>
               <div id="edit-actions">
                 <button id="btn-edit-save">Save</button>
                 <button id="btn-edit-cancel" class="btn-secondary">Cancel</button>
               </div>
             </div>
+            <!-- History view (hidden by default) -->
+            <div id="detail-history" style="display:none">
+              <div id="history-list"></div>
+            </div>
           </div>
           <div id="detail-footer">
-            <button id="btn-edit" class="btn-secondary">Edit</button>
-            <button id="btn-history" class="btn-secondary">History</button>
-          </div>
-          <!-- Revision history drawer -->
-          <div id="revision-drawer" style="display:none">
-            <div id="revision-drawer-header">
-              <span>Version history</span>
-              <button id="btn-revision-close" title="Close">✕</button>
+            <div id="detail-footer-read">
+              <button id="btn-edit" class="btn-secondary">Edit</button>
+              <button id="btn-history" class="btn-secondary">History</button>
             </div>
-            <div id="revision-list"></div>
+            <div id="detail-footer-history" style="display:none">
+              <button id="btn-history-back" class="btn-secondary">← Back</button>
+              <button id="btn-history-export" class="btn-secondary">Copy all</button>
+            </div>
           </div>
         </div>
         <div id="theme-detail-content">
