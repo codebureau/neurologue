@@ -46,7 +46,58 @@ async function listEntries({ limit = 100, offset = 0 } = {}) {
  */
 async function deleteEntry(id) {
   const db = await openDb();
-  db.prepare('DELETE FROM entries WHERE id = ?').run(id);
+  db.transaction(() => {
+    db.prepare('DELETE FROM entry_revisions WHERE entry_id = ?').run(id);
+    db.prepare('DELETE FROM entries WHERE id = ?').run(id);
+  })();
 }
 
-module.exports = { createEntry, getEntryById, listEntries, deleteEntry };
+/**
+ * Update the content of an entry, preserving revision history.
+ * - If the entry has no original_content yet, the current content is saved there first.
+ * - A new row is inserted into entry_revisions for the outgoing content.
+ * - The entry's content and edited_at are updated.
+ * @param {string} id
+ * @param {string} newContent
+ * @returns {Promise<object|undefined>}
+ */
+async function updateEntry(id, newContent) {
+  const db = await openDb();
+  const entry = db.prepare('SELECT * FROM entries WHERE id = ?').get(id);
+  if (!entry) return undefined;
+
+  const revisionId = randomUUID();
+
+  db.transaction(() => {
+    // Preserve the very first version inline if this is the first edit
+    if (!entry.original_content) {
+      db.prepare('UPDATE entries SET original_content = ? WHERE id = ?').run(entry.content, id);
+    }
+
+    // Record the outgoing content as a revision
+    db.prepare(`
+      INSERT INTO entry_revisions (id, entry_id, content) VALUES (?, ?, ?)
+    `).run(revisionId, id, entry.content);
+
+    // Write the new content
+    db.prepare(`
+      UPDATE entries SET content = ?, edited_at = datetime('now') WHERE id = ?
+    `).run(newContent, id);
+  })();
+
+  return getEntryById(id);
+}
+
+/**
+ * Get the revision history for an entry, newest first.
+ * @param {string} id
+ * @returns {Promise<object[]>}
+ */
+async function getEntryRevisions(id) {
+  const db = await openDb();
+  return db
+    .prepare('SELECT * FROM entry_revisions WHERE entry_id = ? ORDER BY rowid DESC')
+    .all(id);
+}
+
+module.exports = { createEntry, getEntryById, listEntries, deleteEntry, updateEntry, getEntryRevisions };

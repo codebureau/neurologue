@@ -4,10 +4,8 @@ const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
-const { createEntry } = require('./backend/db/entries');
-const { setTagsForEntry } = require('./backend/db/tags');
-const { listTags } = require('./backend/db/tags');
-const { listEntries } = require('./backend/db/entries');
+const { createEntry, listEntries, updateEntry, getEntryRevisions } = require('./backend/db/entries');
+const { setTagsForEntry, listTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('./worker/ollama');
@@ -89,6 +87,18 @@ ipcMain.handle('library:search-semantic', async (_event, { query, topN = 10 }) =
 // Get a single entry with its tags
 ipcMain.handle('library:get-entry', async (_event, { id }) => {
   return getEntryWithTags(id);
+});
+
+// Update entry content (soft edit — preserves original + revision history)
+ipcMain.handle('library:update-entry', async (_event, { id, content }) => {
+  if (!id || !content || !content.trim()) return { ok: false, error: 'Invalid input' };
+  const entry = await updateEntry(id, content.trim());
+  return entry ? { ok: true, entry } : { ok: false, error: 'Entry not found' };
+});
+
+// Get revision history for an entry
+ipcMain.handle('library:get-revisions', async (_event, { id }) => {
+  return getEntryRevisions(id);
 });
 
 // List all tags (for sidebar)

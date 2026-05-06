@@ -297,6 +297,15 @@ html, body {
   flex: 1;
   overflow-y: auto;
   padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#detail-read {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 #detail-text {
@@ -319,6 +328,221 @@ html, body {
   margin-bottom: 6px;
 }
 #detail-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* ── Detail footer (Edit / History buttons) ───────────────────────────── */
+#detail-footer {
+  padding: 8px 16px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#detail-footer-read,
+#detail-footer-history {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+#detail-footer-history #btn-history-export {
+  margin-left: auto;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: var(--radius);
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.1s, color 0.1s;
+}
+.btn-secondary:hover { border-color: var(--cortex-teal); color: var(--text); }
+.btn-secondary.active { border-color: var(--cortex-teal); color: var(--cortex-teal); }
+
+/* ── Edit toolbar ──────────────────────────────────────────────────────── */
+#edit-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0 4px;
+  flex-shrink: 0;
+}
+
+.edit-tb-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: background 0.1s, color 0.1s;
+  padding: 0;
+}
+.edit-tb-btn:hover { background: var(--surface2); color: var(--text); }
+
+.edit-tb-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 3px;
+  flex-shrink: 0;
+}
+.edit-tb-spacer { flex: 1; }
+
+.edit-tb-toggle {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 7px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.1s, color 0.1s;
+}
+.edit-tb-toggle:hover { border-color: var(--cortex-teal); color: var(--text); }
+.edit-tb-toggle.active { border-color: var(--cortex-teal); color: var(--cortex-teal); }
+
+/* ── Edit form ─────────────────────────────────────────────────────────── */
+#detail-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+}
+
+#edit-textarea {
+  flex: 1;
+  resize: none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 10px 12px;
+  outline: none;
+  width: 100%;
+  min-height: 80px;
+  margin-bottom: 8px;
+}
+#edit-textarea:focus { border-color: var(--cortex-teal); }
+
+#edit-preview {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.7;
+  padding: 10px 12px;
+  overflow-y: auto;
+  min-height: 80px;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+#edit-preview h1, #edit-preview h2, #edit-preview h3 { margin: 6px 0 3px; color: var(--text); }
+#edit-preview h1 { font-size: 16px; }
+#edit-preview h2 { font-size: 14px; }
+#edit-preview h3 { font-size: 13px; }
+#edit-preview p  { margin-bottom: 5px; }
+#edit-preview ul, #edit-preview ol { padding-left: 16px; margin-bottom: 5px; }
+#edit-preview code { background: var(--surface); border-radius: 3px; padding: 1px 4px; font-family: monospace; font-size: 12px; }
+#edit-preview pre { background: var(--surface); border-radius: var(--radius); padding: 8px 10px; overflow-x: auto; margin-bottom: 5px; }
+#edit-preview pre code { background: none; padding: 0; }
+#edit-preview blockquote { border-left: 3px solid var(--cortex-teal); padding-left: 10px; color: var(--text-muted); margin-bottom: 5px; }
+#edit-preview a { color: var(--cortex-teal); }
+#edit-preview hr { border: none; border-top: 1px solid var(--border); margin: 6px 0; }
+
+#edit-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+#btn-edit-save {
+  background: var(--cortex-teal);
+  border: none;
+  color: #fff;
+  border-radius: var(--radius);
+  font-size: 12px;
+  padding: 4px 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s;
+}
+#btn-edit-save:hover    { background: var(--teal-hover); }
+#btn-edit-save:disabled { opacity: 0.45; cursor: default; }
+
+/* ── History view ──────────────────────────────────────────────────────── */
+#detail-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+#history-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.history-card-date {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.history-card-copy {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 3px;
+  font-size: 11px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.1s, color 0.1s;
+}
+.history-card-copy:hover { border-color: var(--cortex-teal); color: var(--text); }
+
+.history-card-body {
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 
 /* ── Scrollbar styling ────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
