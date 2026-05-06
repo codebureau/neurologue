@@ -88,8 +88,15 @@ function openCaptureWindow() {
   _captureWin.on('blur', () => {
     // Close the popup if it loses focus (user clicked away)
     if (_captureWin && !_captureWin.isDestroyed()) {
-      _saveBounds(_captureWin);
       _captureWin.close();
+    }
+  });
+
+  // Save bounds on every close regardless of how the window is closed
+  // (blur, Escape, Ctrl+Enter save, direct win.close() from IPC, etc.)
+  _captureWin.on('close', () => {
+    if (_captureWin && !_captureWin.isDestroyed()) {
+      _saveBounds(_captureWin);
     }
   });
 
@@ -103,7 +110,6 @@ function openCaptureWindow() {
  */
 function closeCaptureWindow() {
   if (_captureWin && !_captureWin.isDestroyed()) {
-    _saveBounds(_captureWin);
     _captureWin.close();
   }
 }
