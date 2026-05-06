@@ -99,3 +99,78 @@ describe('deleteEntry', () => {
     await expect(deleteEntry('00000000-0000-0000-0000-000000000000')).resolves.toBeUndefined();
   });
 });
+
+describe('updateEntry', () => {
+  test('updates the content of an existing entry', async () => {
+    const { createEntry, updateEntry } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'original text' });
+    const updated = await updateEntry(entry.id, 'updated text');
+    expect(updated.content).toBe('updated text');
+    expect(updated.edited_at).not.toBeNull();
+  });
+
+  test('preserves original_content on first edit', async () => {
+    const { createEntry, updateEntry, getEntryById } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'first version' });
+    await updateEntry(entry.id, 'second version');
+    const saved = await getEntryById(entry.id);
+    expect(saved.original_content).toBe('first version');
+    expect(saved.content).toBe('second version');
+  });
+
+  test('does not overwrite original_content on subsequent edits', async () => {
+    const { createEntry, updateEntry, getEntryById } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'v1' });
+    await updateEntry(entry.id, 'v2');
+    await updateEntry(entry.id, 'v3');
+    const saved = await getEntryById(entry.id);
+    expect(saved.original_content).toBe('v1');
+    expect(saved.content).toBe('v3');
+  });
+
+  test('returns undefined for an unknown id', async () => {
+    const { updateEntry } = require('../../../src/backend/db/entries');
+    const result = await updateEntry('00000000-0000-0000-0000-000000000000', 'anything');
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('getEntryRevisions', () => {
+  test('returns an empty array when no edits have been made', async () => {
+    const { createEntry, getEntryRevisions } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'no edits' });
+    const revisions = await getEntryRevisions(entry.id);
+    expect(revisions).toEqual([]);
+  });
+
+  test('returns one revision after the first edit', async () => {
+    const { createEntry, updateEntry, getEntryRevisions } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'original' });
+    await updateEntry(entry.id, 'edited');
+    const revisions = await getEntryRevisions(entry.id);
+    expect(revisions.length).toBe(1);
+    expect(revisions[0].content).toBe('original');
+    expect(revisions[0].entry_id).toBe(entry.id);
+  });
+
+  test('accumulates a revision per edit, newest first', async () => {
+    const { createEntry, updateEntry, getEntryRevisions } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'v1' });
+    await updateEntry(entry.id, 'v2');
+    await updateEntry(entry.id, 'v3');
+    const revisions = await getEntryRevisions(entry.id);
+    expect(revisions.length).toBe(2);
+    // newest first: v2 was outgoing content on second update
+    expect(revisions[0].content).toBe('v2');
+    expect(revisions[1].content).toBe('v1');
+  });
+
+  test('revisions are deleted when entry is deleted (cascade)', async () => {
+    const { createEntry, updateEntry, deleteEntry, getEntryRevisions } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'to delete' });
+    await updateEntry(entry.id, 'edit');
+    await deleteEntry(entry.id);
+    const revisions = await getEntryRevisions(entry.id);
+    expect(revisions).toEqual([]);
+  });
+});

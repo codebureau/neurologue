@@ -62,11 +62,34 @@
             <div id="detail-source"></div>
           </div>
           <div id="detail-body">
-            <div id="detail-text"></div>
-            <div id="detail-tags-section">
-              <div id="detail-tags-label">Tags</div>
-              <div id="detail-tags"></div>
+            <!-- Read view -->
+            <div id="detail-read">
+              <div id="detail-text"></div>
+              <div id="detail-tags-section">
+                <div id="detail-tags-label">Tags</div>
+                <div id="detail-tags"></div>
+              </div>
             </div>
+            <!-- Edit form (hidden by default) -->
+            <div id="detail-edit" style="display:none">
+              <textarea id="edit-textarea" spellcheck="true"></textarea>
+              <div id="edit-actions">
+                <button id="btn-edit-save">Save</button>
+                <button id="btn-edit-cancel" class="btn-secondary">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div id="detail-footer">
+            <button id="btn-edit" class="btn-secondary">Edit</button>
+            <button id="btn-history" class="btn-secondary">History</button>
+          </div>
+          <!-- Revision history drawer -->
+          <div id="revision-drawer" style="display:none">
+            <div id="revision-drawer-header">
+              <span>Version history</span>
+              <button id="btn-revision-close" title="Close">✕</button>
+            </div>
+            <div id="revision-list"></div>
           </div>
         </div>
         <div id="theme-detail-content">

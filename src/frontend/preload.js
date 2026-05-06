@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('neurologue', {
   searchText: (query, opts) => ipcRenderer.invoke('library:search-text', { query, ...opts }),
   searchSemantic: (query, opts) => ipcRenderer.invoke('library:search-semantic', { query, ...opts }),
   getEntry: (id) => ipcRenderer.invoke('library:get-entry', { id }),
+  updateEntry: (id, content) => ipcRenderer.invoke('library:update-entry', { id, content }),
+  getRevisions: (id) => ipcRenderer.invoke('library:get-revisions', { id }),
   listTags: () => ipcRenderer.invoke('library:list-tags'),
 
   // ── Themes ───────────────────────────────────────────────────────────────

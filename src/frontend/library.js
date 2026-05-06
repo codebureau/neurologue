@@ -31,6 +31,15 @@ const detailDate    = document.getElementById('detail-date');
 const detailSource  = document.getElementById('detail-source');
 const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
+const detailRead    = document.getElementById('detail-read');
+const detailEdit    = document.getElementById('detail-edit');
+const editTextarea  = document.getElementById('edit-textarea');
+const btnEditSave   = document.getElementById('btn-edit-save');
+const btnEditCancel = document.getElementById('btn-edit-cancel');
+const btnEdit       = document.getElementById('btn-edit');
+const btnHistory    = document.getElementById('btn-history');
+const revisionDrawer = document.getElementById('revision-drawer');
+const revisionList   = document.getElementById('revision-list');
 const exportBtn     = document.getElementById('btn-export');
 const exportToast   = document.getElementById('export-toast');
 const newNoteBtn    = document.getElementById('btn-new-note');
@@ -197,6 +206,11 @@ function applyTagFilter(tagName) {
 async function selectEntry(id) {
   _state.selectedId = id;
 
+  // Reset edit mode
+  exitEditMode();
+  revisionDrawer.style.display = 'none';
+  btnHistory.classList.remove('active');
+
   // Update card selection highlight
   document.querySelectorAll('.entry-card').forEach((c) => {
     c.classList.toggle('selected', c.dataset.id === id);
@@ -206,7 +220,9 @@ async function selectEntry(id) {
     const entry = await window.neurologue.getEntry(id);
     if (!entry) return;
 
-    detailDate.textContent = formatDate(entry.created_at);
+    detailDate.textContent = formatDate(entry.edited_at
+      ? `${formatDate(entry.created_at)} · edited ${formatDate(entry.edited_at)}`
+      : entry.created_at);
     detailSource.textContent = `Source: ${entry.source || 'manual'}  ·  Type: ${entry.type || 'note'}`;
     detailText.textContent = entry.content;
 
@@ -235,6 +251,9 @@ async function selectEntry(id) {
 function clearDetail() {
   _state.selectedId = null;
   _state.activeThemeId = null;
+  exitEditMode();
+  revisionDrawer.style.display = 'none';
+  btnHistory.classList.remove('active');
   detailPlaceholder.style.display = 'flex';
   detailContent.style.display = 'none';
   themeDetailContent.style.display = 'none';
@@ -333,6 +352,122 @@ btnText.addEventListener('click', () => setMode('text'));
 btnSemantic.addEventListener('click', () => setMode('semantic'));
 tagAll.addEventListener('click', () => applyTagFilter(null));
 loadMoreBtn.addEventListener('click', () => loadEntries(true));
+
+// ── Edit mode ──────────────────────────────────────────────────────────────
+
+function enterEditMode() {
+  editTextarea.value = detailText.textContent;
+  detailRead.style.display = 'none';
+  detailEdit.style.display = 'flex';
+  btnEdit.classList.add('active');
+  btnEdit.textContent = 'Editing…';
+  editTextarea.focus();
+  editTextarea.setSelectionRange(editTextarea.value.length, editTextarea.value.length);
+}
+
+function exitEditMode() {
+  detailRead.style.display = 'block';
+  detailEdit.style.display = 'none';
+  btnEdit.classList.remove('active');
+  btnEdit.textContent = 'Edit';
+}
+
+btnEdit.addEventListener('click', () => {
+  if (detailEdit.style.display !== 'none') {
+    exitEditMode();
+  } else {
+    enterEditMode();
+  }
+});
+
+btnEditCancel.addEventListener('click', exitEditMode);
+
+btnEditSave.addEventListener('click', async () => {
+  const newContent = editTextarea.value.trim();
+  if (!newContent || !_state.selectedId) return;
+
+  btnEditSave.disabled = true;
+  btnEditSave.textContent = 'Saving…';
+
+  try {
+    const result = await window.neurologue.updateEntry(_state.selectedId, newContent);
+    if (result.ok) {
+      exitEditMode();
+      // Refresh detail view and timeline card
+      await selectEntry(_state.selectedId);
+      document.querySelectorAll('.entry-card').forEach((c) => {
+        if (c.dataset.id === _state.selectedId) {
+          const preview = c.querySelector('.entry-preview');
+          if (preview) preview.textContent = newContent;
+        }
+      });
+    } else {
+      console.error('[library] updateEntry failed:', result.error);
+    }
+  } catch (err) {
+    console.error('[library] updateEntry error:', err);
+  } finally {
+    btnEditSave.disabled = false;
+    btnEditSave.textContent = 'Save';
+  }
+});
+
+// Ctrl+Enter to save from the edit textarea
+editTextarea.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    btnEditSave.click();
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault();
+    exitEditMode();
+  }
+});
+
+// ── Revision history ───────────────────────────────────────────────────────
+
+btnHistory.addEventListener('click', async () => {
+  const isOpen = revisionDrawer.style.display !== 'none';
+  if (isOpen) {
+    revisionDrawer.style.display = 'none';
+    btnHistory.classList.remove('active');
+    return;
+  }
+
+  if (!_state.selectedId) return;
+
+  try {
+    const revisions = await window.neurologue.getRevisions(_state.selectedId);
+    revisionList.innerHTML = '';
+
+    if (revisions.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:12px 16px;font-size:12px;color:var(--text-dim)';
+      empty.textContent = 'No edit history yet.';
+      revisionList.appendChild(empty);
+    } else {
+      revisions.forEach((rev) => {
+        const item = document.createElement('div');
+        item.className = 'revision-item';
+        item.innerHTML =
+          `<div class="revision-item-meta">${formatDate(rev.created_at)}</div>` +
+          `<div class="revision-item-preview">${rev.content.slice(0, 120)}</div>`;
+        item.title = rev.content;
+        revisionList.appendChild(item);
+      });
+    }
+
+    revisionDrawer.style.display = 'flex';
+    btnHistory.classList.add('active');
+  } catch (err) {
+    console.error('[library] getRevisions failed:', err);
+  }
+});
+
+document.getElementById('btn-revision-close').addEventListener('click', () => {
+  revisionDrawer.style.display = 'none';
+  btnHistory.classList.remove('active');
+});
 
 // ── Export ─────────────────────────────────────────────────────────────────
 
