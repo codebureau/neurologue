@@ -4,7 +4,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
-const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory } = require('./backend/db/entries');
+const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory, getActivityByDay } = require('./backend/db/entries');
 const { setTagsForEntry, listTags, listTagsWithCounts, renameTag, deleteTag, mergeTag, findSimilarTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
@@ -112,6 +112,9 @@ ipcMain.handle('library:set-category', async (_event, { id, category }) => {
 ipcMain.handle('library:list-tags', async () => {
   return listTags();
 });
+
+// Activity heatmap: entry counts by day for the last 364 days
+ipcMain.handle('library:activity', async () => getActivityByDay(364));
 
 // Update tags for an existing entry
 ipcMain.handle('library:set-tags', async (_event, { id, tags }) => {

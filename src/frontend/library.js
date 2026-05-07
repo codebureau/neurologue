@@ -12,7 +12,10 @@ let _state = {
   tagFilter: null,   // tag name string or null
   selectedId: null,
   activeThemeId: null,
+  groupBy: null,       // null | 'day' | 'week' | 'month'
+  lastGroupKey: null,  // last rendered group separator key (for append)
 };
+let _loadingMore = false;
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const searchInput   = document.getElementById('search-input');
@@ -54,6 +57,16 @@ const semanticNotice = document.getElementById('semantic-notice');
 const statusOllama  = document.getElementById('status-ollama');
 const statusWorker  = document.getElementById('status-worker');
 
+// ── Timeline controls DOM refs ─────────────────────────────────────────────
+const grpNoneBtn      = document.getElementById('grp-none');
+const grpDayBtn       = document.getElementById('grp-day');
+const grpWeekBtn      = document.getElementById('grp-week');
+const grpMonthBtn     = document.getElementById('grp-month');
+const heatmapToggle   = document.getElementById('btn-heatmap-toggle');
+const heatmapPanel    = document.getElementById('heatmap-panel');
+const heatmapGrid     = document.getElementById('heatmap-grid');
+const heatmapMonths   = document.getElementById('heatmap-months');
+
 // ── Utilities ──────────────────────────────────────────────────────────────
 
 function formatDate(dateStr) {
@@ -71,6 +84,46 @@ function debounce(fn, ms) {
 }
 
 // ── Render helpers ─────────────────────────────────────────────────────────
+
+// Return a string key for grouping an entry by the current groupBy mode.
+function _groupKey(entry, groupBy) {
+  const d = new Date(entry.created_at);
+  if (groupBy === 'day')   return d.toISOString().slice(0, 10);
+  if (groupBy === 'month') return d.toISOString().slice(0, 7);
+  if (groupBy === 'week') {
+    // ISO week: use Thursday of the week to determine year, per ISO 8601
+    const thu = new Date(d);
+    thu.setDate(d.getDate() - ((d.getDay() + 6) % 7) + 3);
+    const jan4 = new Date(thu.getFullYear(), 0, 4);
+    const week = Math.ceil(((thu - jan4) / 86400000 + 1) / 7);
+    return `${thu.getFullYear()}-W${String(week).padStart(2, '0')}`;
+  }
+  return null;
+}
+
+// Return a human-readable label for a group key.
+function _groupLabel(key, groupBy) {
+  if (groupBy === 'day') {
+    return new Date(key + 'T12:00:00').toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+  }
+  if (groupBy === 'month') {
+    const [year, month] = key.split('-');
+    return new Date(Number(year), Number(month) - 1, 1).toLocaleDateString(undefined, {
+      month: 'long', year: 'numeric',
+    });
+  }
+  if (groupBy === 'week') {
+    const [year, weekStr] = key.split('-W');
+    // Compute the Monday of the ISO week
+    const jan4  = new Date(Number(year), 0, 4);
+    const mon   = new Date(jan4);
+    mon.setDate(jan4.getDate() - ((jan4.getDay() + 6) % 7) + (Number(weekStr) - 1) * 7);
+    return `Week of ${mon.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}`;
+  }
+  return key;
+}
 
 function renderEntryCard(entry) {
   const card = document.createElement('div');
@@ -129,7 +182,10 @@ function renderEntryCard(entry) {
 }
 
 function renderTimeline(entries, append = false) {
-  if (!append) timelineList.innerHTML = '';
+  if (!append) {
+    timelineList.innerHTML = '';
+    _state.lastGroupKey = null;
+  }
 
   if (entries.length === 0 && !append) {
     const empty = document.createElement('div');
@@ -139,12 +195,93 @@ function renderTimeline(entries, append = false) {
       : `<strong>No entries yet</strong>Press Ctrl+Shift+Space to capture your first thought`;
     timelineList.appendChild(empty);
   } else {
-    entries.forEach((e) => timelineList.appendChild(renderEntryCard(e)));
+    entries.forEach((e) => {
+      if (_state.groupBy) {
+        const key = _groupKey(e, _state.groupBy);
+        if (key !== _state.lastGroupKey) {
+          const header = document.createElement('div');
+          header.className = 'tl-group-header';
+          header.textContent = _groupLabel(key, _state.groupBy);
+          timelineList.appendChild(header);
+          _state.lastGroupKey = key;
+        }
+      }
+      timelineList.appendChild(renderEntryCard(e));
+    });
   }
 }
 
 function updateCount(total) {
   entryCount.textContent = total === 1 ? '1 entry' : `${total} entries`;
+}
+
+// ── Heatmap ────────────────────────────────────────────────────────────────
+
+async function renderHeatmap() {
+  heatmapGrid.innerHTML = '';
+  heatmapMonths.innerHTML = '';
+
+  const data = await window.neurologue.getActivity();
+  const countMap = {};
+  data.forEach(({ day, count }) => { countMap[day] = count; });
+
+  // Build 52 columns ending with the week that contains today.
+  // Anchoring to the *last* Sunday keeps today always in the final column,
+  // regardless of what day of the week today falls on.
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+
+  const lastSunday = new Date(today);
+  lastSunday.setDate(today.getDate() - today.getDay()); // Sunday of this week
+
+  const startDate = new Date(lastSunday);
+  startDate.setDate(lastSunday.getDate() - 51 * 7);    // 52 weeks back
+
+  const WEEK_PX = 12; // 10px cell + 2px gap
+  let lastMonth = -1;
+  const monthLabels = [];
+
+  for (let w = 0; w < 52; w++) {
+    const weekEl = document.createElement('div');
+    weekEl.className = 'heatmap-week';
+
+    for (let d = 0; d < 7; d++) {
+      const cellDate = new Date(startDate);
+      cellDate.setDate(startDate.getDate() + w * 7 + d);
+
+      const cell = document.createElement('div');
+      cell.className = 'heatmap-cell';
+
+      if (cellDate <= today) {
+        const key = cellDate.toISOString().slice(0, 10);
+        const count = countMap[key] || 0;
+        const level = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= 6 ? 3 : 4;
+        if (level > 0) cell.dataset.level = String(level);
+        cell.title = `${key}: ${count} entr${count === 1 ? 'y' : 'ies'}`;
+
+        if (d === 0 && cellDate.getMonth() !== lastMonth) {
+          monthLabels.push({
+            col: w,
+            label: cellDate.toLocaleDateString(undefined, { month: 'short' }),
+          });
+          lastMonth = cellDate.getMonth();
+        }
+      }
+
+      weekEl.appendChild(cell);
+    }
+    heatmapGrid.appendChild(weekEl);
+  }
+
+  // Render month labels using absolute positioning
+  heatmapMonths.style.position = 'relative';
+  monthLabels.forEach(({ col, label }) => {
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.position = 'absolute';
+    span.style.left = `${col * WEEK_PX}px`;
+    heatmapMonths.appendChild(span);
+  });
 }
 
 // ── Data loading ───────────────────────────────────────────────────────────
@@ -496,6 +633,45 @@ btnText.addEventListener('click', () => setMode('text'));
 btnSemantic.addEventListener('click', () => setMode('semantic'));
 tagAll.addEventListener('click', () => applyTagFilter(null));
 loadMoreBtn.addEventListener('click', () => loadEntries(true));
+
+// Infinite scroll: trigger when within 200px of the bottom of the list
+timelineList.addEventListener('scroll', () => {
+  if (!_state.hasMore || _loadingMore) return;
+  const { scrollTop, scrollHeight, clientHeight } = timelineList;
+  if (scrollHeight - scrollTop - clientHeight < 200) {
+    _loadingMore = true;
+    loadEntries(true).finally(() => { _loadingMore = false; });
+  }
+});
+
+// Group-by buttons
+function setGroupBy(groupBy) {
+  _state.groupBy = groupBy;
+  [grpNoneBtn, grpDayBtn, grpWeekBtn, grpMonthBtn].forEach((btn) => btn.classList.remove('active'));
+  const active = groupBy === 'day' ? grpDayBtn
+    : groupBy === 'week' ? grpWeekBtn
+    : groupBy === 'month' ? grpMonthBtn
+    : grpNoneBtn;
+  active.classList.add('active');
+  loadEntries();
+}
+grpNoneBtn.addEventListener('click',  () => setGroupBy(null));
+grpDayBtn.addEventListener('click',   () => setGroupBy('day'));
+grpWeekBtn.addEventListener('click',  () => setGroupBy('week'));
+grpMonthBtn.addEventListener('click', () => setGroupBy('month'));
+
+// Heatmap toggle
+heatmapToggle.addEventListener('click', async () => {
+  const visible = !heatmapPanel.classList.contains('hidden');
+  if (visible) {
+    heatmapPanel.classList.add('hidden');
+    heatmapToggle.classList.remove('active');
+  } else {
+    heatmapPanel.classList.remove('hidden');
+    heatmapToggle.classList.add('active');
+    await renderHeatmap();
+  }
+});
 
 // ── Category override ──────────────────────────────────────────────────────
 

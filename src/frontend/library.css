@@ -264,6 +264,93 @@ html, body {
 }
 #load-more-btn:hover { border-color: var(--cortex-teal); color: var(--text); }
 
+/* ── Timeline controls bar ────────────────────────────────────────────── */
+#timeline-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+#timeline-groupby {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tl-ctrl-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-right: 2px;
+}
+
+.tl-grp-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.tl-grp-btn:hover  { border-color: var(--cortex-teal); color: var(--text-muted); }
+.tl-grp-btn.active { border-color: var(--cortex-teal); color: var(--cortex-teal); }
+
+/* ── Heatmap ──────────────────────────────────────────────────────────── */
+#heatmap-panel {
+  padding: 8px 12px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#heatmap-panel.hidden { display: none; }
+
+#heatmap-months {
+  height: 14px;
+  margin-bottom: 4px;
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+#heatmap-grid {
+  display: flex;
+  gap: 2px;
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heatmap-cell {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--surface2);
+  flex-shrink: 0;
+}
+.heatmap-cell[data-level="1"] { background: #1a4f4e; }
+.heatmap-cell[data-level="2"] { background: #1d756f; }
+.heatmap-cell[data-level="3"] { background: #22918a; }
+.heatmap-cell[data-level="4"] { background: var(--cortex-teal); }
+
+/* ── Group headers (day / week / month separators) ────────────────────── */
+.tl-group-header {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 12px 4px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+.tl-group-header:first-child { padding-top: 4px; }
+
 /* ── Detail panel ─────────────────────────────────────────────────────── */
 #detail {
   width: var(--detail-w);

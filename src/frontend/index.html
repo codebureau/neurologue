@@ -50,6 +50,20 @@
 
       <!-- Timeline: entry list -->
       <div id="timeline">
+        <div id="timeline-controls">
+          <div id="timeline-groupby">
+            <span class="tl-ctrl-label">Group</span>
+            <button id="grp-none"  class="tl-grp-btn active">None</button>
+            <button id="grp-day"   class="tl-grp-btn">Day</button>
+            <button id="grp-week"  class="tl-grp-btn">Week</button>
+            <button id="grp-month" class="tl-grp-btn">Month</button>
+          </div>
+          <button id="btn-heatmap-toggle" class="tl-grp-btn" title="Toggle activity heatmap">Heatmap</button>
+        </div>
+        <div id="heatmap-panel" class="hidden">
+          <div id="heatmap-months"></div>
+          <div id="heatmap-grid"></div>
+        </div>
         <div id="timeline-list"></div>
         <button id="load-more-btn">Load more</button>
       </div>
