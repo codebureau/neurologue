@@ -1124,6 +1124,206 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   setTimeout(() => msg.classList.add('hidden'), 2000);
 });
 
+// ── Tag Management modal ─────────────────────────────────────────────────────
+
+const tagMgmtModal    = document.getElementById('tag-management-modal');
+const tagMgmtClose    = document.getElementById('tag-management-close');
+const tagSimilarSec   = document.getElementById('tag-similar-section');
+const tagSimilarList  = document.getElementById('tag-similar-list');
+const tagAllList      = document.getElementById('tag-all-list');
+const tagMgmtEmpty    = document.getElementById('tag-mgmt-empty');
+
+document.getElementById('btn-maintenance').addEventListener('click', openTagManagement);
+tagMgmtClose.addEventListener('click', () => tagMgmtModal.classList.add('hidden'));
+tagMgmtModal.addEventListener('click', (e) => {
+  if (e.target === tagMgmtModal) tagMgmtModal.classList.add('hidden');
+});
+
+async function openTagManagement() {
+  tagSimilarSec.classList.add('hidden');
+  tagSimilarList.innerHTML = '';
+  tagAllList.innerHTML = '';
+  tagMgmtEmpty.classList.add('hidden');
+  tagMgmtModal.classList.remove('hidden');
+  await refreshTagManagement();
+}
+
+async function refreshTagManagement() {
+  const [tags, similar] = await Promise.all([
+    window.neurologue.listTagsWithCounts(),
+    window.neurologue.similarTags(),
+  ]);
+
+  // Similar pairs
+  if (similar.length > 0) {
+    tagSimilarSec.classList.remove('hidden');
+    tagSimilarList.innerHTML = '';
+    similar.forEach((pair) => renderSimilarPair(pair));
+  } else {
+    tagSimilarSec.classList.add('hidden');
+  }
+
+  // All tags
+  tagAllList.innerHTML = '';
+  if (tags.length === 0) {
+    tagMgmtEmpty.classList.remove('hidden');
+  } else {
+    tagMgmtEmpty.classList.add('hidden');
+    tags.forEach((tag) => tagAllList.appendChild(buildTagRow(tag)));
+  }
+}
+
+function renderSimilarPair(pair) {
+  // Sort so highest count is first
+  const [first, second] = pair.a.count >= pair.b.count ? [pair.a, pair.b] : [pair.b, pair.a];
+
+  const row = document.createElement('div');
+  row.className = 'tag-similar-pair';
+  row.dataset.pairA = pair.a.id;
+  row.dataset.pairB = pair.b.id;
+
+  const noteWord = (n) => n === 1 ? '1 note' : `${n} notes`;
+
+  row.innerHTML = `
+    <div class="tag-similar-tag">
+      <span class="tag-similar-name">#${first.name}</span>
+      <span class="tag-similar-count">${noteWord(first.count)}</span>
+    </div>
+    <span class="tag-similar-sep">↔</span>
+    <div class="tag-similar-tag">
+      <span class="tag-similar-name">#${second.name}</span>
+      <span class="tag-similar-count">${noteWord(second.count)}</span>
+    </div>
+    <div class="tag-similar-actions">
+      <button class="btn-keep-tag" data-keep="${first.id}" data-remove="${second.id}" title="Keep #${first.name}, merge #${second.name} into it">Keep #${first.name}</button>
+      <button class="btn-keep-tag" data-keep="${second.id}" data-remove="${first.id}" title="Keep #${second.name}, merge #${first.name} into it">Keep #${second.name}</button>
+      <button class="btn-skip-pair">Skip</button>
+    </div>
+  `;
+
+  row.querySelectorAll('.btn-keep-tag').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const keepId   = btn.dataset.keep;
+      const removeId = btn.dataset.remove;
+      const res = await window.neurologue.mergeTag(removeId, keepId);
+      if (res.ok) {
+        row.remove();
+        if (tagSimilarList.children.length === 0) tagSimilarSec.classList.add('hidden');
+        // Refresh full list to reflect updated counts
+        const tags = await window.neurologue.listTagsWithCounts();
+        tagAllList.innerHTML = '';
+        tags.forEach((t) => tagAllList.appendChild(buildTagRow(t)));
+        await loadTags(); // refresh sidebar
+      }
+    });
+  });
+
+  row.querySelector('.btn-skip-pair').addEventListener('click', () => {
+    row.remove();
+    if (tagSimilarList.children.length === 0) tagSimilarSec.classList.add('hidden');
+  });
+
+  tagSimilarList.appendChild(row);
+}
+
+function buildTagRow(tag) {
+  const row = document.createElement('div');
+  row.className = 'tag-row';
+  row.dataset.tagId = tag.id;
+
+  const noteWord = (n) => n === 1 ? '1 note' : `${n} notes`;
+
+  row.innerHTML = `
+    <span class="tag-row-name">#${tag.name}</span>
+    <span class="tag-row-count">${noteWord(tag.count)}</span>
+    <div class="tag-row-actions">
+      <button class="btn-rename-tag">Rename</button>
+      <button class="btn-delete-tag">Delete</button>
+    </div>
+  `;
+
+  row.querySelector('.btn-rename-tag').addEventListener('click', () => startRename(row, tag));
+  row.querySelector('.btn-delete-tag').addEventListener('click', () => startDelete(row, tag));
+
+  return row;
+}
+
+function startRename(row, tag) {
+  const nameEl    = row.querySelector('.tag-row-name');
+  const countEl   = row.querySelector('.tag-row-count');
+  const actionsEl = row.querySelector('.tag-row-actions');
+
+  nameEl.classList.add('hidden');
+  actionsEl.classList.add('hidden');
+
+  const renameEl = document.createElement('div');
+  renameEl.className = 'tag-row-rename';
+  renameEl.innerHTML = `
+    <input type="text" value="${tag.name}" autocomplete="off" spellcheck="false" />
+    <button class="btn-rename-save">Save</button>
+    <button class="btn-rename-cancel">Cancel</button>
+  `;
+  row.insertBefore(renameEl, countEl);
+
+  const input = renameEl.querySelector('input');
+  input.focus();
+  input.select();
+
+  const cancel = () => {
+    renameEl.remove();
+    nameEl.classList.remove('hidden');
+    actionsEl.classList.remove('hidden');
+  };
+
+  const save = async () => {
+    const newName = input.value.trim();
+    if (!newName || newName === tag.name) { cancel(); return; }
+    const res = await window.neurologue.renameTag(tag.id, newName);
+    if (res.ok) {
+      tag.name = newName.toLowerCase();
+      nameEl.textContent = `#${tag.name}`;
+      cancel();
+      await loadTags(); // refresh sidebar
+    } else {
+      input.style.borderColor = 'var(--danger)';
+      input.title = res.error || 'Could not rename';
+    }
+  };
+
+  renameEl.querySelector('.btn-rename-save').addEventListener('click', save);
+  renameEl.querySelector('.btn-rename-cancel').addEventListener('click', cancel);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') save();
+    if (e.key === 'Escape') cancel();
+  });
+}
+
+function startDelete(row, tag) {
+  const actionsEl = row.querySelector('.tag-row-actions');
+  row.classList.add('tag-row--confirm-delete');
+  actionsEl.innerHTML = `
+    <button class="btn-confirm-delete">Delete</button>
+    <button class="btn-cancel-delete">Cancel</button>
+  `;
+  actionsEl.querySelector('.btn-confirm-delete').addEventListener('click', async () => {
+    const res = await window.neurologue.deleteTag(tag.id);
+    if (res.ok) {
+      row.remove();
+      if (tagAllList.children.length === 0) tagMgmtEmpty.classList.remove('hidden');
+      await loadTags(); // refresh sidebar
+    }
+  });
+  actionsEl.querySelector('.btn-cancel-delete').addEventListener('click', () => {
+    row.classList.remove('tag-row--confirm-delete');
+    row.querySelector('.tag-row-actions').innerHTML = `
+      <button class="btn-rename-tag">Rename</button>
+      <button class="btn-delete-tag">Delete</button>
+    `;
+    row.querySelector('.btn-rename-tag').addEventListener('click', () => startRename(row, tag));
+    row.querySelector('.btn-delete-tag').addEventListener('click', () => startDelete(row, tag));
+  });
+}
+
 // ── Startup setup check ────────────────────────────────────────────
 
 // True if a model name from settings matches one of the available model strings

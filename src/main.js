@@ -5,7 +5,7 @@ const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
 const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory } = require('./backend/db/entries');
-const { setTagsForEntry, listTags } = require('./backend/db/tags');
+const { setTagsForEntry, listTags, listTagsWithCounts, renameTag, deleteTag, mergeTag, findSimilarTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
@@ -132,6 +132,28 @@ ipcMain.handle('library:suggest-tags', async (_event, { text }) => {
     return { ok: false, suggestions: [], error: err.message };
   }
 });
+
+// ── Tag management IPC ──────────────────────────────────────────────────────
+
+ipcMain.handle('tags:list-with-counts', async () => listTagsWithCounts());
+
+ipcMain.handle('tags:rename', async (_event, { id, newName }) => {
+  if (!id || !newName) return { ok: false, error: 'Invalid input' };
+  return renameTag(id, newName);
+});
+
+ipcMain.handle('tags:delete', async (_event, { id }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  return deleteTag(id);
+});
+
+ipcMain.handle('tags:merge', async (_event, { removeId, keepId }) => {
+  if (!removeId || !keepId) return { ok: false, error: 'Invalid input' };
+  if (removeId === keepId) return { ok: false, error: 'Cannot merge a tag with itself' };
+  return mergeTag(removeId, keepId);
+});
+
+ipcMain.handle('tags:similar', async () => findSimilarTags());
 
 // ── Themes IPC ───────────────────────────────────────────────────────────────
 
