@@ -51,7 +51,7 @@
       </tr>
       <tr>
         <td><strong>Tags</strong></td>
-        <td>Optional comma-separated tags, e.g. <code>work, ideas, todo</code>. Whitespace around each tag is trimmed automatically.</td>
+        <td>Optional comma-separated tags, e.g. <code>work, ideas, todo</code>. Whitespace around each tag is trimmed automatically. If Ollama is running, a <strong>Suggest tags</strong> button appears after you type your content — click it to get LLM-generated tag suggestions, then click any suggestion to add it.</td>
       </tr>
     </tbody>
   </table>
@@ -117,7 +117,7 @@
 
   <h2>After capture</h2>
   <p>
-    Once saved, the entry appears immediately in your <a href="library.html">Library</a>. The background worker will pick it up within 10 seconds and generate a vector embedding. You don't need to do anything — this happens silently.
+    Once saved, the entry appears immediately in your <a href="library.html">Library</a>. The background worker will pick it up within 10 seconds, generate a vector embedding, and auto-classify it into a category (Task, Thought, Reminder, Idea, Question, or Decision). You don't need to do anything — this happens silently.
   </p>
 
   <div class="callout warning">
