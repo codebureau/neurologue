@@ -67,12 +67,17 @@ Neurologue stores:
 
 The library supports:
 
-- timeline view  
-- tag view  
-- theme view  
+- timeline view with infinite scroll  
+- day / week / month grouping  
+- activity heatmap (GitHub-style contribution graph)  
+- tag filter (clickable sidebar + entry card pills)  
+- category filter (sidebar + clickable category badges)  
+- combined tag + category + text search (AND semantics)  
 - semantic search  
-- full‑text search  
-- related‑entry navigation  
+- entry detail with inline tag editing and LLM tag suggestions  
+- entry categorisation (auto + user override)  
+- tag management: rename, delete, merge, duplicate detection  
+- export
 
 ---
 
@@ -83,7 +88,8 @@ A background worker periodically:
 - generates embeddings for new entries  
 - clusters entries into themes  
 - generates theme summaries  
-- suggests tags  
+- auto-classifies entries by category (Task, Thought, Reminder, Idea, Question, Decision)  
+- suggests tags (LLM-generated, shown inline in the detail panel and capture popup)  
 - detects contradictions  
 - identifies “open loops”  
 - maintains metadata for activity and recency  
@@ -253,6 +259,10 @@ Ollama should be running on `http://127.0.0.1:11434` (default). The endpoint is 
 | 4 | Library Layer (timeline, search, themes UI) | ✅ Complete |
 | 5 | Processing Layer (clustering, summaries) | ✅ Complete |
 | 6 | Export Layer (JSON/MD/embeddings) | ✅ Complete |
+| 7 | Entry categorisation + LLM tag suggestions | ✅ Complete |
+| 8 | Tag management (rename, delete, merge, duplicates) | ✅ Complete |
+| 9 | Timeline improvements (infinite scroll, grouping, heatmap) | ✅ Complete |
+| 10 | Filter by tag / category | ✅ Complete |
 
 See [ROADMAP.md](ROADMAP.md) and [GitHub Issues](https://github.com/codebureau/neurologue/issues) for detail.
 
@@ -339,9 +349,14 @@ The library window opens automatically at startup and shows a 3-column layout: t
 2. The library window opens — your captured entries appear in the timeline (newest first)
 3. **Text search:** type in the search bar, results filter in real-time (300ms debounce)
 4. **Semantic search:** click **Semantic** mode button, type a query — if Ollama is running it returns nearest-neighbour results; otherwise a notice banner appears and text results are shown as fallback
-5. **Tag filter:** click a tag in the left sidebar — the timeline shows only entries with that tag
-6. **Entry detail:** click any entry card — the right panel shows full text, date, source, and tags
-7. **Tag navigation:** clicking a tag pill in the detail panel applies that tag as a filter
+5. **Tag filter:** click a tag in the left sidebar — the timeline shows only entries with that tag; a filter pill appears above the timeline with a × to clear it
+6. **Category filter:** click a category in the sidebar (Task, Thought, etc.) — the timeline narrows to that category
+7. **Combined filter:** tag + category + text search all stack together (AND semantics)
+8. **Entry detail:** click any entry card — the right panel shows full text, date, source, tags, and category
+9. **Clickable chips:** clicking a tag pill or category badge on an entry card applies that filter directly
+10. **Grouping:** use the **Day / Week / Month** buttons in the timeline control bar to group entries by time period
+11. **Heatmap:** click **Heatmap** in the timeline control bar to show a 52-week activity contribution graph
+12. **Infinite scroll:** scroll to the bottom of the timeline — the next page loads automatically
 
 **To confirm tag indexing:**
 
@@ -402,6 +417,52 @@ The **Export…** button in the top-right of the toolbar opens a native folder p
 6. Open the folder — all five files should be present
 
 The resulting files are suitable for ingestion into external tools (NotebookLM, Claude, Copilot, etc.).
+
+---
+
+## Phase 7 — Entry Categorisation + LLM Tag Suggestions
+
+The background worker now auto-classifies each entry into one of six categories: **Task, Thought, Reminder, Idea, Question, Decision**. The category badge appears on each entry card and in the detail panel.
+
+**To validate:**
+
+1. Ensure Ollama is running with an LLM model (e.g. `phi3:mini`)
+2. Capture a few entries with different intents ("Remember to call…", "I wonder if…", "We decided to…")
+3. After the worker processes them, category badges appear on entry cards
+4. In the entry detail panel, the category badge shows the assigned category
+5. **Override:** click the category dropdown next to the badge to set it manually
+6. **Tag suggestions:** open the detail panel for an entry — click *Suggest tags* to get LLM-generated tag suggestions; click any suggestion to add it
+7. Tag suggestions also appear in the capture popup when Ollama is available
+
+## Phase 8 — Tag Management
+
+The **Maintenance** button in the toolbar opens the Tag Management panel.
+
+**To validate:**
+
+1. Click **Maintenance** in the toolbar
+2. **Rename:** click *Rename* next to any tag, type a new name, press Enter
+3. **Delete:** click *Delete* then confirm — all references are removed
+4. **Duplicate detection:** the panel shows a *Possible duplicates* section with pairs detected structurally (format variants, abbreviations, spelling) and semantically (similar meaning via embeddings)
+5. **Merge:** on a duplicate pair, click *Keep* on the name you want to keep — the other tag is merged in and all entries retagged
+6. **Sensitivity:** adjust *Duplicate detection sensitivity* in Settings (Strict / Balanced / Broad) to control the embedding-similarity threshold
+
+## Phase 9 — Timeline: Infinite Scroll, Grouping, Heatmap
+
+**To validate:**
+
+1. With many entries, scroll to the bottom of the timeline — the next 50 entries load automatically (no button required)
+2. Use the **None / Day / Week / Month** buttons in the timeline control bar to group entries under date headers
+3. Click **Heatmap** to toggle a 52-week contribution graph above the timeline; hover any cell to see the entry count for that day
+
+## Phase 10 — Filter by Tag / Category
+
+**To validate:**
+
+1. Click any tag in the sidebar or any tag pill on an entry card — the timeline narrows to that tag; a filter pill appears above the list
+2. Click any category in the sidebar or any category badge on an entry card — filters by category
+3. Both filters can be active simultaneously; typing in the search bar adds a text search on top
+4. Clear individual filters with the × on each pill, or *Clear all* when both are active
 
 ---
 
