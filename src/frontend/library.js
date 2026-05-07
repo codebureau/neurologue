@@ -1192,6 +1192,7 @@ function renderSimilarPair(pair) {
 
   const reasonLabels = {
     'format-variant':   'Format variant',
+    'prefix-variant':   'Abbreviation',
     'similar-spelling': 'Spelling',
     'similar-meaning':  pair.similarity ? `Similar meaning \u00b7 ${pair.similarity}%` : 'Similar meaning',
   };

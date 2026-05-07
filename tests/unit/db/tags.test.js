@@ -281,4 +281,42 @@ describe('findSimilarTags', () => {
     );
     expect(found).toBe(false);
   });
+
+  test('finds short-tag spelling variants (minLen 3)', async () => {
+    const { upsertTag, findSimilarTags } = require('../../../src/backend/db/tags');
+    await upsertTag('dev');
+    await upsertTag('devs');
+    const pairs = await findSimilarTags();
+    const found = pairs.some((p) =>
+      [p.a.name, p.b.name].includes('dev') &&
+      [p.a.name, p.b.name].includes('devs')
+    );
+    expect(found).toBe(true);
+  });
+
+  test('finds prefix variants (dev ↔ development)', async () => {
+    const { upsertTag, findSimilarTags } = require('../../../src/backend/db/tags');
+    await upsertTag('dev');
+    await upsertTag('development');
+    const pairs = await findSimilarTags();
+    const found = pairs.some((p) =>
+      [p.a.name, p.b.name].includes('dev') &&
+      [p.a.name, p.b.name].includes('development') &&
+      p.reason === 'prefix-variant'
+    );
+    expect(found).toBe(true);
+  });
+
+  test('finds plural-stem prefix variants (devs ↔ development)', async () => {
+    const { upsertTag, findSimilarTags } = require('../../../src/backend/db/tags');
+    await upsertTag('devs');
+    await upsertTag('development');
+    const pairs = await findSimilarTags();
+    const found = pairs.some((p) =>
+      [p.a.name, p.b.name].includes('devs') &&
+      [p.a.name, p.b.name].includes('development') &&
+      p.reason === 'prefix-variant'
+    );
+    expect(found).toBe(true);
+  });
 });

@@ -190,9 +190,23 @@ async function findSimilarTags() {
         continue;
       }
 
+      // Prefix/abbreviation variant: one tag is a prefix of the other,
+      // or becomes one after stripping a trailing plural 's'.
+      // e.g. dev ↔ development, devs ↔ development
+      const [shorter, longer] = a.name.length <= b.name.length
+        ? [a.name, b.name] : [b.name, a.name];
+      if (shorter.length >= 3 && shorter !== longer) {
+        const stem = (shorter.endsWith('s') && shorter.length >= 4)
+          ? shorter.slice(0, -1) : shorter;
+        if (longer.startsWith(shorter) || longer.startsWith(stem)) {
+          pairs.push({ a, b, reason: 'prefix-variant' });
+          continue;
+        }
+      }
+
       // Spelling variant: small edit distance relative to tag length
       const minLen = Math.min(a.name.length, b.name.length);
-      if (minLen >= 4) {
+      if (minLen >= 3) {
         const threshold = minLen >= 7 ? 2 : 1;
         if (_levenshtein(a.name, b.name) <= threshold) {
           pairs.push({ a, b, reason: 'similar-spelling' });
