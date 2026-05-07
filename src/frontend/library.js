@@ -332,7 +332,6 @@ async function selectEntry(id) {
     detailCategoryBadge.textContent = displayCat || '';
     detailCategoryBadge.setAttribute('data-cat', displayCat || '');
     detailCategorySelect.value = entry.user_category || '';
-    detailTags.innerHTML = '';
     renderDetailTags(entry.tags || []);
 
     detailPlaceholder.style.display = 'none';
