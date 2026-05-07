@@ -1187,3 +1187,5 @@ html, body {
   color: var(--text-muted);
 }
 .tag-mgmt-empty { font-size: 13px; color: var(--text-muted); padding: 16px 0; text-align: center; }
+.tag-mgmt-empty.hidden { display: none; }
+#tag-similar-section.hidden { display: none; }
