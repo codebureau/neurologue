@@ -16,6 +16,13 @@ contextBridge.exposeInMainWorld('neurologue', {
   suggestTags: (text) => ipcRenderer.invoke('library:suggest-tags', { text }),
   listTags: () => ipcRenderer.invoke('library:list-tags'),
 
+  // ── Tag management ───────────────────────────────────────────────────────
+  listTagsWithCounts: () => ipcRenderer.invoke('tags:list-with-counts'),
+  renameTag: (id, newName) => ipcRenderer.invoke('tags:rename', { id, newName }),
+  deleteTag: (id) => ipcRenderer.invoke('tags:delete', { id }),
+  mergeTag: (removeId, keepId) => ipcRenderer.invoke('tags:merge', { removeId, keepId }),
+  similarTags: () => ipcRenderer.invoke('tags:similar'),
+
   // ── Themes ───────────────────────────────────────────────────────────────
   listThemes: () => ipcRenderer.invoke('themes:list'),
   getTheme: (id) => ipcRenderer.invoke('themes:get', { id }),

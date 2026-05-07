@@ -5,7 +5,7 @@ const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
 const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory } = require('./backend/db/entries');
-const { setTagsForEntry, listTags } = require('./backend/db/tags');
+const { setTagsForEntry, listTags, listTagsWithCounts, renameTag, deleteTag, mergeTag, findSimilarTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
@@ -131,6 +131,82 @@ ipcMain.handle('library:suggest-tags', async (_event, { text }) => {
   } catch (err) {
     return { ok: false, suggestions: [], error: err.message };
   }
+});
+
+// ── Tag management IPC ──────────────────────────────────────────────────────
+
+ipcMain.handle('tags:list-with-counts', async () => listTagsWithCounts());
+
+ipcMain.handle('tags:rename', async (_event, { id, newName }) => {
+  if (!id || !newName) return { ok: false, error: 'Invalid input' };
+  return renameTag(id, newName);
+});
+
+ipcMain.handle('tags:delete', async (_event, { id }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  return deleteTag(id);
+});
+
+ipcMain.handle('tags:merge', async (_event, { removeId, keepId }) => {
+  if (!removeId || !keepId) return { ok: false, error: 'Invalid input' };
+  if (removeId === keepId) return { ok: false, error: 'Cannot merge a tag with itself' };
+  return mergeTag(removeId, keepId);
+});
+
+ipcMain.handle('tags:similar', async () => {
+  const settings  = getSettings();
+  const threshold = typeof settings.tagSimilarityThreshold === 'number'
+    ? settings.tagSimilarityThreshold
+    : 0.88;
+
+  // Always run the fast structural pass (format variants + spelling)
+  const structural = await findSimilarTags();
+  const structuralKeys = new Set(structural.map((p) => [p.a.id, p.b.id].sort().join('|')));
+
+  // Semantic pass — only when Ollama is available
+  const ollamaUp = await isOllamaAvailable();
+  if (!ollamaUp) return structural;
+
+  const tags = await listTagsWithCounts();
+  if (tags.length < 2) return structural;
+
+  // Embed all tag names concurrently (best-effort — skip failures)
+  const embeddings = Object.create(null);
+  await Promise.all(tags.map(async (tag) => {
+    try {
+      embeddings[tag.id] = await generateEmbedding(tag.name);
+    } catch { /* skip tag if embedding fails */ }
+  }));
+
+  function cosineSim(a, b) {
+    let dot = 0, magA = 0, magB = 0;
+    for (let i = 0; i < a.length; i++) {
+      dot  += a[i] * b[i];
+      magA += a[i] * a[i];
+      magB += b[i] * b[i];
+    }
+    const denom = Math.sqrt(magA) * Math.sqrt(magB);
+    return denom === 0 ? 0 : dot / denom;
+  }
+
+  const semanticPairs = [];
+  for (let i = 0; i < tags.length; i++) {
+    for (let j = i + 1; j < tags.length; j++) {
+      const a = tags[i], b = tags[j];
+      const key = [a.id, b.id].sort().join('|');
+      if (structuralKeys.has(key)) continue; // already flagged structurally
+      const ea = embeddings[a.id], eb = embeddings[b.id];
+      if (!ea || !eb) continue;
+      const sim = cosineSim(ea, eb);
+      if (sim >= threshold) {
+        semanticPairs.push({ a, b, reason: 'similar-meaning', similarity: Math.round(sim * 100) });
+      }
+    }
+  }
+
+  // Semantic pairs sorted by similarity desc, then appended after structural
+  semanticPairs.sort((x, y) => y.similarity - x.similarity);
+  return [...structural, ...semanticPairs];
 });
 
 // ── Themes IPC ───────────────────────────────────────────────────────────────
