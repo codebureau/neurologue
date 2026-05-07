@@ -13,7 +13,7 @@ const { openDb } = require('./connection');
 async function searchEntriesText(query, { limit = 50, offset = 0 } = {}) {
   const db = await openDb();
   const pattern = `%${query}%`;
-  return db
+  const entries = db
     .prepare(`
       SELECT * FROM entries
       WHERE content LIKE ?
@@ -21,6 +21,7 @@ async function searchEntriesText(query, { limit = 50, offset = 0 } = {}) {
       LIMIT ? OFFSET ?
     `)
     .all(pattern, limit, offset);
+  return _enrichWithTags(db, entries);
 }
 
 /**
@@ -32,7 +33,7 @@ async function searchEntriesText(query, { limit = 50, offset = 0 } = {}) {
  */
 async function listEntriesByTag(tagName, { limit = 100, offset = 0 } = {}) {
   const db = await openDb();
-  return db
+  const entries = db
     .prepare(`
       SELECT e.* FROM entries e
       INNER JOIN entry_tags et ON et.entry_id = e.id
@@ -42,6 +43,7 @@ async function listEntriesByTag(tagName, { limit = 100, offset = 0 } = {}) {
       LIMIT ? OFFSET ?
     `)
     .all(tagName.trim().toLowerCase(), limit, offset);
+  return _enrichWithTags(db, entries);
 }
 
 /**
@@ -68,4 +70,48 @@ async function getEntryWithTags(id) {
   return { ...entry, tags };
 }
 
-module.exports = { searchEntriesText, listEntriesByTag, getEntryWithTags };
+/**
+ * Attach tags to an array of entries using a single batch query.
+ * Returns a new array where each entry has a `tags` array.
+ *
+ * @param {object} db - open db connection
+ * @param {object[]} entries
+ * @returns {object[]}
+ */
+function _enrichWithTags(db, entries) {
+  if (!entries.length) return entries;
+  const ids = entries.map((e) => e.id);
+  const placeholders = ids.map(() => '?').join(',');
+  const rows = db
+    .prepare(`
+      SELECT et.entry_id, t.id, t.name
+      FROM tags t
+      INNER JOIN entry_tags et ON et.tag_id = t.id
+      WHERE et.entry_id IN (${placeholders})
+      ORDER BY t.name ASC
+    `)
+    .all(...ids);
+
+  const byEntry = {};
+  for (const row of rows) {
+    if (!byEntry[row.entry_id]) byEntry[row.entry_id] = [];
+    byEntry[row.entry_id].push({ id: row.id, name: row.name });
+  }
+  return entries.map((e) => ({ ...e, tags: byEntry[e.id] || [] }));
+}
+
+/**
+ * List all entries (newest first) with their tags.
+ *
+ * @param {{ limit?: number, offset?: number }} options
+ * @returns {Promise<object[]>}
+ */
+async function listEntriesWithTags({ limit = 50, offset = 0 } = {}) {
+  const db = await openDb();
+  const entries = db
+    .prepare('SELECT * FROM entries ORDER BY created_at DESC LIMIT ? OFFSET ?')
+    .all(limit, offset);
+  return _enrichWithTags(db, entries);
+}
+
+module.exports = { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags };

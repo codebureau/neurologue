@@ -4,9 +4,9 @@ const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
-const { createEntry, listEntries, updateEntry, getEntryRevisions } = require('./backend/db/entries');
+const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory } = require('./backend/db/entries');
 const { setTagsForEntry, listTags } = require('./backend/db/tags');
-const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
+const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
@@ -59,7 +59,7 @@ ipcMain.on('capture:close', (event) => {
 // List entries (paginated, optional tag filter)
 ipcMain.handle('library:list', async (_event, { limit = 50, offset = 0, tag } = {}) => {
   if (tag) return listEntriesByTag(tag, { limit, offset });
-  return listEntries({ limit, offset });
+  return listEntriesWithTags({ limit, offset });
 });
 
 // Full-text search
@@ -99,6 +99,13 @@ ipcMain.handle('library:update-entry', async (_event, { id, content }) => {
 // Get revision history for an entry
 ipcMain.handle('library:get-revisions', async (_event, { id }) => {
   return getEntryRevisions(id);
+});
+
+// Update (or clear) the category for an entry (user override)
+ipcMain.handle('library:set-category', async (_event, { id, category }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  const entry = await updateEntryCategory(id, category || null, 'user');
+  return entry ? { ok: true, entry } : { ok: false, error: 'Entry not found' };
 });
 
 // List all tags (for sidebar)

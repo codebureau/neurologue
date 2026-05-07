@@ -174,3 +174,60 @@ describe('getEntryRevisions', () => {
     expect(revisions).toEqual([]);
   });
 });
+
+describe('updateEntryCategory', () => {
+  test('sets the LLM-assigned category', async () => {
+    const { createEntry, updateEntryCategory } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'buy milk' });
+    expect(entry.category).toBeNull();
+
+    const updated = await updateEntryCategory(entry.id, 'Task', 'llm');
+    expect(updated.category).toBe('Task');
+    expect(updated.user_category).toBeNull();
+  });
+
+  test('sets a user category override', async () => {
+    const { createEntry, updateEntryCategory } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'interesting thought' });
+    await updateEntryCategory(entry.id, 'Thought', 'llm');
+    const updated = await updateEntryCategory(entry.id, 'Idea', 'user');
+    expect(updated.category).toBe('Thought');
+    expect(updated.user_category).toBe('Idea');
+  });
+
+  test('can clear a user override by passing null', async () => {
+    const { createEntry, updateEntryCategory } = require('../../../src/backend/db/entries');
+    const entry = await createEntry({ content: 'something' });
+    await updateEntryCategory(entry.id, 'Task', 'user');
+    const cleared = await updateEntryCategory(entry.id, null, 'user');
+    expect(cleared.user_category).toBeNull();
+  });
+
+  test('returns undefined for unknown id', async () => {
+    const { updateEntryCategory } = require('../../../src/backend/db/entries');
+    const result = await updateEntryCategory('no-such-id', 'Task', 'llm');
+    // getEntryById returns undefined for missing rows
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('listEntriesWithoutCategory', () => {
+  test('returns ids of entries with no category', async () => {
+    const { createEntry, updateEntryCategory, listEntriesWithoutCategory } = require('../../../src/backend/db/entries');
+    const a = await createEntry({ content: 'alpha' });
+    const b = await createEntry({ content: 'beta' });
+    await updateEntryCategory(a.id, 'Task', 'llm');
+
+    const ids = await listEntriesWithoutCategory();
+    expect(ids).not.toContain(a.id);
+    expect(ids).toContain(b.id);
+  });
+
+  test('returns empty array when all entries are classified', async () => {
+    const { createEntry, updateEntryCategory, listEntriesWithoutCategory } = require('../../../src/backend/db/entries');
+    const e = await createEntry({ content: 'done' });
+    await updateEntryCategory(e.id, 'Thought', 'llm');
+    const ids = await listEntriesWithoutCategory();
+    expect(ids).toHaveLength(0);
+  });
+});

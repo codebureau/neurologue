@@ -38,8 +38,11 @@ beforeEach(() => {
   mockEmbeddings.listEntriesWithoutEmbedding.mockResolvedValue([]);
   mockEmbeddings.upsertEmbedding.mockResolvedValue(undefined);
   mockEntries.getEntryById.mockResolvedValue(undefined);
+  mockEntries.updateEntryCategory.mockResolvedValue(undefined);
+  mockEntries.listEntriesWithoutCategory.mockResolvedValue([]);
   mockStore.upsertVector.mockResolvedValue(undefined);
   mockOllama.generateEmbedding.mockResolvedValue(makeVector());
+  mockOllama.classifyEntry.mockResolvedValue('Thought');
 });
 
 afterEach(() => {
@@ -140,6 +143,39 @@ describe('processBatch', () => {
     await flushAsync();
 
     expect(mockOllama.isOllamaAvailable).not.toHaveBeenCalled();
+  });
+
+  test('classification backfill: classifies entries that have no category', async () => {
+    // No entries need embedding, but one needs classification
+    mockEmbeddings.listEntriesWithoutEmbedding.mockResolvedValue([]);
+    mockEntries.listEntriesWithoutCategory.mockResolvedValue(['existing-id']);
+    mockEntries.getEntryById.mockResolvedValue({ id: 'existing-id', content: 'old note', category: null });
+    mockOllama.classifyEntry.mockResolvedValue('Idea');
+
+    const { startWorker } = require('../../../src/worker/index');
+    startWorker();
+    await flushAsync();
+
+    expect(mockOllama.classifyEntry).toHaveBeenCalledWith('old note');
+    expect(mockEntries.updateEntryCategory).toHaveBeenCalledWith('existing-id', 'Idea', 'llm');
+  });
+
+  test('classification backfill: handles a classification error without stopping', async () => {
+    mockEmbeddings.listEntriesWithoutEmbedding.mockResolvedValue([]);
+    mockEntries.listEntriesWithoutCategory.mockResolvedValue(['bad-id', 'good-id']);
+    mockEntries.getEntryById
+      .mockResolvedValueOnce({ id: 'bad-id',  content: 'bad',  category: null })
+      .mockResolvedValueOnce({ id: 'good-id', content: 'good', category: null });
+    mockOllama.classifyEntry
+      .mockRejectedValueOnce(new Error('LLM offline'))
+      .mockResolvedValueOnce('Task');
+
+    const { startWorker } = require('../../../src/worker/index');
+    startWorker();
+    await flushAsync();
+
+    expect(mockEntries.updateEntryCategory).toHaveBeenCalledTimes(1);
+    expect(mockEntries.updateEntryCategory).toHaveBeenCalledWith('good-id', 'Task', 'llm');
   });
 });
 
