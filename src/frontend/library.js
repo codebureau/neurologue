@@ -1082,6 +1082,10 @@ btnSettings.addEventListener('click', async () => {
   buildOptions('select-embed-model', available, settings.embeddingModel);
   buildOptions('select-llm-model',   available, settings.llmModel);
 
+  // Tag suggestion format
+  const tagFmtSelect = document.getElementById('select-tag-format');
+  if (tagFmtSelect) tagFmtSelect.value = settings.tagSuggestionFormat || 'hyphenated';
+
   // Populate hotkey display
   const currentHotkey = settings.captureHotkey || 'CommandOrControl+Shift+Space';
   hotkeyDisplay.dataset.saved = currentHotkey;
@@ -1100,6 +1104,7 @@ document.getElementById('settings-close').addEventListener('click', () => {
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
   const embedModel = document.getElementById('select-embed-model').value;
   const llmModel   = document.getElementById('select-llm-model').value;
+  const tagFmt     = (document.getElementById('select-tag-format') || {}).value || 'hyphenated';
 
   // Apply hotkey change first if the user recorded a new one
   if (_pendingHotkey) {
@@ -1113,7 +1118,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
-  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel });
+  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel, tagSuggestionFormat: tagFmt });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
   setTimeout(() => msg.classList.add('hidden'), 2000);

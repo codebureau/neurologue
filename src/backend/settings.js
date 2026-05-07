@@ -16,11 +16,12 @@ const config = require('../config');
 
 const SETTINGS_PATH = config.settings.path;
 
-/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string }} */
+/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string, tagSuggestionFormat: string }} */
 const DEFAULTS = {
-  embeddingModel: config.ollama.embeddingModel,
-  llmModel:       config.ollama.llmModel,
-  captureHotkey:  config.hotkey.capture,
+  embeddingModel:      config.ollama.embeddingModel,
+  llmModel:            config.ollama.llmModel,
+  captureHotkey:       config.hotkey.capture,
+  tagSuggestionFormat: 'hyphenated', // 'hyphenated' = two-words, 'concatenated' = twowords
 };
 
 /**

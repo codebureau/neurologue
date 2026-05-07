@@ -294,6 +294,7 @@ async function classifyEntry(text) {
 async function suggestTags(text, knownTags = []) {
   const settings = getSettings();
   const model = settings.llmModel || 'phi3:mini';
+  const useHyphens = (settings.tagSuggestionFormat || 'hyphenated') === 'hyphenated';
 
   if (_availableModels !== null && !_availableModels.some((m) => m === model || m.startsWith(model + ':'))) {
     throw new Error(`LLM model '${model}' is not installed — skipping tag suggestions`);
@@ -320,7 +321,12 @@ async function suggestTags(text, knownTags = []) {
   const raw = (response.response || '').trim();
   return raw
     .split(',')
-    .map((t) => t.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''))
+    .map((t) => {
+      const clean = t.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim();
+      return useHyphens
+        ? clean.replace(/\s+/g, '-')   // two words → two-words
+        : clean.replace(/[\s-]+/g, ''); // two words / two-words → twowords
+    })
     .filter(Boolean)
     .slice(0, 5);
 }
