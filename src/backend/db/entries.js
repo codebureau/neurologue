@@ -100,4 +100,42 @@ async function getEntryRevisions(id) {
     .all(id);
 }
 
-module.exports = { createEntry, getEntryById, listEntries, deleteEntry, updateEntry, getEntryRevisions };
+/**
+ * Update the category of an entry.
+ * Pass a non-null value to set; pass null to clear (revert to auto-classification).
+ * `source` should be 'llm' or 'user'.
+ * @param {string} id
+ * @param {string|null} category  One of: Task, Thought, Reminder, Idea, Question, Decision
+ * @param {'llm'|'user'} [source='user']
+ * @returns {Promise<object|undefined>}
+ */
+async function updateEntryCategory(id, category, source = 'user') {
+  const db = await openDb();
+  const field = source === 'llm' ? 'category' : 'user_category';
+  db.prepare(`UPDATE entries SET ${field} = ? WHERE id = ?`).run(category, id);
+  return getEntryById(id);
+}
+
+/**
+ * List entries that have no LLM-assigned category yet.
+ * @param {number} [limit=50]
+ * @returns {Promise<string[]>}  entry IDs
+ */
+async function listEntriesWithoutCategory(limit = 50) {
+  const db = await openDb();
+  return db
+    .prepare('SELECT id FROM entries WHERE category IS NULL ORDER BY created_at ASC LIMIT ?')
+    .all(limit)
+    .map((r) => r.id);
+}
+
+module.exports = {
+  createEntry,
+  getEntryById,
+  listEntries,
+  deleteEntry,
+  updateEntry,
+  getEntryRevisions,
+  updateEntryCategory,
+  listEntriesWithoutCategory,
+};

@@ -29,6 +29,8 @@ const detailContent          = document.getElementById('detail-content');
 const themeDetailContent     = document.getElementById('theme-detail-content');
 const detailDate    = document.getElementById('detail-date');
 const detailSource  = document.getElementById('detail-source');
+const detailCategoryBadge  = document.getElementById('detail-category-badge');
+const detailCategorySelect = document.getElementById('detail-category-select');
 const detailText    = document.getElementById('detail-text');
 const detailTags    = document.getElementById('detail-tags');
 const detailRead    = document.getElementById('detail-read');
@@ -228,7 +230,11 @@ async function selectEntry(id) {
       : formatDate(entry.created_at);
     detailSource.textContent = `Source: ${entry.source || 'manual'}  \u00b7  Type: ${entry.type || 'note'}`;
     detailText.textContent = entry.content;
-
+    // Category: user_category overrides the LLM-assigned category
+    const displayCat = entry.user_category || entry.category || null;
+    detailCategoryBadge.textContent = displayCat || '';
+    detailCategoryBadge.setAttribute('data-cat', displayCat || '');
+    detailCategorySelect.value = entry.user_category || '';
     detailTags.innerHTML = '';
     if (entry.tags && entry.tags.length > 0) {
       entry.tags.forEach((t) => {
@@ -354,6 +360,23 @@ btnText.addEventListener('click', () => setMode('text'));
 btnSemantic.addEventListener('click', () => setMode('semantic'));
 tagAll.addEventListener('click', () => applyTagFilter(null));
 loadMoreBtn.addEventListener('click', () => loadEntries(true));
+
+// ── Category override ──────────────────────────────────────────────────────
+
+detailCategorySelect.addEventListener('change', async () => {
+  if (!_state.selectedId) return;
+  const selected = detailCategorySelect.value || null; // '' → clear (revert to auto)
+  try {
+    const result = await window.neurologue.setCategory(_state.selectedId, selected);
+    if (result.ok) {
+      const displayCat = result.entry.user_category || result.entry.category || null;
+      detailCategoryBadge.textContent = displayCat || '';
+      detailCategoryBadge.setAttribute('data-cat', displayCat || '');
+    }
+  } catch (err) {
+    console.error('[library] setCategory failed:', err);
+  }
+});
 
 // ── Markdown utilities (used by edit panel) ────────────────────────────────
 
@@ -684,7 +707,19 @@ function updateStatus({ worker, ollama } = {}) {
 }
 
 window.neurologue.onWorkerStatus(updateStatus);
-window.neurologue.onEntriesUpdated(() => { loadEntries(); loadTags(); });
+window.neurologue.onEntriesUpdated(async () => {
+  await loadEntries();
+  await loadTags();
+  // Refresh the detail panel if a selected entry may now have a category assigned
+  if (_state.selectedId) {
+    const entry = await window.neurologue.getEntry(_state.selectedId);
+    if (entry && !entry.user_category) {
+      const cat = entry.category || null;
+      detailCategoryBadge.textContent = cat || '';
+      detailCategoryBadge.setAttribute('data-cat', cat || '');
+    }
+  }
+});
 window.neurologue.onThemesUpdated(() => loadThemes());
 
 // ── Setup + settings modals ────────────────────────────────────────

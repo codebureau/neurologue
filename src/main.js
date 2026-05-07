@@ -4,7 +4,7 @@ const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
-const { createEntry, listEntries, updateEntry, getEntryRevisions } = require('./backend/db/entries');
+const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory } = require('./backend/db/entries');
 const { setTagsForEntry, listTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
@@ -99,6 +99,13 @@ ipcMain.handle('library:update-entry', async (_event, { id, content }) => {
 // Get revision history for an entry
 ipcMain.handle('library:get-revisions', async (_event, { id }) => {
   return getEntryRevisions(id);
+});
+
+// Update (or clear) the category for an entry (user override)
+ipcMain.handle('library:set-category', async (_event, { id, category }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  const entry = await updateEntryCategory(id, category || null, 'user');
+  return entry ? { ok: true, entry } : { ok: false, error: 'Entry not found' };
 });
 
 // List all tags (for sidebar)

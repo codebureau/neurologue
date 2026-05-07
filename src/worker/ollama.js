@@ -228,4 +228,37 @@ function pullModel(name, onProgress) {
   });
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel };
+const VALID_CATEGORIES = ['Task', 'Thought', 'Reminder', 'Idea', 'Question', 'Decision'];
+
+/**
+ * Classify a piece of text into one of the six entry categories using an LLM.
+ * Uses the chat-generation model (phi3:mini or user-configured chat model).
+ *
+ * @param {string} text  The entry content to classify
+ * @returns {Promise<string>}  One of: Task, Thought, Reminder, Idea, Question, Decision
+ */
+async function classifyEntry(text) {
+  const settings = getSettings();
+  const model = settings.chatModel || settings.embeddingModel || 'phi3:mini';
+
+  const prompt =
+    'Classify the following note into exactly one of these categories:\n' +
+    'Task, Thought, Reminder, Idea, Question, Decision\n\n' +
+    'Reply with only the category name and nothing else.\n\n' +
+    `Note: ${text.slice(0, 500)}`;
+
+  const response = await ollamaRequest('/api/generate', {
+    model,
+    prompt,
+    stream: false,
+    options: { temperature: 0, num_predict: 10 },
+  });
+
+  const raw = (response.response || '').trim();
+  // Find which valid category appears in the response (case-insensitive)
+  const match = VALID_CATEGORIES.find((c) => raw.toLowerCase().startsWith(c.toLowerCase()));
+  return match || 'Thought'; // safe fallback
+}
+
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry };

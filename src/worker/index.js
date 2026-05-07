@@ -11,15 +11,16 @@
  */
 
 const { listEntriesWithoutEmbedding, upsertEmbedding } = require('../backend/db/embeddings');
-const { getEntryById } = require('../backend/db/entries');
+const { getEntryById, updateEntryCategory, listEntriesWithoutCategory } = require('../backend/db/entries');
 const { upsertVector } = require('../backend/vector/store');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus } = require('./ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry } = require('./ollama');
 const { runClustering } = require('../backend/clustering/themes');
 const { getSettings } = require('../backend/settings');
 const config = require('../config');
 
 const POLL_INTERVAL_MS = 10_000; // check every 10 seconds
 const BATCH_SIZE = 5;            // process up to 5 entries per tick
+const CLASSIFY_BATCH_SIZE = 3;   // classify up to 3 already-embedded entries per tick
 // Re-cluster after this many new embeddings are added in one session
 const CLUSTER_AFTER = 5;
 
@@ -50,16 +51,15 @@ async function processBatch() {
     return;
   }
 
+  // ── Pass 1: embed entries that have no embedding yet ──────────────────
   const entryIds = await listEntriesWithoutEmbedding();
   _queueLength = entryIds.length;
-  if (entryIds.length === 0) {
-    _push('worker:status', await _buildStatus(true));
-    return;
-  }
+  _push('worker:status', await _buildStatus(true));
 
   const batch = entryIds.slice(0, BATCH_SIZE);
-  console.log(`[worker] Processing ${batch.length} of ${entryIds.length} pending entries`);
-  _push('worker:status', await _buildStatus(true));
+  if (batch.length > 0) {
+    console.log(`[worker] Embedding ${batch.length} of ${entryIds.length} pending entries`);
+  }
 
   let newEmbeddings = 0;
   for (const id of batch) {
@@ -76,6 +76,14 @@ async function processBatch() {
       // Store in LanceDB (primary vector index for similarity search)
       await upsertVector(id, vector, modelName);
 
+      // Classify entry if not already categorised — fire-and-forget, must not block embedding
+      if (!entry.category) {
+        Promise.resolve()
+          .then(() => classifyEntry(entry.content))
+          .then((category) => updateEntryCategory(id, category, 'llm'))
+          .catch((err) => console.warn(`[worker] Classification failed for ${id.slice(0, 8)}…: ${err.message}`));
+      }
+
       console.log(`[worker] Embedded entry ${id.slice(0, 8)}…`);
       _embeddedSinceCluster++;
       _lastProcessed = new Date().toISOString();
@@ -88,6 +96,28 @@ async function processBatch() {
   }
 
   if (newEmbeddings > 0) {
+    _push('worker:entries-updated', {});
+  }
+
+  // ── Pass 2: classify entries that are embedded but have no category ───
+  // Handles existing content from before the classification feature shipped,
+  // and any entry whose fire-and-forget classification failed.
+  const unclassifiedIds = await listEntriesWithoutCategory(CLASSIFY_BATCH_SIZE);
+  let newCategories = 0;
+  for (const id of unclassifiedIds) {
+    try {
+      const entry = await getEntryById(id);
+      if (!entry) continue;
+      const category = await classifyEntry(entry.content);
+      await updateEntryCategory(id, category, 'llm');
+      console.log(`[worker] Classified entry ${id.slice(0, 8)}… → ${category}`);
+      newCategories++;
+    } catch (err) {
+      console.warn(`[worker] Classification failed for ${id.slice(0, 8)}…: ${err.message}`);
+    }
+  }
+
+  if (newCategories > 0) {
     _push('worker:entries-updated', {});
   }
 
