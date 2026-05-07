@@ -104,8 +104,18 @@ ollama pull phi3:mini</code></pre>
   <ul>
     <li>Check the <strong>Worker indicator</strong> in the status bar — if it shows <strong>Processing</strong>, the worker is still running; wait a moment and the timeline will update on its own.</li>
     <li>Check the entry count in the toolbar — it updates whenever the timeline refreshes.</li>
-    <li>If you have an active tag filter or search query, the new entry may be filtered out. Click <strong>All entries</strong> in the sidebar to clear filters.</li>
+    <li>If you have an active tag or category filter, or a search query, the new entry may be filtered out. Click the <strong>×</strong> on each active filter pill (or <strong>Clear all</strong>) to remove the active filters and confirm the entry is present.</li>
   </ul>
+
+  <h2>Entry categories not appearing</h2>
+
+  <p><strong>Cause:</strong> Entry categorisation is performed by the LLM (default: <code>phi3:mini</code>) after each entry is embedded. Categories won’t appear if:</p>
+  <ul>
+    <li>Ollama is not running — start Ollama and the worker will process unclassified entries on the next tick.</li>
+    <li><code>phi3:mini</code> (or your configured LLM model) is not pulled — run <code>ollama pull phi3:mini</code>.</li>
+    <li>The entry was captured before categorisation was supported and hasn’t been re-processed yet — re-embedding the entry will trigger classification.</li>
+  </ul>
+  <p>Once assigned, the category badge appears on the entry card and in the detail panel. You can always set it manually via the category dropdown in the detail panel regardless of Ollama availability.</p>
 
   <h2>Hotkey not working</h2>
 

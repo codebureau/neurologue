@@ -32,9 +32,9 @@
   <table>
     <thead><tr><th>Panel</th><th>Purpose</th></tr></thead>
     <tbody>
-      <tr><td><strong>Left sidebar</strong></td><td>Tags and Themes for filtering and navigation</td></tr>
-      <tr><td><strong>Timeline (centre)</strong></td><td>Chronological list of entries matching the current filter or search</td></tr>
-      <tr><td><strong>Detail (right)</strong></td><td>Full content of the selected entry, or details of the selected theme</td></tr>
+      <tr><td><strong>Left sidebar</strong></td><td>Tags (with counts) and Categories for filtering; Themes for navigation</td></tr>
+      <tr><td><strong>Timeline (centre)</strong></td><td>Entries matching the current filter or search, with optional grouping and heatmap</td></tr>
+      <tr><td><strong>Detail (right)</strong></td><td>Full content of the selected entry — including tags, category, and revision history</td></tr>
     </tbody>
   </table>
 
@@ -45,6 +45,7 @@
     <li><strong>Text / Semantic toggle</strong> — switches the search mode (see below).</li>
     <li><strong>Entry count</strong> — shows how many entries match the current view.</li>
     <li><strong>Export…</strong> — opens the <a href="export.html">export</a> workflow.</li>
+    <li><strong>Maintenance</strong> — opens the <a href="#tag-management">Tag Management</a> panel.</li>
     <li><strong>⚙</strong> — opens the <a href="#settings">Settings</a> panel to change Ollama models and the capture hotkey.</li>
     <li><strong>Help</strong> — opens this documentation in your browser.</li>
   </ul>
@@ -72,15 +73,56 @@
 
   <h2>Tag filtering</h2>
   <p>
-    The left sidebar lists all tags across all entries. Click any tag to filter the timeline to only entries with that tag. The active tag is highlighted.
+    The left sidebar lists all tags with their entry counts. Click any tag to filter the timeline to only entries with that tag. An <strong>active filter pill</strong> appears above the timeline showing the active tag with a <strong>×</strong> to clear it.
   </p>
   <ul>
-    <li>Click <strong>All entries</strong> at the top of the tag list to clear the filter.</li>
-    <li>Click the <strong>✕</strong> next to an active tag to deselect it.</li>
-    <li>You can only have one tag filter active at a time.</li>
-    <li>Applying a tag filter clears any active search query.</li>
-    <li>Clicking a tag in the entry detail panel also applies that tag filter.</li>
+    <li>Click the <strong>×</strong> on the filter pill to remove the tag filter.</li>
+    <li>Clicking a tag pill on an entry card or in the detail panel also applies that tag filter.</li>
+    <li>A tag filter and a category filter can be active at the same time — they combine with AND (entries must match both).</li>
+    <li>A text search can be active on top of both filters simultaneously.</li>
   </ul>
+
+  <h2>Category filtering</h2>
+  <p>
+    Below the Tags section in the sidebar is a <strong>Categories</strong> section listing each category with entry counts. Click a category to filter the timeline to only entries of that type. Categories are:
+  </p>
+  <ul>
+    <li><strong>Task</strong> — something to do or remember to do</li>
+    <li><strong>Thought</strong> — a reflection, opinion, or observation</li>
+    <li><strong>Reminder</strong> — a time-sensitive note</li>
+    <li><strong>Idea</strong> — a creative or exploratory concept</li>
+    <li><strong>Question</strong> — something you're wondering about</li>
+    <li><strong>Decision</strong> — a choice made or being considered</li>
+  </ul>
+  <p>The category badge on an entry card is also clickable — clicking it applies that category as a filter.</p>
+  <p>If no category has been assigned yet (Ollama not available during processing), entries appear without a badge and are not counted in any category.</p>
+
+  <h2>Active filters</h2>
+  <p>
+    When one or more filters are active, a <strong>filter bar</strong> appears between the timeline controls and the entry list. Each active filter (tag, category) shows as a pill with a <strong>×</strong> to remove it individually. A <strong>Clear all</strong> link removes all active filters at once.
+  </p>
+
+  <h2>Timeline controls</h2>
+  <p>A control bar sits above the entry list with two sets of controls:</p>
+
+  <h3>Grouping</h3>
+  <p>Choose how entries are grouped in the timeline:</p>
+  <ul>
+    <li><strong>None</strong> — flat reverse-chronological list (default)</li>
+    <li><strong>Day</strong> — entries grouped under a header for each calendar day</li>
+    <li><strong>Week</strong> — entries grouped under a header showing the week's date range</li>
+    <li><strong>Month</strong> — entries grouped under a month/year header</li>
+  </ul>
+
+  <h3 id="heatmap">Activity heatmap</h3>
+  <p>
+    Click <strong>Heatmap</strong> to toggle a 52-week activity graph above the timeline — similar to a GitHub contribution graph. Each cell represents one day; the colour intensity reflects how many entries were captured that day. Hover any cell to see the exact count and date.
+  </p>
+
+  <h3>Infinite scroll</h3>
+  <p>
+    The timeline loads 50 entries at a time. When you scroll to the bottom, the next page loads automatically — there is no "Load more" button. All active filters and grouping settings are respected as pages load.
+  </p>
 
   <h2>Entry timeline</h2>
   <p>Each card in the timeline shows:</p>
@@ -88,10 +130,10 @@
     <li><strong>Date/time</strong> — when the entry was captured</li>
     <li><strong>Match score</strong> — only in semantic search mode</li>
     <li><strong>Preview</strong> — first ~50 characters of content</li>
-    <li><strong>Tag pills</strong> — up to 6 tags shown as small badges</li>
+    <li><strong>Category badge</strong> — the auto-assigned or user-set category (clickable — applies a category filter)</li>
+    <li><strong>Tag pills</strong> — tags shown as small badges (clickable — applies a tag filter)</li>
   </ul>
   <p>Click any card to open the full entry in the detail panel. The selected card is highlighted.</p>
-  <p>In text search and tag filter views, entries are paginated at 50 per page. A <strong>Load more</strong> button appears at the bottom when more results exist.</p>
 
   <h2>Entry detail</h2>
   <p>Clicking an entry opens its full detail in the right panel, showing:</p>
@@ -99,6 +141,8 @@
     <li>Full content text</li>
     <li>Source and type metadata (if edited, the edit timestamp is shown alongside the capture time)</li>
     <li>All tags as clickable pills — clicking a tag applies that tag filter to the timeline</li>
+    <li><strong>Category badge</strong> — the effective category (auto or user-set); click the badge to open a dropdown and override it manually</li>
+    <li><strong>Suggest tags</strong> button — asks the LLM (via Ollama) to suggest tags for this entry; each suggestion appears as a pill you can click to add. Requires Ollama to be running.</li>
   </ul>
 
   <h3 id="editing">Editing an entry</h3>
@@ -114,6 +158,36 @@
     Click the <strong>History</strong> button to open the revision history drawer at the bottom of the detail panel. Each row shows when that version was saved and a preview of the text. Click outside the drawer or press the <strong>✕</strong> button to close it.
   </p>
 
+  <h2 id="tag-management">Tag management</h2>
+  <p>
+    Click <strong>Maintenance</strong> in the toolbar to open the Tag Management panel. This gives you tools to keep your tags clean and consistent.
+  </p>
+
+  <h3>Rename a tag</h3>
+  <p>Click <strong>Rename</strong> next to any tag, type the new name, and press <kbd>Enter</kbd>. All entries are retagged automatically.</p>
+
+  <h3>Delete a tag</h3>
+  <p>Click <strong>Delete</strong> next to a tag and confirm. The tag is removed from all entries; the entries themselves are not affected.</p>
+
+  <h3>Merge tags</h3>
+  <p>Use merge when two tags mean the same thing (e.g. <em>ml</em> and <em>machine-learning</em>). In the <strong>Possible duplicates</strong> section, click <strong>Keep</strong> on the tag name you want to keep. The other tag is absorbed: all entries that had it are retagged to the kept name.</p>
+
+  <h3>Duplicate detection</h3>
+  <p>The <strong>Possible duplicates</strong> section shows pairs of tags that may be duplicates, detected in two ways:</p>
+  <ul>
+    <li><strong>Structural</strong> — format variants (<em>machine learning</em> vs <em>machine-learning</em>), abbreviations (<em>dev</em> vs <em>development</em>), plural/stem variants (<em>tag</em> vs <em>tagging</em>), and close spelling (Levenshtein distance)</li>
+    <li><strong>Semantic</strong> — tags whose embeddings are similar in meaning, above a configurable threshold</li>
+  </ul>
+  <p>If the list is empty, no probable duplicates were found at the current sensitivity level.</p>
+
+  <h3>Duplicate detection sensitivity</h3>
+  <p>The sensitivity slider (also available in <a href="#settings">Settings</a>) controls how aggressively semantic duplicates are flagged:</p>
+  <ul>
+    <li><strong>Strict</strong> — only very similar tags are flagged (fewer false positives)</li>
+    <li><strong>Balanced</strong> — default; catches most duplicates without being too noisy</li>
+    <li><strong>Broad</strong> — flags loosely related tags (may include false positives)</li>
+  </ul>
+
   <h2>Theme sidebar</h2>
   <p>
     Below the tag list is a <strong>Themes</strong> section. This lists all auto-generated theme clusters. Click any theme to open its detail view in the right panel. See the <a href="themes.html">Themes</a> section for more.
@@ -127,6 +201,14 @@
   <h3 id="model-settings">Model settings</h3>
   <p>
     Choose which locally installed Ollama models are used for embeddings and theme summaries. The dropdowns are populated from your available Ollama models; any changes take effect immediately on the next worker tick.
+  </p>
+
+  <h3 id="tag-settings">Tag settings</h3>
+  <p>
+    <strong>Tag suggestion format</strong> — controls the format that LLM-generated tag suggestions are normalised to (e.g. <em>hyphenated</em> produces <code>machine-learning</code>; <em>lowercase</em> produces <code>machine learning</code>).
+  </p>
+  <p>
+    <strong>Duplicate detection sensitivity</strong> — sets the cosine-similarity threshold for semantic duplicate detection in the Tag Management panel. See <a href="#tag-management">Tag management</a> above.
   </p>
 
   <h3 id="capture-hotkey">Capture hotkey</h3>
