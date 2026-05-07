@@ -5,6 +5,7 @@
 
 const contentEl    = document.getElementById('content');
 const tagsEl       = document.getElementById('tags');
+const tagSuggestions = document.getElementById('tag-suggestions');
 const saveBtn      = document.getElementById('btn-save');
 const errorMsg     = document.getElementById('error-msg');
 const toolbar      = document.getElementById('toolbar');
@@ -18,6 +19,58 @@ const btnPastePlain = document.getElementById('btn-paste-plain');
 let _mdMode       = false;
 let _previewMode  = false;
 let _pastePlain   = false;
+let _suggestTimer = null;
+
+// ── Tag suggestions ───────────────────────────────────────────────────────
+
+function _currentTagSet() {
+  return new Set(
+    tagsEl.value.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean)
+  );
+}
+
+function _renderSuggestions(tags) {
+  tagSuggestions.innerHTML = '';
+  const current = _currentTagSet();
+  const fresh = tags.filter((t) => !current.has(t));
+  if (!fresh.length) { tagSuggestions.classList.remove('visible'); return; }
+
+  const label = document.createElement('span');
+  label.className = 'tag-suggestions-label';
+  label.textContent = 'Suggestions:';
+  tagSuggestions.appendChild(label);
+
+  fresh.forEach((tag) => {
+    const pill = document.createElement('button');
+    pill.className = 'tag-suggestion';
+    pill.type = 'button';
+    pill.textContent = `#${tag}`;
+    pill.addEventListener('click', () => {
+      const existing = tagsEl.value.trim();
+      tagsEl.value = existing ? `${existing}, ${tag}` : tag;
+      // Remove from suggestions
+      pill.remove();
+      if (tagSuggestions.querySelectorAll('.tag-suggestion').length === 0) {
+        tagSuggestions.classList.remove('visible');
+      }
+    });
+    tagSuggestions.appendChild(pill);
+  });
+  tagSuggestions.classList.add('visible');
+}
+
+async function _fetchSuggestions() {
+  const text = contentEl.value.trim();
+  if (text.length < 20) return; // too short to bother
+  try {
+    const result = await window.capture.suggestTags(text);
+    if (result.ok && result.suggestions.length > 0) {
+      _renderSuggestions(result.suggestions);
+    }
+  } catch {
+    // suggestions are best-effort — silently ignore errors
+  }
+}
 
 // ── Enable/disable Save based on content ──────────────────────────────────
 
@@ -25,6 +78,9 @@ contentEl.addEventListener('input', () => {
   saveBtn.disabled = contentEl.value.trim().length === 0;
   hideError();
   if (_previewMode) renderPreview();
+  // Debounce tag suggestions — fire 900ms after user stops typing
+  clearTimeout(_suggestTimer);
+  _suggestTimer = setTimeout(_fetchSuggestions, 900);
 });
 
 // ── Markdown toggle ───────────────────────────────────────────────────────

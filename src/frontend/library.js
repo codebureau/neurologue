@@ -223,6 +223,9 @@ function applyTagFilter(tagName) {
 
 // ── Entry detail ───────────────────────────────────────────────────────────
 
+const detailTagsSuggestions = document.getElementById('detail-tags-suggestions');
+let _detailSuggestTimer = null;
+
 // Render editable tag chips in the detail panel.
 // Tags are shown as removable pills; an input at the end lets the user add more.
 function renderDetailTags(tags) {
@@ -243,6 +246,50 @@ function renderDetailTags(tags) {
   });
 
   detailTagsInput.value = '';
+}
+
+function _renderDetailSuggestions(suggested) {
+  detailTagsSuggestions.innerHTML = '';
+  const current = new Set(
+    Array.from(detailTagsChips.querySelectorAll('.dtc-name'))
+      .map((el) => el.textContent.replace(/^#/, ''))
+  );
+  const fresh = suggested.filter((t) => !current.has(t));
+  if (!fresh.length) return;
+
+  const label = document.createElement('span');
+  label.className = 'detail-suggestions-label';
+  label.textContent = 'Suggestions:';
+  detailTagsSuggestions.appendChild(label);
+
+  fresh.forEach((tag) => {
+    const pill = document.createElement('button');
+    pill.className = 'detail-tag-suggestion';
+    pill.type = 'button';
+    pill.textContent = `#${tag}`;
+    pill.addEventListener('click', async () => {
+      const existing = Array.from(detailTagsChips.querySelectorAll('.dtc-name'))
+        .map((el) => el.textContent.replace(/^#/, ''));
+      await _saveTags([...new Set([...existing, tag])]);
+      pill.remove();
+      if (detailTagsSuggestions.querySelectorAll('.detail-tag-suggestion').length === 0) {
+        detailTagsSuggestions.innerHTML = '';
+      }
+    });
+    detailTagsSuggestions.appendChild(pill);
+  });
+}
+
+async function _fetchDetailSuggestions(entryContent) {
+  if (!entryContent || entryContent.length < 20) return;
+  try {
+    const result = await window.neurologue.suggestTags(entryContent);
+    if (result.ok && result.suggestions.length > 0) {
+      _renderDetailSuggestions(result.suggestions);
+    }
+  } catch {
+    // best-effort
+  }
 }
 
 async function _saveTags(tagNames) {
@@ -333,6 +380,11 @@ async function selectEntry(id) {
     detailCategoryBadge.setAttribute('data-cat', displayCat || '');
     detailCategorySelect.value = entry.user_category || '';
     renderDetailTags(entry.tags || []);
+
+    // Clear stale suggestions then fetch fresh ones (debounced to avoid hammering on quick selection)
+    detailTagsSuggestions.innerHTML = '';
+    clearTimeout(_detailSuggestTimer);
+    _detailSuggestTimer = setTimeout(() => _fetchDetailSuggestions(entry.content), 600);
 
     detailPlaceholder.style.display = 'none';
     detailContent.style.display = 'flex';
@@ -1030,6 +1082,10 @@ btnSettings.addEventListener('click', async () => {
   buildOptions('select-embed-model', available, settings.embeddingModel);
   buildOptions('select-llm-model',   available, settings.llmModel);
 
+  // Tag suggestion format
+  const tagFmtSelect = document.getElementById('select-tag-format');
+  if (tagFmtSelect) tagFmtSelect.value = settings.tagSuggestionFormat || 'hyphenated';
+
   // Populate hotkey display
   const currentHotkey = settings.captureHotkey || 'CommandOrControl+Shift+Space';
   hotkeyDisplay.dataset.saved = currentHotkey;
@@ -1048,6 +1104,7 @@ document.getElementById('settings-close').addEventListener('click', () => {
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
   const embedModel = document.getElementById('select-embed-model').value;
   const llmModel   = document.getElementById('select-llm-model').value;
+  const tagFmt     = (document.getElementById('select-tag-format') || {}).value || 'hyphenated';
 
   // Apply hotkey change first if the user recorded a new one
   if (_pendingHotkey) {
@@ -1061,7 +1118,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
-  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel });
+  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel, tagSuggestionFormat: tagFmt });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
   setTimeout(() => msg.classList.add('hidden'), 2000);

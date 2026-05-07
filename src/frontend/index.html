@@ -85,6 +85,7 @@
                     placeholder="Add a tag…"
                     autocomplete="off" spellcheck="false" />
                 </div>
+                <div id="detail-tags-suggestions"></div>
               </div>
             </div>
             <!-- Edit form (hidden by default) -->
@@ -194,6 +195,16 @@
         <label for="select-llm-model">LLM model (theme summaries)</label>
         <select id="select-llm-model"></select>
         <span class="settings-hint">Used to generate human-readable theme descriptions.</span>
+      </div>
+
+      <h3 class="settings-section-heading">Tag suggestions</h3>
+      <div class="settings-field">
+        <label for="select-tag-format">Multi-word tag format</label>
+        <select id="select-tag-format">
+          <option value="hyphenated">Hyphenated (two-words)</option>
+          <option value="concatenated">Concatenated (twowords)</option>
+        </select>
+        <span class="settings-hint">How suggested tags with multiple words are formatted when applied.</span>
       </div>
 
       <h3 class="settings-section-heading">Capture hotkey</h3>

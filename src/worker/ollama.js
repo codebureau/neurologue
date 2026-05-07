@@ -283,6 +283,55 @@ async function classifyEntry(text) {
 }
 
 /**
+ * Suggest up to 5 relevant tags for a piece of text using an LLM.
+ * Receives the existing tag corpus so it can reuse known tags where appropriate,
+ * but may also suggest new ones.
+ *
+ * @param {string}   text         The entry content to tag
+ * @param {string[]} [knownTags]  Existing tags in the library (for reuse hints)
+ * @returns {Promise<string[]>}   Up to 5 lowercase tag names
+ */
+async function suggestTags(text, knownTags = []) {
+  const settings = getSettings();
+  const model = settings.llmModel || 'phi3:mini';
+  const useHyphens = (settings.tagSuggestionFormat || 'hyphenated') === 'hyphenated';
+
+  if (_availableModels !== null && !_availableModels.some((m) => m === model || m.startsWith(model + ':'))) {
+    throw new Error(`LLM model '${model}' is not installed — skipping tag suggestions`);
+  }
+
+  const knownHint = knownTags.length > 0
+    ? `Existing tags you may reuse if relevant: ${knownTags.slice(0, 30).join(', ')}.\n`
+    : '';
+
+  const prompt =
+    'Suggest up to 5 short, lowercase tags for the following note.\n' +
+    knownHint +
+    'Reply with only a comma-separated list of tags and nothing else. ' +
+    'Tags should be single words or short hyphenated phrases.\n\n' +
+    `Note: ${text.slice(0, 500)}`;
+
+  const response = await ollamaRequest('/api/generate', {
+    model,
+    prompt,
+    stream: false,
+    options: { temperature: 0.2, num_predict: 40 },
+  }, 120_000);
+
+  const raw = (response.response || '').trim();
+  return raw
+    .split(',')
+    .map((t) => {
+      const clean = t.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim();
+      return useHyphens
+        ? clean.replace(/\s+/g, '-')   // two words → two-words
+        : clean.replace(/[\s-]+/g, ''); // two words / two-words → twowords
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+/**
  * Update the cached list of available models (called from getOllamaStatus).
  * @param {string[]} models
  */
@@ -291,4 +340,4 @@ function setAvailableModels(models) {
 }
 
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry };
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels };
