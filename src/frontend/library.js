@@ -1086,6 +1086,10 @@ btnSettings.addEventListener('click', async () => {
   const tagFmtSelect = document.getElementById('select-tag-format');
   if (tagFmtSelect) tagFmtSelect.value = settings.tagSuggestionFormat || 'hyphenated';
 
+  // Duplicate detection threshold
+  const simSelect = document.getElementById('select-similarity-threshold');
+  if (simSelect) simSelect.value = String(settings.tagSimilarityThreshold ?? 0.88);
+
   // Populate hotkey display
   const currentHotkey = settings.captureHotkey || 'CommandOrControl+Shift+Space';
   hotkeyDisplay.dataset.saved = currentHotkey;
@@ -1105,6 +1109,8 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   const embedModel = document.getElementById('select-embed-model').value;
   const llmModel   = document.getElementById('select-llm-model').value;
   const tagFmt     = (document.getElementById('select-tag-format') || {}).value || 'hyphenated';
+  const tagSimRaw  = (document.getElementById('select-similarity-threshold') || {}).value;
+  const tagSimilarityThreshold = tagSimRaw ? parseFloat(tagSimRaw) : 0.88;
 
   // Apply hotkey change first if the user recorded a new one
   if (_pendingHotkey) {
@@ -1118,7 +1124,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
-  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel, tagSuggestionFormat: tagFmt });
+  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel, tagSuggestionFormat: tagFmt, tagSimilarityThreshold });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
   setTimeout(() => msg.classList.add('hidden'), 2000);
@@ -1184,6 +1190,14 @@ function renderSimilarPair(pair) {
 
   const noteWord = (n) => n === 1 ? '1 note' : `${n} notes`;
 
+  const reasonLabels = {
+    'format-variant':   'Format variant',
+    'similar-spelling': 'Spelling',
+    'similar-meaning':  pair.similarity ? `Similar meaning \u00b7 ${pair.similarity}%` : 'Similar meaning',
+  };
+  const reasonLabel = reasonLabels[pair.reason] || pair.reason || '';
+  const reasonClass = pair.reason === 'similar-meaning' ? 'tag-similar-reason--semantic' : 'tag-similar-reason--structural';
+
   row.innerHTML = `
     <div class="tag-similar-tag">
       <span class="tag-similar-name">#${first.name}</span>
@@ -1194,6 +1208,7 @@ function renderSimilarPair(pair) {
       <span class="tag-similar-name">#${second.name}</span>
       <span class="tag-similar-count">${noteWord(second.count)}</span>
     </div>
+    <span class="tag-similar-reason ${reasonClass}">${reasonLabel}</span>
     <div class="tag-similar-actions">
       <button class="btn-keep-tag" data-keep="${first.id}" data-remove="${second.id}" title="Keep #${first.name}, merge #${second.name} into it">Keep #${first.name}</button>
       <button class="btn-keep-tag" data-keep="${second.id}" data-remove="${first.id}" title="Keep #${second.name}, merge #${first.name} into it">Keep #${second.name}</button>

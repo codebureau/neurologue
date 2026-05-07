@@ -229,6 +229,15 @@
         </select>
         <span class="settings-hint">How suggested tags with multiple words are formatted when applied.</span>
       </div>
+      <div class="settings-field">
+        <label for="select-similarity-threshold">Duplicate detection sensitivity</label>
+        <select id="select-similarity-threshold">
+          <option value="0.93">Strict — near-identical meanings only</option>
+          <option value="0.88">Balanced — recommended</option>
+          <option value="0.82">Broad — more suggestions, more noise</option>
+        </select>
+        <span class="settings-hint">How closely two tags must be related (semantically) to appear as possible duplicates. Requires Ollama.</span>
+      </div>
 
       <h3 class="settings-section-heading">Capture hotkey</h3>
       <div class="settings-field">
