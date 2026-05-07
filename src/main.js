@@ -6,7 +6,7 @@ const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
 const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory } = require('./backend/db/entries');
 const { setTagsForEntry, listTags } = require('./backend/db/tags');
-const { searchEntriesText, listEntriesByTag, getEntryWithTags } = require('./backend/db/search');
+const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
@@ -59,7 +59,7 @@ ipcMain.on('capture:close', (event) => {
 // List entries (paginated, optional tag filter)
 ipcMain.handle('library:list', async (_event, { limit = 50, offset = 0, tag } = {}) => {
   if (tag) return listEntriesByTag(tag, { limit, offset });
-  return listEntries({ limit, offset });
+  return listEntriesWithTags({ limit, offset });
 });
 
 // Full-text search

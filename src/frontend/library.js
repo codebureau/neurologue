@@ -97,25 +97,30 @@ function renderEntryCard(entry) {
   preview.textContent = entry.content;
   card.appendChild(preview);
 
-  if (entry.tags && entry.tags.length > 0) {
-    const tagRow = document.createElement('div');
-    tagRow.className = 'entry-tags';
-    entry.tags.slice(0, 6).forEach((t) => {
-      const pill = document.createElement('span');
-      pill.className = 'tag-pill';
-      pill.textContent = t.name || t;
-      tagRow.appendChild(pill);
-    });
-    card.appendChild(tagRow);
-  }
-
   const cat = entry.user_category || entry.category;
-  if (cat) {
-    const badge = document.createElement('span');
-    badge.className = 'category-badge category-badge--card';
-    badge.setAttribute('data-cat', cat);
-    badge.textContent = cat;
-    card.appendChild(badge);
+  const hasTags = entry.tags && entry.tags.length > 0;
+  if (hasTags || cat) {
+    const chipRow = document.createElement('div');
+    chipRow.className = 'entry-chips';
+
+    if (hasTags) {
+      entry.tags.slice(0, 6).forEach((t) => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.textContent = `#${t.name || t}`;
+        chipRow.appendChild(pill);
+      });
+    }
+
+    if (cat) {
+      const badge = document.createElement('span');
+      badge.className = 'category-badge category-badge--card';
+      badge.setAttribute('data-cat', cat);
+      badge.textContent = cat;
+      chipRow.appendChild(badge);
+    }
+
+    card.appendChild(chipRow);
   }
 
   card.addEventListener('click', () => selectEntry(entry.id));
