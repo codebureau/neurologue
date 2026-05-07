@@ -8,7 +8,7 @@ const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCat
 const { setTagsForEntry, listTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel } = require('./worker/ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
@@ -119,6 +119,18 @@ ipcMain.handle('library:set-tags', async (_event, { id, tags }) => {
   await setTagsForEntry(id, Array.isArray(tags) ? tags : []);
   const entry = await getEntryWithTags(id);
   return entry ? { ok: true, entry } : { ok: false, error: 'Entry not found' };
+});
+
+// Suggest tags for a piece of text (used by capture + detail panel)
+ipcMain.handle('library:suggest-tags', async (_event, { text }) => {
+  if (!text || !text.trim()) return { ok: true, suggestions: [] };
+  try {
+    const known = (await listTags()).map((t) => t.name);
+    const suggestions = await suggestTags(text.trim(), known);
+    return { ok: true, suggestions };
+  } catch (err) {
+    return { ok: false, suggestions: [], error: err.message };
+  }
 });
 
 // ── Themes IPC ───────────────────────────────────────────────────────────────

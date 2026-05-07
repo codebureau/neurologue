@@ -435,6 +435,36 @@ html, body {
 #detail-tags-input::placeholder { color: var(--text-dim); }
 #detail-tags-input:focus { border-bottom-color: var(--cortex-teal); }
 
+/* Tag suggestions in detail panel */
+#detail-tags-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  min-height: 0;
+}
+#detail-tags-suggestions:empty { display: none; }
+.detail-suggestions-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  align-self: center;
+}
+.detail-tag-suggestion {
+  background: transparent;
+  border: 1px solid var(--cortex-teal);
+  color: var(--cortex-teal);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 1px 7px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+}
+.detail-tag-suggestion:hover { background: var(--cortex-teal); color: var(--text); }
+
 /* ── Detail footer (Edit / History buttons) ───────────────────────────── */
 #detail-footer {
   padding: 8px 16px 12px;

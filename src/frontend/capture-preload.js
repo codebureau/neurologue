@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('capture', {
    */
   save: (data) => ipcRenderer.invoke('capture:save', data),
 
+  /** Suggest tags for a piece of text. */
+  suggestTags: (text) => ipcRenderer.invoke('library:suggest-tags', { text }),
+
   /** Close the popup without saving. */
   close: () => ipcRenderer.send('capture:close'),
 });

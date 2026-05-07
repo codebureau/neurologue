@@ -298,6 +298,35 @@
     .btn-save:hover    { background: var(--insight-cyan); }
     .btn-save:disabled { opacity: 0.45; cursor: default; }
 
+    /* ── Tag suggestions ── */
+    #tag-suggestions {
+      display: none;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 0 2px;
+      -webkit-app-region: no-drag;
+    }
+    #tag-suggestions.visible { display: flex; }
+    .tag-suggestion {
+      font-size: 11px;
+      background: transparent;
+      border: 1px solid var(--cortex-teal);
+      color: var(--cortex-teal);
+      border-radius: 4px;
+      padding: 1px 8px;
+      cursor: pointer;
+      font-family: var(--font);
+      transition: background 0.1s, color 0.1s;
+      user-select: none;
+    }
+    .tag-suggestion:hover { background: var(--cortex-teal); color: var(--white); }
+    .tag-suggestions-label {
+      font-size: 11px;
+      color: var(--slate);
+      opacity: 0.6;
+      align-self: center;
+    }
+
     /* ── Error banner ── */
     .error {
       display: none;
@@ -344,6 +373,7 @@
         spellcheck="false"
         autocomplete="off"
       />
+      <div id="tag-suggestions" role="list" aria-label="Suggested tags"></div>
     </div>
 
     <p class="error" id="error-msg"></p>
