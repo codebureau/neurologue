@@ -113,6 +113,14 @@ ipcMain.handle('library:list-tags', async () => {
   return listTags();
 });
 
+// Update tags for an existing entry
+ipcMain.handle('library:set-tags', async (_event, { id, tags }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  await setTagsForEntry(id, Array.isArray(tags) ? tags : []);
+  const entry = await getEntryWithTags(id);
+  return entry ? { ok: true, entry } : { ok: false, error: 'Entry not found' };
+});
+
 // ── Themes IPC ───────────────────────────────────────────────────────────────
 
 // List all themes with their entry count

@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   updateEntry: (id, content) => ipcRenderer.invoke('library:update-entry', { id, content }),
   getRevisions: (id) => ipcRenderer.invoke('library:get-revisions', { id }),
   setCategory: (id, category) => ipcRenderer.invoke('library:set-category', { id, category }),
+  setTags: (id, tags) => ipcRenderer.invoke('library:set-tags', { id, tags }),
   listTags: () => ipcRenderer.invoke('library:list-tags'),
 
   // ── Themes ───────────────────────────────────────────────────────────────

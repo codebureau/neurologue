@@ -31,9 +31,10 @@ const detailDate    = document.getElementById('detail-date');
 const detailSource  = document.getElementById('detail-source');
 const detailCategoryBadge  = document.getElementById('detail-category-badge');
 const detailCategorySelect = document.getElementById('detail-category-select');
-const detailText    = document.getElementById('detail-text');
-const detailTags    = document.getElementById('detail-tags');
-const detailRead    = document.getElementById('detail-read');
+const detailText      = document.getElementById('detail-text');
+const detailTagsChips = document.getElementById('detail-tags-chips');
+const detailTagsInput = document.getElementById('detail-tags-input');
+const detailRead      = document.getElementById('detail-read');
 const detailEdit    = document.getElementById('detail-edit');
 const detailHistory = document.getElementById('detail-history');
 const historyList   = document.getElementById('history-list');
@@ -222,6 +223,88 @@ function applyTagFilter(tagName) {
 
 // ── Entry detail ───────────────────────────────────────────────────────────
 
+// Render editable tag chips in the detail panel.
+// Tags are shown as removable pills; an input at the end lets the user add more.
+function renderDetailTags(tags) {
+  detailTagsChips.innerHTML = '';
+  const currentNames = tags.map((t) => t.name || t);
+
+  currentNames.forEach((name) => {
+    const chip = document.createElement('span');
+    chip.className = 'detail-tag-chip';
+    chip.innerHTML = `<span class="dtc-name">#${name}</span><button class="dtc-remove" title="Remove tag" aria-label="Remove ${name}">×</button>`;
+    chip.querySelector('.dtc-name').addEventListener('click', () => applyTagFilter(name));
+    chip.querySelector('.dtc-remove').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const updated = currentNames.filter((n) => n !== name);
+      await _saveTags(updated);
+    });
+    detailTagsChips.appendChild(chip);
+  });
+
+  detailTagsInput.value = '';
+}
+
+async function _saveTags(tagNames) {
+  if (!_state.selectedId) return;
+  const result = await window.neurologue.setTags(_state.selectedId, tagNames);
+  if (result.ok) {
+    renderDetailTags(result.entry.tags || []);
+    // Refresh the card in the timeline so the chip row stays in sync
+    const card = document.querySelector(`.entry-card[data-id="${_state.selectedId}"]`);
+    if (card) {
+      const updated = result.entry;
+      // Re-render the chips row on the card
+      const oldChips = card.querySelector('.entry-chips');
+      const cat = updated.user_category || updated.category;
+      const hasTags = updated.tags && updated.tags.length > 0;
+      if (hasTags || cat) {
+        const chipRow = document.createElement('div');
+        chipRow.className = 'entry-chips';
+        if (hasTags) {
+          updated.tags.slice(0, 6).forEach((t) => {
+            const pill = document.createElement('span');
+            pill.className = 'tag-pill';
+            pill.textContent = `#${t.name || t}`;
+            chipRow.appendChild(pill);
+          });
+        }
+        if (cat) {
+          const badge = document.createElement('span');
+          badge.className = 'category-badge category-badge--card';
+          badge.setAttribute('data-cat', cat);
+          badge.textContent = cat;
+          chipRow.appendChild(badge);
+        }
+        if (oldChips) { card.replaceChild(chipRow, oldChips); } else { card.appendChild(chipRow); }
+      } else if (oldChips) {
+        oldChips.remove();
+      }
+    }
+    await loadTags(); // refresh sidebar tag list
+  }
+}
+
+// Commit whatever is in the tag input field as a new tag
+async function _commitTagInput() {
+  const raw = detailTagsInput.value.trim();
+  if (!raw) return;
+  const newNames = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+  if (!newNames.length) return;
+  const existing = Array.from(detailTagsChips.querySelectorAll('.dtc-name'))
+    .map((el) => el.textContent.replace(/^#/, ''));
+  const merged = [...new Set([...existing, ...newNames])];
+  await _saveTags(merged);
+}
+
+detailTagsInput.addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    await _commitTagInput();
+  }
+});
+detailTagsInput.addEventListener('blur', () => _commitTagInput());
+
 async function selectEntry(id) {
   _state.selectedId = id;
 
@@ -250,19 +333,7 @@ async function selectEntry(id) {
     detailCategoryBadge.setAttribute('data-cat', displayCat || '');
     detailCategorySelect.value = entry.user_category || '';
     detailTags.innerHTML = '';
-    if (entry.tags && entry.tags.length > 0) {
-      entry.tags.forEach((t) => {
-        const pill = document.createElement('span');
-        pill.className = 'tag-pill';
-        pill.style.cursor = 'pointer';
-        pill.textContent = t.name;
-        pill.addEventListener('click', () => applyTagFilter(t.name));
-        detailTags.appendChild(pill);
-      });
-      document.getElementById('detail-tags-section').style.display = 'block';
-    } else {
-      document.getElementById('detail-tags-section').style.display = 'none';
-    }
+    renderDetailTags(entry.tags || []);
 
     detailPlaceholder.style.display = 'none';
     detailContent.style.display = 'flex';

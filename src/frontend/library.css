@@ -384,7 +384,56 @@ html, body {
   color: var(--text-dim);
   margin-bottom: 6px;
 }
-#detail-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* Tag editor — chips + inline input */
+#detail-tags-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+#detail-tags-chips {
+  display: contents; /* chips flow directly into the flex parent */
+}
+.detail-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 1px 4px 1px 6px;
+}
+.detail-tag-chip .dtc-name {
+  cursor: pointer;
+}
+.detail-tag-chip .dtc-name:hover { color: var(--cortex-teal); }
+.detail-tag-chip .dtc-remove {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 1px;
+}
+.detail-tag-chip .dtc-remove:hover { color: var(--danger); }
+#detail-tags-input {
+  flex: 1;
+  min-width: 80px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  padding: 1px 2px;
+  outline: none;
+}
+#detail-tags-input::placeholder { color: var(--text-dim); }
+#detail-tags-input:focus { border-bottom-color: var(--cortex-teal); }
 
 /* ── Detail footer (Edit / History buttons) ───────────────────────────── */
 #detail-footer {
