@@ -109,6 +109,15 @@ function renderEntryCard(entry) {
     card.appendChild(tagRow);
   }
 
+  const cat = entry.user_category || entry.category;
+  if (cat) {
+    const badge = document.createElement('span');
+    badge.className = 'category-badge category-badge--card';
+    badge.setAttribute('data-cat', cat);
+    badge.textContent = cat;
+    card.appendChild(badge);
+  }
+
   card.addEventListener('click', () => selectEntry(entry.id));
   return card;
 }
@@ -689,12 +698,15 @@ function updateStatus({ worker, ollama } = {}) {
   }
   if (worker) {
     const processing = worker.queueLength > 0;
-    const dot = processing ? 'processing' : (worker.running ? 'active' : '');
+    const classifying = !processing && worker.classifyQueueLength > 0;
+    const dot = (processing || classifying) ? 'processing' : (worker.running ? 'active' : '');
     let label;
     if (!worker.running) {
       label = 'Worker stopped';
     } else if (processing) {
       label = `Processing (${worker.queueLength} queued)`;
+    } else if (classifying) {
+      label = `Classifying (${worker.classifyQueueLength} queued)`;
     } else if (worker.lastProcessed) {
       const d = new Date(worker.lastProcessed);
       const ts = d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });

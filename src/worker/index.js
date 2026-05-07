@@ -28,7 +28,8 @@ let _timer = null;
 let _running = false;
 let _paused = false;
 let _embeddedSinceCluster = 0;
-let _queueLength = 0;
+let _queueLength = 0;          // entries pending embedding
+let _classifyQueueLength = 0;  // entries pending classification
 let _lastProcessed = null; // ISO timestamp of last successfully embedded entry
 let _webContents = null;  // set by setMainWindow() once the library window opens
 
@@ -103,6 +104,8 @@ async function processBatch() {
   // Handles existing content from before the classification feature shipped,
   // and any entry whose fire-and-forget classification failed.
   const unclassifiedIds = await listEntriesWithoutCategory(CLASSIFY_BATCH_SIZE);
+  _classifyQueueLength = unclassifiedIds.length;
+  _push('worker:status', await _buildStatus(true));
   let newCategories = 0;
   for (const id of unclassifiedIds) {
     try {
@@ -116,6 +119,7 @@ async function processBatch() {
       console.warn(`[worker] Classification failed for ${id.slice(0, 8)}…: ${err.message}`);
     }
   }
+  _classifyQueueLength = 0;
 
   if (newCategories > 0) {
     _push('worker:entries-updated', {});
@@ -188,6 +192,7 @@ function workerStatus() {
     running: _running,
     paused: _paused,
     queueLength: _queueLength,
+    classifyQueueLength: _classifyQueueLength,
     lastProcessed: _lastProcessed,
   };
 }
