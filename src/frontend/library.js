@@ -1220,15 +1220,19 @@ function renderSimilarPair(pair) {
     btn.addEventListener('click', async () => {
       const keepId   = btn.dataset.keep;
       const removeId = btn.dataset.remove;
+      // Disable all actions while the merge + rescan runs
+      row.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+      row.querySelector('.tag-similar-reason').textContent = 'Merging…';
       const res = await window.neurologue.mergeTag(removeId, keepId);
       if (res.ok) {
-        row.remove();
-        if (tagSimilarList.children.length === 0) tagSimilarSec.classList.add('hidden');
-        // Refresh full list to reflect updated counts
-        const tags = await window.neurologue.listTagsWithCounts();
-        tagAllList.innerHTML = '';
-        tags.forEach((t) => tagAllList.appendChild(buildTagRow(t)));
-        await loadTags(); // refresh sidebar
+        // Full rescan: removes stale pairs that referenced the deleted tag,
+        // rebuilds both sections, updates the all-tags list and sidebar
+        await refreshTagManagement();
+        await loadTags();
+      } else {
+        // Re-enable on failure
+        row.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+        row.querySelector('.tag-similar-reason').textContent = 'Error — try again';
       }
     });
   });
@@ -1323,9 +1327,9 @@ function startDelete(row, tag) {
   actionsEl.querySelector('.btn-confirm-delete').addEventListener('click', async () => {
     const res = await window.neurologue.deleteTag(tag.id);
     if (res.ok) {
-      row.remove();
-      if (tagAllList.children.length === 0) tagMgmtEmpty.classList.remove('hidden');
-      await loadTags(); // refresh sidebar
+      // Full rescan so any similar-pair rows referencing this tag are removed
+      await refreshTagManagement();
+      await loadTags();
     }
   });
   actionsEl.querySelector('.btn-cancel-delete').addEventListener('click', () => {
