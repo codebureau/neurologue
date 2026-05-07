@@ -18,7 +18,14 @@ const { getSettings } = require('../backend/settings');
  * @param {object} body  JSON-serialisable request body
  * @returns {Promise<object>}
  */
-function ollamaRequest(path, body) {
+/**
+ * Send a JSON request to the Ollama API.
+ * @param {string} path  e.g. '/api/embeddings'
+ * @param {object} body  JSON-serialisable request body
+ * @param {number} [timeoutMs=30000]
+ * @returns {Promise<object>}
+ */
+function ollamaRequest(path, body, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify(body);
     const url = new URL(config.ollama.baseUrl);
@@ -52,8 +59,8 @@ function ollamaRequest(path, body) {
       });
     });
 
-    req.setTimeout(30000, () => {
-      req.destroy(new Error('Ollama request timed out after 30s'));
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error(`Ollama request timed out after ${timeoutMs / 1000}s`));
     });
 
     req.on('error', reject);
@@ -150,6 +157,9 @@ async function getOllamaStatus() {
     sizeVram: m.size_vram || 0,
   }));
 
+  // Keep the classification model-availability cache up to date
+  setAvailableModels(availableModels);
+
   return { running: true, availableModels, loadedModels };
 }
 
@@ -230,9 +240,14 @@ function pullModel(name, onProgress) {
 
 const VALID_CATEGORIES = ['Task', 'Thought', 'Reminder', 'Idea', 'Question', 'Decision'];
 
+// Cached set of available model names (refreshed via getOllamaStatus calls)
+let _availableModels = null;
+
 /**
  * Classify a piece of text into one of the six entry categories using an LLM.
- * Uses the chat-generation model (phi3:mini or user-configured chat model).
+ * Uses the LLM model (llmModel setting, default phi3:mini).
+ * Skips silently if the model is not installed.
+ * Uses a 120s timeout to allow for cold model loading.
  *
  * @param {string} text  The entry content to classify
  * @returns {Promise<string>}  One of: Task, Thought, Reminder, Idea, Question, Decision
@@ -242,23 +257,37 @@ async function classifyEntry(text) {
   // Use the LLM model, never the embedding model (embedding models don't support /api/generate)
   const model = settings.llmModel || 'phi3:mini';
 
+  // Check the model is actually installed — avoid spinning indefinitely against a missing model.
+  // _availableModels is populated by getOllamaStatus() which the worker calls regularly.
+  if (_availableModels !== null && !_availableModels.some((m) => m === model || m.startsWith(model + ':'))) {
+    throw new Error(`LLM model '${model}' is not installed — skipping classification`);
+  }
+
   const prompt =
     'Classify the following note into exactly one of these categories:\n' +
     'Task, Thought, Reminder, Idea, Question, Decision\n\n' +
     'Reply with only the category name and nothing else.\n\n' +
     `Note: ${text.slice(0, 500)}`;
 
+  // 120s timeout: allows for cold model loading from disk
   const response = await ollamaRequest('/api/generate', {
     model,
     prompt,
     stream: false,
     options: { temperature: 0, num_predict: 10 },
-  });
+  }, 120_000);
 
   const raw = (response.response || '').trim();
-  // Find which valid category appears in the response (case-insensitive)
   const match = VALID_CATEGORIES.find((c) => raw.toLowerCase().startsWith(c.toLowerCase()));
   return match || 'Thought'; // safe fallback
+}
+
+/**
+ * Update the cached list of available models (called from getOllamaStatus).
+ * @param {string[]} models
+ */
+function setAvailableModels(models) {
+  _availableModels = models;
 }
 
 
