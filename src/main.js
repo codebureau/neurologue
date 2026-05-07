@@ -6,7 +6,7 @@ const { runMigrations } = require('./db/migrate');
 const { initVectorStore } = require('./backend/vector/store');
 const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory, getActivityByDay } = require('./backend/db/entries');
 const { setTagsForEntry, listTags, listTagsWithCounts, renameTag, deleteTag, mergeTag, findSimilarTags } = require('./backend/db/tags');
-const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags } = require('./backend/db/search');
+const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags, listEntriesFiltered, listCategoriesWithCounts } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
@@ -56,17 +56,20 @@ ipcMain.on('capture:close', (event) => {
 
 // ── Library IPC ──────────────────────────────────────────────────────────────
 
-// List entries (paginated, optional tag filter)
-ipcMain.handle('library:list', async (_event, { limit = 50, offset = 0, tag } = {}) => {
-  if (tag) return listEntriesByTag(tag, { limit, offset });
+// List entries (paginated) — supports tag, category, and text-query filters combined
+ipcMain.handle('library:list', async (_event, { limit = 50, offset = 0, tag, category } = {}) => {
+  if (tag || category) return listEntriesFiltered({ tag, category, limit, offset });
   return listEntriesWithTags({ limit, offset });
 });
 
-// Full-text search
-ipcMain.handle('library:search-text', async (_event, { query, limit = 50, offset = 0 }) => {
-  if (!query || !query.trim()) return listEntries({ limit, offset });
-  return searchEntriesText(query, { limit, offset });
+// Full-text search — optionally narrowed by active tag / category filter
+ipcMain.handle('library:search-text', async (_event, { query, tag, category, limit = 50, offset = 0 }) => {
+  if (!query || !query.trim()) return listEntriesFiltered({ tag, category, limit, offset });
+  return listEntriesFiltered({ query, tag, category, limit, offset });
 });
+
+// Distinct categories in use (for sidebar)
+ipcMain.handle('library:list-categories', async () => listCategoriesWithCounts());
 
 // Semantic search — requires Ollama to be running
 ipcMain.handle('library:search-semantic', async (_event, { query, topN = 10 }) => {
