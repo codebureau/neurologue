@@ -114,4 +114,62 @@ async function listEntriesWithTags({ limit = 50, offset = 0 } = {}) {
   return _enrichWithTags(db, entries);
 }
 
-module.exports = { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags };
+/**
+ * Filtered list of entries supporting any combination of tag, category,
+ * and text-search query (all applied with AND semantics).
+ *
+ * @param {{ tag?: string, category?: string, query?: string, limit?: number, offset?: number }} opts
+ * @returns {Promise<object[]>}
+ */
+async function listEntriesFiltered({ tag, category, query, limit = 50, offset = 0 } = {}) {
+  const db = await openDb();
+
+  let sql = 'SELECT DISTINCT e.* FROM entries e';
+  const conditions = [];
+  const params = [];
+
+  if (tag) {
+    sql += ' INNER JOIN entry_tags et ON et.entry_id = e.id'
+         + ' INNER JOIN tags t ON t.id = et.tag_id';
+    conditions.push('t.name = ?');
+    params.push(tag.trim().toLowerCase());
+  }
+
+  if (category) {
+    conditions.push('COALESCE(e.user_category, e.category) = ?');
+    params.push(category);
+  }
+
+  if (query && query.trim()) {
+    conditions.push('e.content LIKE ?');
+    params.push(`%${query.trim()}%`);
+  }
+
+  if (conditions.length) sql += ' WHERE ' + conditions.join(' AND ');
+  sql += ' ORDER BY e.created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
+
+  const entries = db.prepare(sql).all(...params);
+  return _enrichWithTags(db, entries);
+}
+
+/**
+ * Return distinct categories that are in use, with entry counts.
+ * Uses user_category when set, otherwise category.
+ *
+ * @returns {Promise<Array<{category: string, count: number}>>}
+ */
+async function listCategoriesWithCounts() {
+  const db = await openDb();
+  return db
+    .prepare(`
+      SELECT COALESCE(user_category, category) AS category, COUNT(*) AS count
+      FROM entries
+      WHERE COALESCE(user_category, category) IS NOT NULL
+      GROUP BY COALESCE(user_category, category)
+      ORDER BY count DESC, category ASC
+    `)
+    .all();
+}
+
+module.exports = { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags, listEntriesFiltered, listCategoriesWithCounts };

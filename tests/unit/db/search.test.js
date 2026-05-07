@@ -139,3 +139,96 @@ describe('getEntryWithTags', () => {
     expect(result).toBeUndefined();
   });
 });
+
+// ── listEntriesFiltered ───────────────────────────────────────────────────
+
+describe('listEntriesFiltered', () => {
+  async function makeEntryWithCategory(content, category, tags = []) {
+    const { createEntry, updateEntryCategory } = require('../../../src/backend/db/entries');
+    const { setTagsForEntry } = require('../../../src/backend/db/tags');
+    const entry = await createEntry({ content });
+    await updateEntryCategory(entry.id, category, 'llm');
+    if (tags.length) await setTagsForEntry(entry.id, tags);
+    return entry;
+  }
+
+  test('returns all entries when no filters are set', async () => {
+    const { listEntriesFiltered } = require('../../../src/backend/db/search');
+    await makeEntry('alpha');
+    await makeEntry('beta');
+    const results = await listEntriesFiltered();
+    expect(results.length).toBe(2);
+  });
+
+  test('filters by tag only', async () => {
+    const { listEntriesFiltered } = require('../../../src/backend/db/search');
+    await makeEntry('tagged', ['node']);
+    await makeEntry('untagged');
+    const results = await listEntriesFiltered({ tag: 'node' });
+    expect(results.length).toBe(1);
+    expect(results[0].content).toBe('tagged');
+  });
+
+  test('filters by category only', async () => {
+    const { listEntriesFiltered } = require('../../../src/backend/db/search');
+    await makeEntryWithCategory('task entry', 'Task');
+    await makeEntryWithCategory('idea entry', 'Idea');
+    const results = await listEntriesFiltered({ category: 'Task' });
+    expect(results.length).toBe(1);
+    expect(results[0].content).toBe('task entry');
+  });
+
+  test('filters by tag AND category (AND semantics)', async () => {
+    const { listEntriesFiltered } = require('../../../src/backend/db/search');
+    await makeEntryWithCategory('match', 'Task', ['work']);
+    await makeEntryWithCategory('wrong cat', 'Idea', ['work']);
+    await makeEntryWithCategory('wrong tag', 'Task', ['home']);
+    const results = await listEntriesFiltered({ tag: 'work', category: 'Task' });
+    expect(results.length).toBe(1);
+    expect(results[0].content).toBe('match');
+  });
+
+  test('filters by text query only', async () => {
+    const { listEntriesFiltered } = require('../../../src/backend/db/search');
+    await makeEntry('needle in haystack');
+    await makeEntry('nothing here');
+    const results = await listEntriesFiltered({ query: 'needle' });
+    expect(results.length).toBe(1);
+  });
+
+  test('combines text query with category filter', async () => {
+    const { listEntriesFiltered } = require('../../../src/backend/db/search');
+    await makeEntryWithCategory('buy groceries', 'Task');
+    await makeEntryWithCategory('buy a thought', 'Thought');
+    await makeEntryWithCategory('sell stocks', 'Task');
+    const results = await listEntriesFiltered({ query: 'buy', category: 'Task' });
+    expect(results.length).toBe(1);
+    expect(results[0].content).toBe('buy groceries');
+  });
+});
+
+// ── listCategoriesWithCounts ───────────────────────────────────────────────
+
+describe('listCategoriesWithCounts', () => {
+  test('returns categories with counts', async () => {
+    const { createEntry, updateEntryCategory } = require('../../../src/backend/db/entries');
+    const { listCategoriesWithCounts } = require('../../../src/backend/db/search');
+    const e1 = await createEntry({ content: 'a' });
+    const e2 = await createEntry({ content: 'b' });
+    const e3 = await createEntry({ content: 'c' });
+    await updateEntryCategory(e1.id, 'Task', 'llm');
+    await updateEntryCategory(e2.id, 'Task', 'llm');
+    await updateEntryCategory(e3.id, 'Idea', 'llm');
+    const cats = await listCategoriesWithCounts();
+    const taskRow = cats.find((r) => r.category === 'Task');
+    const ideaRow = cats.find((r) => r.category === 'Idea');
+    expect(taskRow.count).toBe(2);
+    expect(ideaRow.count).toBe(1);
+  });
+
+  test('returns empty array when no categories assigned', async () => {
+    const { listCategoriesWithCounts } = require('../../../src/backend/db/search');
+    const cats = await listCategoriesWithCounts();
+    expect(cats).toHaveLength(0);
+  });
+});

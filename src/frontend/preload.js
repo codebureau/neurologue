@@ -16,6 +16,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   suggestTags: (text) => ipcRenderer.invoke('library:suggest-tags', { text }),
   listTags: () => ipcRenderer.invoke('library:list-tags'),
   getActivity: () => ipcRenderer.invoke('library:activity'),
+  listCategories: () => ipcRenderer.invoke('library:list-categories'),
 
   // ── Tag management ───────────────────────────────────────────────────────
   listTagsWithCounts: () => ipcRenderer.invoke('tags:list-with-counts'),

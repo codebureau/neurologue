@@ -172,6 +172,99 @@ html, body {
 }
 .tag-all:hover { color: var(--text); }
 
+/* ── Sidebar: categories ──────────────────────────────────────────────── */
+.sidebar-section-header {
+  padding: 10px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+}
+
+.cat-item {
+  display: flex;
+  align-items: center;
+  padding: 5px 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 13px;
+  gap: 6px;
+}
+.cat-item:hover { background: var(--surface2); color: var(--text); }
+.cat-item.active { background: var(--surface2); color: var(--cortex-teal); }
+.cat-item .cat-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-item .cat-count {
+  font-size: 11px;
+  color: var(--text-dim);
+  min-width: 20px;
+  text-align: right;
+}
+.cat-item .tag-clear {
+  font-size: 10px;
+  color: var(--text-dim);
+  padding: 1px 4px;
+  border-radius: 3px;
+  display: none;
+}
+.cat-item.active .tag-clear { display: inline; }
+.cat-item.active .tag-clear:hover { background: var(--danger); color: #fff; }
+
+/* ── Filter bar ───────────────────────────────────────────────────────── */
+#filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+#filter-bar.hidden { display: none; }
+
+.active-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface2);
+  border: 1px solid var(--cortex-teal);
+  border-radius: 20px;
+  padding: 2px 8px 2px 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.active-filter-pill .afp-label { color: var(--text-muted); }
+.active-filter-pill .afp-label strong { color: var(--cortex-teal); font-weight: 500; }
+.active-filter-pill .afp-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+.active-filter-pill .afp-remove:hover { color: var(--danger); }
+
+.afp-clear-all {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-dim);
+  font-size: 11px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.afp-clear-all:hover { border-color: var(--danger); color: var(--danger); }
+
+/* Clickable tag/category on entry cards */
+.tag-pill--clickable:hover { border-color: var(--cortex-teal); color: var(--cortex-teal); cursor: pointer; }
+.category-badge--clickable { cursor: pointer; }
+.category-badge--clickable:hover { opacity: 0.8; }
+
 /* ── Timeline ─────────────────────────────────────────────────────────── */
 #timeline {
   flex: 1;

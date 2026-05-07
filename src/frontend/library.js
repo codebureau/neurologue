@@ -9,7 +9,8 @@ let _state = {
   hasMore: false,
   query: '',
   mode: 'text',      // 'text' | 'semantic'
-  tagFilter: null,   // tag name string or null
+  tagFilter: null,      // tag name string or null
+  categoryFilter: null, // category string or null
   selectedId: null,
   activeThemeId: null,
   groupBy: null,       // null | 'day' | 'week' | 'month'
@@ -66,6 +67,10 @@ const heatmapToggle   = document.getElementById('btn-heatmap-toggle');
 const heatmapPanel    = document.getElementById('heatmap-panel');
 const heatmapGrid     = document.getElementById('heatmap-grid');
 const heatmapMonths   = document.getElementById('heatmap-months');
+
+// ── Filter DOM refs ────────────────────────────────────────────────────────
+const filterBar    = document.getElementById('filter-bar');
+const categoryList = document.getElementById('category-list');
 
 // ── Utilities ──────────────────────────────────────────────────────────────
 
@@ -160,17 +165,21 @@ function renderEntryCard(entry) {
     if (hasTags) {
       entry.tags.slice(0, 6).forEach((t) => {
         const pill = document.createElement('span');
-        pill.className = 'tag-pill';
+        pill.className = 'tag-pill tag-pill--clickable';
         pill.textContent = `#${t.name || t}`;
+        pill.title = `Filter by tag: ${t.name || t}`;
+        pill.addEventListener('click', (e) => { e.stopPropagation(); applyTagFilter(t.name || t); });
         chipRow.appendChild(pill);
       });
     }
 
     if (cat) {
       const badge = document.createElement('span');
-      badge.className = 'category-badge category-badge--card';
+      badge.className = 'category-badge category-badge--card category-badge--clickable';
       badge.setAttribute('data-cat', cat);
       badge.textContent = cat;
+      badge.title = `Filter by category: ${cat}`;
+      badge.addEventListener('click', (e) => { e.stopPropagation(); applyCategoryFilter(cat); });
       chipRow.appendChild(badge);
     }
 
@@ -288,26 +297,32 @@ async function renderHeatmap() {
 
 async function loadEntries(append = false) {
   const offset = append ? _state.offset : 0;
+  const { tagFilter: tag, categoryFilter: category, query } = _state;
   let entries = [];
 
   try {
-    if (_state.mode === 'semantic' && _state.query.trim()) {
-      const result = await window.neurologue.searchSemantic(_state.query);
+    if (_state.mode === 'semantic' && query.trim()) {
+      const result = await window.neurologue.searchSemantic(query);
       if (!result.ok) {
         semanticNotice.style.display = 'block';
-        // Fall back to text search
-        entries = await window.neurologue.searchText(_state.query, { limit: PAGE_SIZE, offset });
+        // Fall back to text search with active filters
+        entries = await window.neurologue.searchText(query, { tag, category, limit: PAGE_SIZE, offset });
       } else {
         semanticNotice.style.display = 'none';
-        entries = result.results;
+        // Post-filter semantic results by active tag/category (result set is small)
+        entries = result.results.filter((e) => {
+          if (tag && !((e.tags || []).some((t) => (t.name || t) === tag))) return false;
+          if (category && (e.user_category || e.category) !== category) return false;
+          return true;
+        });
       }
       _state.hasMore = false;
       loadMoreBtn.style.display = 'none';
-    } else if (_state.query.trim()) {
-      entries = await window.neurologue.searchText(_state.query, { limit: PAGE_SIZE, offset });
+    } else if (query.trim() || tag || category) {
+      entries = await window.neurologue.searchText(query, { tag, category, limit: PAGE_SIZE, offset });
       _state.hasMore = entries.length === PAGE_SIZE;
     } else {
-      entries = await window.neurologue.list({ limit: PAGE_SIZE, offset, tag: _state.tagFilter });
+      entries = await window.neurologue.list({ limit: PAGE_SIZE, offset });
       _state.hasMore = entries.length === PAGE_SIZE;
     }
 
@@ -347,15 +362,96 @@ async function loadTags() {
   }
 }
 
+async function loadCategories() {
+  try {
+    const cats = await window.neurologue.listCategories();
+    categoryList.innerHTML = '';
+    if (!cats.length) return;
+    cats.forEach(({ category, count }) => {
+      const item = document.createElement('div');
+      item.className = 'cat-item' + (category === _state.categoryFilter ? ' active' : '');
+      item.dataset.cat = category;
+      item.innerHTML = `<span class="cat-name">${category}</span>`
+        + `<span class="cat-count">${count}</span>`
+        + `<span class="tag-clear" title="Clear filter">✕</span>`;
+      item.querySelector('.cat-name').addEventListener('click', () => applyCategoryFilter(category));
+      item.querySelector('.cat-count').addEventListener('click', () => applyCategoryFilter(category));
+      item.querySelector('.tag-clear').addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyCategoryFilter(null);
+      });
+      categoryList.appendChild(item);
+    });
+  } catch (err) {
+    console.error('[library] loadCategories failed:', err);
+  }
+}
+
 function applyTagFilter(tagName) {
   _state.tagFilter = tagName;
   _state.selectedId = null;
-  // Update sidebar active state
   document.querySelectorAll('.tag-item').forEach((el) => {
     el.classList.toggle('active', el.querySelector('.tag-name').textContent === tagName);
   });
+  renderActiveFilters();
   loadEntries();
   clearDetail();
+}
+
+function applyCategoryFilter(cat) {
+  _state.categoryFilter = cat;
+  _state.selectedId = null;
+  document.querySelectorAll('.cat-item').forEach((el) => {
+    el.classList.toggle('active', el.dataset.cat === cat);
+  });
+  renderActiveFilters();
+  loadEntries();
+  clearDetail();
+}
+
+function renderActiveFilters() {
+  filterBar.innerHTML = '';
+  const hasTag = !!_state.tagFilter;
+  const hasCat = !!_state.categoryFilter;
+
+  if (!hasTag && !hasCat) {
+    filterBar.classList.add('hidden');
+    return;
+  }
+  filterBar.classList.remove('hidden');
+
+  if (hasTag) {
+    const pill = document.createElement('span');
+    pill.className = 'active-filter-pill';
+    pill.innerHTML = `<span class="afp-label">Tag: <strong>#${_state.tagFilter}</strong></span>`
+      + `<button class="afp-remove" title="Clear tag filter">×</button>`;
+    pill.querySelector('.afp-remove').addEventListener('click', () => applyTagFilter(null));
+    filterBar.appendChild(pill);
+  }
+
+  if (hasCat) {
+    const pill = document.createElement('span');
+    pill.className = 'active-filter-pill';
+    pill.innerHTML = `<span class="afp-label">Category: <strong>${_state.categoryFilter}</strong></span>`
+      + `<button class="afp-remove" title="Clear category filter">×</button>`;
+    pill.querySelector('.afp-remove').addEventListener('click', () => applyCategoryFilter(null));
+    filterBar.appendChild(pill);
+  }
+
+  if (hasTag && hasCat) {
+    const clear = document.createElement('button');
+    clear.className = 'afp-clear-all';
+    clear.textContent = 'Clear all';
+    clear.addEventListener('click', () => {
+      _state.tagFilter = null;
+      _state.categoryFilter = null;
+      document.querySelectorAll('.tag-item, .cat-item').forEach((el) => el.classList.remove('active'));
+      renderActiveFilters();
+      loadEntries();
+      clearDetail();
+    });
+    filterBar.appendChild(clear);
+  }
 }
 
 // ── Entry detail ───────────────────────────────────────────────────────────
@@ -619,8 +715,6 @@ function setMode(mode) {
 
 const debouncedSearch = debounce(() => {
   _state.query = searchInput.value;
-  _state.tagFilter = null;
-  document.querySelectorAll('.tag-item').forEach((el) => el.classList.remove('active'));
   loadEntries();
 }, 300);
 
@@ -1025,6 +1119,7 @@ window.neurologue.onWorkerStatus(updateStatus);
 window.neurologue.onEntriesUpdated(async () => {
   await loadEntries();
   await loadTags();
+  await loadCategories();
   // Refresh the detail panel if a selected entry may now have a category assigned
   if (_state.selectedId) {
     const entry = await window.neurologue.getEntry(_state.selectedId);
@@ -1560,6 +1655,7 @@ async function runSetupCheck() {
 
 (async () => {
   await loadTags();
+  await loadCategories();
   await loadThemes();
   await loadEntries();
   runSetupCheck(); // checks Ollama install + models, shows modal if needed
