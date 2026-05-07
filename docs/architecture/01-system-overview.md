@@ -59,15 +59,20 @@ Export is portable.
 
 ### **Library Layer**
 - Stores entries, tags, embeddings, themes
-- Provides timeline, tag, theme, and semantic views
+- Entry categorisation (auto-assigned + user override)
+- Timeline with infinite scroll, day/week/month grouping, and activity heatmap
+- Filtering by tag, category, and free text (combined AND semantics)
+- Tag management: rename, delete, merge, duplicate detection (structural + semantic)
+- LLM tag suggestions in entry detail panel and capture popup
+- Semantic search and full-text search
 - Acts as the system’s source of truth
 
 ### **Processing Layer**
-- Embedding generation
-- Clustering
-- Theme creation
-- Summaries
-- Tag suggestions
+- Embedding generation (nomic-embed-text via Ollama)
+- Clustering (k-means, local)
+- Theme creation and LLM summaries (phi3:mini)
+- Entry categorisation: Task / Thought / Reminder / Idea / Question / Decision
+- LLM tag suggestions
 - Contradiction detection
 - Open loop detection
 
