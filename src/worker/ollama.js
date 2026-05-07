@@ -239,7 +239,8 @@ const VALID_CATEGORIES = ['Task', 'Thought', 'Reminder', 'Idea', 'Question', 'De
  */
 async function classifyEntry(text) {
   const settings = getSettings();
-  const model = settings.chatModel || settings.embeddingModel || 'phi3:mini';
+  // Use the LLM model, never the embedding model (embedding models don't support /api/generate)
+  const model = settings.llmModel || 'phi3:mini';
 
   const prompt =
     'Classify the following note into exactly one of these categories:\n' +
