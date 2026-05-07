@@ -225,13 +225,17 @@ async function renderHeatmap() {
   const countMap = {};
   data.forEach(({ day, count }) => { countMap[day] = count; });
 
-  // Build 52 full weeks (364 cells) ending today, aligned to Sunday
+  // Build 52 columns ending with the week that contains today.
+  // Anchoring to the *last* Sunday keeps today always in the final column,
+  // regardless of what day of the week today falls on.
   const today = new Date();
   today.setHours(12, 0, 0, 0);
 
-  const startDate = new Date(today);
-  startDate.setDate(today.getDate() - 363);            // 364 days back
-  startDate.setDate(startDate.getDate() - startDate.getDay()); // rewind to Sunday
+  const lastSunday = new Date(today);
+  lastSunday.setDate(today.getDate() - today.getDay()); // Sunday of this week
+
+  const startDate = new Date(lastSunday);
+  startDate.setDate(lastSunday.getDate() - 51 * 7);    // 52 weeks back
 
   const WEEK_PX = 12; // 10px cell + 2px gap
   let lastMonth = -1;
