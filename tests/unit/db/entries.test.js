@@ -231,3 +231,39 @@ describe('listEntriesWithoutCategory', () => {
     expect(ids).toHaveLength(0);
   });
 });
+
+describe('getActivityByDay', () => {
+  test('returns counts grouped by day', async () => {
+    const { createEntry, getActivityByDay } = require('../../../src/backend/db/entries');
+    await createEntry({ content: 'a' });
+    await createEntry({ content: 'b' });
+    const rows = await getActivityByDay(364);
+    expect(rows.length).toBeGreaterThanOrEqual(1);
+    const today = new Date().toISOString().slice(0, 10);
+    const todayRow = rows.find((r) => r.day === today);
+    expect(todayRow).toBeDefined();
+    expect(todayRow.count).toBe(2);
+  });
+
+  test('returns empty array when no entries exist', async () => {
+    const { getActivityByDay } = require('../../../src/backend/db/entries');
+    const rows = await getActivityByDay(364);
+    expect(rows).toEqual([]);
+  });
+
+  test('excludes entries older than the requested window', async () => {
+    const { getActivityByDay } = require('../../../src/backend/db/entries');
+    // Insert an entry with a very old timestamp directly via connection
+    const { openDb } = require('../../../src/backend/db/connection');
+    const db = await openDb();
+    const { randomUUID } = require('crypto');
+    db.prepare(
+      `INSERT INTO entries (id, content, source, type, metadata, created_at)
+       VALUES (?, ?, 'manual', 'note', '{}', ?)`
+    ).run(randomUUID(), 'ancient', '1990-01-01T00:00:00.000Z');
+
+    const rows = await getActivityByDay(364);
+    const oldRow = rows.find((r) => r.day === '1990-01-01');
+    expect(oldRow).toBeUndefined();
+  });
+});

@@ -129,6 +129,24 @@ async function listEntriesWithoutCategory(limit = 50) {
     .map((r) => r.id);
 }
 
+/**
+ * Return entry counts grouped by day for the last N days.
+ * @param {number} [days=364]
+ * @returns {Promise<Array<{day: string, count: number}>>}
+ */
+async function getActivityByDay(days = 364) {
+  const db = await openDb();
+  return db
+    .prepare(`
+      SELECT DATE(created_at) AS day, COUNT(*) AS count
+      FROM entries
+      WHERE created_at >= DATE('now', ?)
+      GROUP BY DATE(created_at)
+      ORDER BY day ASC
+    `)
+    .all(`-${days} days`);
+}
+
 module.exports = {
   createEntry,
   getEntryById,
@@ -138,4 +156,5 @@ module.exports = {
   getEntryRevisions,
   updateEntryCategory,
   listEntriesWithoutCategory,
+  getActivityByDay,
 };
