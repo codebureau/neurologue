@@ -14,30 +14,61 @@
     <!-- ── Toolbar ─────────────────────────────────────────────────── -->
     <div id="toolbar">
       <span class="logo">Neurologue</span>
-      <input id="search-input" type="text" placeholder="Search entries…" autocomplete="off" />
-      <div id="search-mode">
+      <input id="search-input" type="text" placeholder="Search entries…" autocomplete="off" class="toolbar-library-only" />
+      <div id="search-mode" class="toolbar-library-only">
         <button id="btn-text" class="mode-btn active">Text</button>
         <button id="btn-semantic" class="mode-btn">Semantic</button>
       </div>
-      <span id="entry-count"></span>
+      <span id="entry-count" class="toolbar-library-only"></span>
       <button id="btn-export" class="mode-btn">Export…</button>
       <button id="btn-new-note" class="mode-btn btn-new-note" title="New note (Ctrl+Shift+Space)">+ New note</button>
-      <button id="btn-maintenance" class="mode-btn" title="Tag management">Maintenance</button>
+      <button id="btn-maintenance" class="mode-btn toolbar-library-only" title="Tag management">Maintenance</button>
       <button id="btn-settings" class="mode-btn" title="Settings">⚙</button>
       <button id="btn-help" class="mode-btn">Help</button>
     </div>
 
-    <!-- ── Export toast ─────────────────────────────────────────── -->
-    <div id="export-toast"></div>
-    <!-- ── Active filter pills ──────────────────────────────────────────── -->
-    <div id="filter-bar" class="hidden"></div>
-    <!-- ── Semantic notice ─────────────────────────────────────────── -->
-    <div id="semantic-notice">
-      Ollama not available — showing text results instead
-    </div>
+    <!-- ── Shell: nav rail + view container ───────────────────────── -->
+    <div id="shell">
 
-    <!-- ── Body ────────────────────────────────────────────────────── -->
-    <div id="body">
+      <!-- ── Nav rail ──────────────────────────────────────────────── -->
+      <nav id="nav-rail">
+        <button class="nav-item active" data-view="library" title="Library">
+          <span class="nav-icon">&#9776;</span>
+          <span class="nav-label">Library</span>
+        </button>
+        <button class="nav-item" data-view="themes" title="Themes">
+          <span class="nav-icon">&#9672;</span>
+          <span class="nav-label">Themes</span>
+        </button>
+        <button class="nav-item" data-view="priorities" title="Priorities">
+          <span class="nav-icon">&#9650;</span>
+          <span class="nav-label">Priorities</span>
+        </button>
+        <button class="nav-item" data-view="graph" title="Graph">
+          <span class="nav-icon">&#11041;</span>
+          <span class="nav-label">Graph</span>
+        </button>
+        <button class="nav-item" data-view="explore" title="Explore">
+          <span class="nav-icon">&#8635;</span>
+          <span class="nav-label">Explore</span>
+        </button>
+      </nav>
+
+      <!-- ── View container ────────────────────────────────────────── -->
+      <div id="view-container">
+
+        <!-- ── View: Library ─────────────────────────────────────── -->
+        <div id="view-library" class="view active-view">
+          <!-- Export toast -->
+          <div id="export-toast"></div>
+          <!-- Active filter pills -->
+          <div id="filter-bar" class="hidden"></div>
+          <!-- Semantic notice -->
+          <div id="semantic-notice">
+            Ollama not available — showing text results instead
+          </div>
+          <!-- Three-column body -->
+          <div id="body">
 
       <!-- Sidebar: tags + themes -->
       <div id="sidebar">
@@ -156,6 +187,46 @@
       </div>
 
     </div><!-- /#body -->
+        </div><!-- /#view-library -->
+
+        <!-- ── View: Themes ──────────────────────────────────────── -->
+        <div id="view-themes" class="view">
+          <div class="view-placeholder">
+            <div class="vp-icon">&#9672;</div>
+            <div class="vp-title">Themes</div>
+            <div class="vp-desc">Theme management, summaries, and evolution — coming in 0.4.x</div>
+          </div>
+        </div>
+
+        <!-- ── View: Priorities ──────────────────────────────────── -->
+        <div id="view-priorities" class="view">
+          <div class="view-placeholder">
+            <div class="vp-icon">&#9650;</div>
+            <div class="vp-title">Priorities</div>
+            <div class="vp-desc">Energy, value, obligation, and motivation scoring — coming in 0.7.x</div>
+          </div>
+        </div>
+
+        <!-- ── View: Graph ───────────────────────────────────────── -->
+        <div id="view-graph" class="view">
+          <div class="view-placeholder">
+            <div class="vp-icon">&#11041;</div>
+            <div class="vp-title">Graph</div>
+            <div class="vp-desc">Knowledge graph and semantic cluster visualisation — coming in 0.6.x</div>
+          </div>
+        </div>
+
+        <!-- ── View: Explore ─────────────────────────────────────── -->
+        <div id="view-explore" class="view">
+          <div class="view-placeholder">
+            <div class="vp-icon">&#8635;</div>
+            <div class="vp-title">Explore</div>
+            <div class="vp-desc">Cognitive dashboard, memory replay, and agentic queries — coming in 0.6.x</div>
+          </div>
+        </div>
+
+      </div><!-- /#view-container -->
+    </div><!-- /#shell -->
 
     <!-- ── Status bar ───────────────────────────────────────────────── -->
     <div id="status-bar">

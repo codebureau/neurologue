@@ -1651,6 +1651,24 @@ async function runSetupCheck() {
   }
 }
 
+// ── Nav rail / view routing ──────────────────────────────────────────
+
+const navItems        = document.querySelectorAll('.nav-item');
+const views           = document.querySelectorAll('.view');
+const libraryOnlyEls  = document.querySelectorAll('.toolbar-library-only');
+
+function activateView(viewId) {
+  navItems.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
+  views.forEach(v   => v.classList.toggle('active-view', v.id === `view-${viewId}`));
+
+  const isLibrary = viewId === 'library';
+  libraryOnlyEls.forEach(el => el.classList.toggle('hidden-for-view', !isLibrary));
+}
+
+navItems.forEach(btn => {
+  btn.addEventListener('click', () => activateView(btn.dataset.view));
+});
+
 // ── Init ────────────────────────────────────────────────────────────
 
 (async () => {
