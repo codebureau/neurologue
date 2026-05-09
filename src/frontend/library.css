@@ -105,6 +105,93 @@ html, body {
   white-space: nowrap;
 }
 
+/* ── Shell: nav rail + view container ────────────────────────────────── */
+#shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Nav rail ─────────────────────────────────────────────────────────── */
+#nav-rail {
+  width: 56px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 48px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.nav-item:hover { background: var(--surface2); color: var(--text-muted); }
+.nav-item.active { background: var(--surface2); color: var(--cortex-teal); }
+
+.nav-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.nav-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* ── View container ───────────────────────────────────────────────────── */
+#view-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.view { display: none; flex: 1; min-height: 0; flex-direction: column; }
+.view.active-view { display: flex; }
+
+/* ── View: Library ────────────────────────────────────────────────────── */
+#view-library {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Toolbar items hidden outside Library view */
+.toolbar-library-only.hidden-for-view { display: none !important; }
+
+/* ── View placeholder (Themes, Graph, etc.) ───────────────────────────── */
+.view-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-dim);
+  user-select: none;
+}
+.vp-icon { font-size: 40px; opacity: 0.4; }
+.vp-title { font-size: 18px; font-weight: 600; color: var(--text-muted); }
+.vp-desc  { font-size: 13px; max-width: 320px; text-align: center; line-height: 1.6; }
+
 /* ── Three-column body ────────────────────────────────────────────────── */
 #body {
   display: flex;

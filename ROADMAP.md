@@ -74,6 +74,38 @@ Each roadmap item is written to be convertible into GitHub Issues.
 
 ---
 
+## 0.7.x — Neurologue Priority Model
+
+### 0.7.1 Priority Data Model
+- Add `ThemeMetrics` table (time-sliced E/V/O/M + priority score per theme)
+- Add `EntrySignals` table (per-entry sentiment, emotional intensity, obligation/motivation/value/open-loop flags)
+- Wire into existing entry/theme system via DB migrations
+
+### 0.7.2 Entry Signal Classification
+- LLM classification call on entry ingestion to produce `EntrySignals`
+- JSON prompt with structured output (sentiment, emotional intensity, flags)
+- Feature flag to enable/disable classification
+- Error handling for JSON parse failures
+
+### 0.7.3 Priority Scoring Pipeline
+- Aggregation job to compute E, V, O, M, and final Priority score per theme
+- Scores normalised to 0–1 range
+- Runs on schedule (e.g. hourly) and on demand
+- Debug endpoint for inspection
+
+### 0.7.4 Priority Dashboard UI
+- New **Priorities** view in the nav rail
+- Theme list with E/V/O/M score bars
+- Quadrant visualisation (Energy × Value axes)
+- Click-through to full theme detail
+
+### 0.7.5 Drift Analysis
+- Time-series graph of theme energy and priority drift
+- Highlight rising and falling themes
+- Detect neglected obligations (high O, declining E)
+
+---
+
 ## 0.4.x — Themes & Cognitive Layer
 
 ### 0.4.1 Theme Naming & Summaries
