@@ -12,7 +12,6 @@ let _state = {
   tagFilter: null,      // tag name string or null
   categoryFilter: null, // category string or null
   selectedId: null,
-  activeThemeId: null,
   groupBy: null,       // null | 'day' | 'week' | 'month'
   lastGroupKey: null,  // last rendered group separator key (for append)
 };
@@ -27,10 +26,8 @@ const timelineList  = document.getElementById('timeline-list');
 const loadMoreBtn   = document.getElementById('load-more-btn');
 const tagList       = document.getElementById('tag-list');
 const tagAll        = document.getElementById('tag-all');
-const themeList     = document.getElementById('theme-list');
 const detailPlaceholder      = document.getElementById('detail-placeholder');
 const detailContent          = document.getElementById('detail-content');
-const themeDetailContent     = document.getElementById('theme-detail-content');
 const detailDate    = document.getElementById('detail-date');
 const detailSource  = document.getElementById('detail-source');
 const detailCategoryBadge  = document.getElementById('detail-category-badge');
@@ -628,78 +625,10 @@ async function selectEntry(id) {
 
 function clearDetail() {
   _state.selectedId = null;
-  _state.activeThemeId = null;
   exitEditMode();
   exitHistoryMode();
   detailPlaceholder.style.display = 'flex';
   detailContent.style.display = 'none';
-  themeDetailContent.style.display = 'none';
-}
-
-// ── Theme sidebar + detail ─────────────────────────────────────────────────
-
-async function loadThemes() {
-  try {
-    const themes = await window.neurologue.listThemes();
-    themeList.innerHTML = '';
-    if (themes.length === 0) return;
-    themes.forEach((theme) => {
-      const item = document.createElement('div');
-      item.className = 'theme-item' + (theme.id === _state.activeThemeId ? ' active' : '');
-      item.dataset.id = theme.id;
-      item.innerHTML =
-        `<span class="theme-icon">◆</span>` +
-        `<span class="theme-name">${theme.name}</span>`;
-      item.addEventListener('click', () => selectTheme(theme.id));
-      themeList.appendChild(item);
-    });
-  } catch (err) {
-    console.error('[library] loadThemes failed:', err);
-  }
-}
-
-async function selectTheme(id) {
-  _state.activeThemeId = id;
-  _state.selectedId = null;
-  document.querySelectorAll('.theme-item').forEach((el) => {
-    el.classList.toggle('active', el.dataset.id === id);
-  });
-  document.querySelectorAll('.tag-item').forEach((el) => el.classList.remove('active'));
-
-  try {
-    const theme = await window.neurologue.getTheme(id);
-    if (!theme) return;
-
-    document.getElementById('theme-detail-name').textContent = theme.name;
-    document.getElementById('theme-detail-summary').textContent =
-      theme.description || 'No summary yet — clustering will generate one when Ollama is available.';
-
-    const entriesEl = document.getElementById('theme-detail-entries');
-    entriesEl.innerHTML = '';
-    (theme.entries || []).forEach((entry) => {
-      const card = document.createElement('div');
-      card.className = 'theme-entry-card';
-      card.innerHTML =
-        `<div class="te-meta">` +
-        `<span class="te-date">${formatDate(entry.created_at)}</span>` +
-        `<span class="te-score">${entry.score !== undefined ? entry.score.toFixed(2) : ''}</span>` +
-        `</div>` +
-        `<div class="te-preview">${entry.content}</div>`;
-      card.addEventListener('click', () => {
-        // Jump to entry detail
-        _state.activeThemeId = null;
-        document.querySelectorAll('.theme-item').forEach((el) => el.classList.remove('active'));
-        selectEntry(entry.id);
-      });
-      entriesEl.appendChild(card);
-    });
-
-    detailPlaceholder.style.display = 'none';
-    detailContent.style.display = 'none';
-    themeDetailContent.style.display = 'flex';
-  } catch (err) {
-    console.error('[library] selectTheme failed:', err);
-  }
 }
 
 // ── Search mode toggle ─────────────────────────────────────────────────────
@@ -1130,7 +1059,7 @@ window.neurologue.onEntriesUpdated(async () => {
     }
   }
 });
-window.neurologue.onThemesUpdated(() => loadThemes());
+window.neurologue.onThemesUpdated(() => loadThemesView());
 
 // ── Setup + settings modals ────────────────────────────────────────
 
@@ -1663,10 +1592,149 @@ function activateView(viewId) {
 
   const isLibrary = viewId === 'library';
   libraryOnlyEls.forEach(el => el.classList.toggle('hidden-for-view', !isLibrary));
+
+  if (viewId === 'themes') loadThemesView();
 }
 
 navItems.forEach(btn => {
   btn.addEventListener('click', () => activateView(btn.dataset.view));
+});
+
+// ── Themes view controller ───────────────────────────────────────────────────
+
+const themesListEl       = document.getElementById('themes-list');
+const themesListCountEl  = document.getElementById('themes-list-count');
+const themesDetailPh     = document.getElementById('themes-detail-placeholder');
+const themesDetailCont   = document.getElementById('themes-detail-content');
+const themesDetailName   = document.getElementById('themes-detail-name');
+const themesDetailSum    = document.getElementById('themes-detail-summary');
+const themesEntriesList  = document.getElementById('themes-entries-list');
+const themesNameRow      = document.getElementById('themes-detail-name-row');
+const themesRenameForm   = document.getElementById('themes-rename-form');
+const themesRenameInput  = document.getElementById('themes-rename-input');
+const themesBtnRename    = document.getElementById('themes-btn-rename');
+const themesRenameSave   = document.getElementById('themes-rename-save');
+const themesRenameCancel = document.getElementById('themes-rename-cancel');
+
+let _themesActiveId = null;
+
+async function loadThemesView() {
+  try {
+    const themes = await window.neurologue.listThemes();
+    themesListEl.innerHTML = '';
+    themesListCountEl.textContent = themes.length ? `${themes.length} themes` : '';
+
+    if (themes.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:16px 14px;font-size:13px;color:var(--text-dim)';
+      empty.textContent = 'No themes yet — clustering runs automatically as you add entries.';
+      themesListEl.appendChild(empty);
+      return;
+    }
+
+    themes.forEach((theme) => {
+      const item = document.createElement('div');
+      item.className = 'themes-list-item' + (theme.id === _themesActiveId ? ' active' : '');
+      item.dataset.id = theme.id;
+      const entryWord = theme.entry_count === 1 ? '1 entry' : `${theme.entry_count} entries`;
+      item.innerHTML =
+        `<div class="tli-name">${escHtml(theme.display_name || theme.name)}</div>` +
+        `<div class="tli-meta">${entryWord}</div>`;
+      item.addEventListener('click', () => selectThemeView(theme.id));
+      themesListEl.appendChild(item);
+    });
+
+    // If we had an active theme, re-select it so detail stays fresh
+    if (_themesActiveId) selectThemeView(_themesActiveId);
+  } catch (err) {
+    console.error('[themes-view] loadThemesView failed:', err);
+  }
+}
+
+async function selectThemeView(id) {
+  _themesActiveId = id;
+  document.querySelectorAll('.themes-list-item').forEach((el) => {
+    el.classList.toggle('active', el.dataset.id === id);
+  });
+  closeRenameForm();
+
+  try {
+    const theme = await window.neurologue.getTheme(id);
+    if (!theme) return;
+
+    const displayName = theme.display_name || theme.name;
+    themesDetailName.textContent = displayName;
+    themesDetailSum.textContent = theme.description ||
+      'No summary yet — clustering will generate one when Ollama is available.';
+
+    // Populate entries
+    themesEntriesList.innerHTML = '';
+    (theme.entries || []).slice(0, 30).forEach((entry) => {
+      const card = document.createElement('div');
+      card.className = 'themes-entry-card';
+      card.innerHTML =
+        `<div class="tec-meta">` +
+        `<span class="tec-date">${formatDate(entry.created_at)}</span>` +
+        `<span class="tec-score">${entry.score !== undefined ? entry.score.toFixed(2) : ''}</span>` +
+        `</div>` +
+        `<div class="tec-preview">${escHtml(entry.content)}</div>`;
+      card.addEventListener('click', () => {
+        // Jump to Library view + entry
+        activateView('library');
+        selectEntry(entry.id);
+      });
+      themesEntriesList.appendChild(card);
+    });
+
+    themesDetailPh.style.display   = 'none';
+    themesDetailCont.style.display = 'flex';
+  } catch (err) {
+    console.error('[themes-view] selectThemeView failed:', err);
+  }
+}
+
+// ── Rename flow ──────────────────────────────────────────────────────────────
+
+function openRenameForm() {
+  const currentName = themesDetailName.textContent;
+  themesRenameInput.value = currentName;
+  themesNameRow.style.display      = 'none';
+  themesRenameForm.style.display   = 'flex';
+  themesRenameInput.focus();
+  themesRenameInput.select();
+}
+
+function closeRenameForm() {
+  themesRenameForm.style.display = 'none';
+  themesNameRow.style.display    = 'flex';
+  themesRenameInput.value        = '';
+}
+
+async function saveRename() {
+  const newName = themesRenameInput.value.trim();
+  if (!newName || !_themesActiveId) { closeRenameForm(); return; }
+
+  themesRenameSave.disabled = true;
+  themesRenameSave.textContent = 'Saving…';
+  try {
+    await window.neurologue.renameTheme(_themesActiveId, newName);
+    closeRenameForm();
+    await loadThemesView();
+  } catch (err) {
+    console.error('[themes-view] rename failed:', err);
+    themesRenameInput.style.borderColor = 'var(--danger)';
+  } finally {
+    themesRenameSave.disabled = false;
+    themesRenameSave.textContent = 'Save';
+  }
+}
+
+themesBtnRename.addEventListener('click', openRenameForm);
+themesRenameSave.addEventListener('click', saveRename);
+themesRenameCancel.addEventListener('click', closeRenameForm);
+themesRenameInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter')  saveRename();
+  if (e.key === 'Escape') closeRenameForm();
 });
 
 // ── Init ────────────────────────────────────────────────────────────
@@ -1674,7 +1742,6 @@ navItems.forEach(btn => {
 (async () => {
   await loadTags();
   await loadCategories();
-  await loadThemes();
   await loadEntries();
   runSetupCheck(); // checks Ollama install + models, shows modal if needed
 })();

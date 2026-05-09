@@ -78,9 +78,6 @@
 
         <div id="sidebar-categories-header" class="sidebar-section-header">Categories</div>
         <div id="category-list"></div>
-
-        <div id="sidebar-themes-header">Themes</div>
-        <div id="theme-list"></div>
       </div>
 
       <!-- Timeline: entry list -->
@@ -174,16 +171,6 @@
             </div>
           </div>
         </div>
-        <div id="theme-detail-content">
-          <div id="theme-detail-header">
-            <div id="theme-detail-name"></div>
-            <div id="theme-detail-summary"></div>
-          </div>
-          <div id="theme-detail-body">
-            <div id="theme-detail-entries-label">Entries in this theme</div>
-            <div id="theme-detail-entries"></div>
-          </div>
-        </div>
       </div>
 
     </div><!-- /#body -->
@@ -191,10 +178,40 @@
 
         <!-- ── View: Themes ──────────────────────────────────────── -->
         <div id="view-themes" class="view">
-          <div class="view-placeholder">
-            <div class="vp-icon">&#9672;</div>
-            <div class="vp-title">Themes</div>
-            <div class="vp-desc">Theme management, summaries, and evolution — coming in 0.4.x</div>
+          <!-- Left column: theme list -->
+          <div id="themes-list-col">
+            <div id="themes-list-header">
+              <span class="themes-list-title">Themes</span>
+              <span id="themes-list-count"></span>
+            </div>
+            <div id="themes-list"></div>
+          </div>
+          <!-- Right column: theme detail -->
+          <div id="themes-detail-col">
+            <div id="themes-detail-placeholder">
+              <div class="td-ph-icon">&#9672;</div>
+              <div class="td-ph-text">Select a theme to view its summary and entries</div>
+            </div>
+            <div id="themes-detail-content">
+              <div id="themes-detail-header">
+                <!-- Name row: display name + rename button -->
+                <div id="themes-detail-name-row">
+                  <div id="themes-detail-name"></div>
+                  <button id="themes-btn-rename" class="btn-icon-sm" title="Rename theme">✎</button>
+                </div>
+                <!-- Inline rename form (hidden by default) -->
+                <div id="themes-rename-form">
+                  <input id="themes-rename-input" type="text" autocomplete="off" spellcheck="false" placeholder="Theme name…" />
+                  <button id="themes-rename-save" class="btn-sm">Save</button>
+                  <button id="themes-rename-cancel" class="btn-sm btn-secondary">Cancel</button>
+                </div>
+                <div id="themes-detail-summary"></div>
+              </div>
+              <div id="themes-detail-body">
+                <div id="themes-entries-label">Entries in this theme</div>
+                <div id="themes-entries-list"></div>
+              </div>
+            </div>
           </div>
         </div>
 
