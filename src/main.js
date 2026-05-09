@@ -10,7 +10,7 @@ const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTa
 const { searchNearest } = require('./backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
-const { listThemes, getThemeById, getEntriesForTheme } = require('./backend/db/themes');
+const { listThemes, getThemeById, renameTheme } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
@@ -223,18 +223,15 @@ ipcMain.handle('themes:list', async () => {
   return themes;
 });
 
-// Get a single theme with its top entries (enriched with content + tags)
+// Get a single theme with its member entries
 ipcMain.handle('themes:get', async (_event, { id }) => {
-  const theme = await getThemeById(id);
-  if (!theme) return null;
-  const members = await getEntriesForTheme(id);
-  const entries = await Promise.all(
-    members.slice(0, 20).map(async ({ entry_id, score }) => {
-      const entry = await getEntryWithTags(entry_id);
-      return entry ? { ...entry, score } : null;
-    })
-  );
-  return { ...theme, entries: entries.filter(Boolean) };
+  return getThemeById(id);
+});
+
+// Rename a theme (stores as user_name, preserved across re-clustering)
+ipcMain.handle('themes:rename', async (_event, { id, newName }) => {
+  if (!newName || !newName.trim()) throw new Error('Name cannot be empty');
+  return renameTheme(id, newName.trim());
 });
 
 // Manually trigger clustering (for dev/debug)

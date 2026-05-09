@@ -97,19 +97,28 @@ async function runClustering() {
       score: cosineSimilarity(vector, centroid),
     })).sort((a, b) => b.score - a.score);
 
-    // Draft a name from the top entry's first 40 chars until LLM can do better
-    const draftName = `Theme ${i + 1}`;
-
-    // Generate LLM summary if Ollama is available
+    // Use LLM to generate a descriptive name, or fall back to positional draft
+    let themeName = `Theme ${i + 1}`;
     let description = '';
     if (ollamaUp) {
+      const topContent = scored.slice(0, 5).map((m, n) => `${n + 1}. ${m.content}`).join('\n');
       try {
-        const topContent = scored.slice(0, 5).map((m, n) => `${n + 1}. ${m.content}`).join('\n');
-        const prompt =
-          `You are a personal knowledge assistant. The following are a cluster of related notes:\n\n${topContent}\n\n` +
-          `In one concise sentence (max 20 words), summarise what these notes are about. ` +
-          `Reply with the summary only, no preamble.`;
-        description = await generateTextCompletion(prompt);
+        const namePrompt =
+          `You are a personal knowledge assistant. The following are a cluster of related journal entries:\n\n${topContent}\n\n` +
+          `Give this cluster a short, meaningful name of 2–4 words that captures its essence. ` +
+          `Use title case. Reply with the name only — no punctuation, no explanation.`;
+        themeName = await generateTextCompletion(namePrompt);
+        // Trim stray punctuation/quotes the LLM occasionally adds
+        themeName = themeName.replace(/^["'""]+|["'""]+$/g, '').trim() || `Theme ${i + 1}`;
+      } catch (err) {
+        console.warn(`[clustering] LLM name generation failed for cluster ${i}:`, err.message);
+      }
+      try {
+        const summaryPrompt =
+          `You are a personal knowledge assistant. The following are a cluster of related journal entries:\n\n${topContent}\n\n` +
+          `Write a 3–5 sentence summary of what these entries are collectively about. ` +
+          `Be specific and insightful. Do not use bullet points. Reply with the summary only.`;
+        description = await generateTextCompletion(summaryPrompt);
       } catch (err) {
         console.warn(`[clustering] LLM summary failed for cluster ${i}:`, err.message);
       }
@@ -117,7 +126,7 @@ async function runClustering() {
 
     const theme = await upsertTheme({
       id: themeIds[i],
-      name: draftName,
+      name: themeName,
       description,
     });
 
