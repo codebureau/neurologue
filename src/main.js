@@ -8,6 +8,7 @@ const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCat
 const { setTagsForEntry, listTags, listTagsWithCounts, renameTag, deleteTag, mergeTag, findSimilarTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags, listEntriesFiltered, listCategoriesWithCounts } = require('./backend/db/search');
 const { searchNearest } = require('./backend/vector/store');
+const { getEmbedding } = require('./backend/db/embeddings');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, renameTheme } = require('./backend/db/themes');
@@ -87,7 +88,21 @@ ipcMain.handle('library:search-semantic', async (_event, { query, topN = 10 }) =
   return { ok: true, results: entries.filter(Boolean) };
 });
 
-// Get a single entry with its tags
+// Semantic neighbours — find entries similar to a given entry (no Ollama needed)
+ipcMain.handle('library:similar-entries', async (_event, { id, topN = 8 }) => {
+  const emb = await getEmbedding(id);
+  if (!emb) return { ok: false, reason: 'no_embedding', results: [] };
+  // topN + 1 so we can exclude the source entry itself
+  const hits = await searchNearest(emb.vector, topN + 1);
+  const neighbours = hits.filter((h) => h.entry_id !== id).slice(0, topN);
+  const entries = await Promise.all(
+    neighbours.map(async (h) => {
+      const entry = await getEntryWithTags(h.entry_id);
+      return entry ? { ...entry, _distance: h._distance } : null;
+    })
+  );
+  return { ok: true, results: entries.filter(Boolean) };
+});
 ipcMain.handle('library:get-entry', async (_event, { id }) => {
   return getEntryWithTags(id);
 });

@@ -582,6 +582,56 @@ detailTagsInput.addEventListener('keydown', async (e) => {
 });
 detailTagsInput.addEventListener('blur', () => _commitTagInput());
 
+// ── Similar entries (semantic neighbours) ─────────────────────────────────
+
+const similarSection  = document.getElementById('similar-entries-section');
+const similarToggle   = document.getElementById('similar-entries-toggle');
+const similarList     = document.getElementById('similar-entries-list');
+let _similarTimer     = null;
+
+function resetSimilarEntries() {
+  similarToggle.setAttribute('aria-expanded', 'false');
+  similarList.hidden = true;
+  similarList.innerHTML = '';
+  similarSection.style.display = 'block';
+}
+
+async function _loadSimilarEntries(entryId) {
+  try {
+    const result = await window.neurologue.similarEntries(entryId);
+    if (!result.ok || result.results.length === 0) {
+      similarSection.style.display = 'none';
+      return;
+    }
+    similarList.innerHTML = '';
+    result.results.forEach((entry) => {
+      const card = document.createElement('div');
+      card.className = 'similar-entry-card';
+      // Convert distance to a 0–100% similarity score (LanceDB uses L2 distance)
+      const sim = entry._distance !== undefined
+        ? Math.max(0, Math.round((1 - Math.min(entry._distance, 1)) * 100))
+        : null;
+      card.innerHTML =
+        `<div class="sec-meta">` +
+        `<span class="sec-date">${formatDate(entry.created_at)}</span>` +
+        (sim !== null ? `<span class="sec-sim">${sim}% similar</span>` : '') +
+        `</div>` +
+        `<div class="sec-preview">${escHtml(entry.content)}</div>`;
+      card.addEventListener('click', () => selectEntry(entry.id));
+      similarList.appendChild(card);
+    });
+  } catch {
+    similarSection.style.display = 'none';
+  }
+}
+
+similarToggle.addEventListener('click', () => {
+  const expanded = similarToggle.getAttribute('aria-expanded') === 'true';
+  similarToggle.setAttribute('aria-expanded', String(!expanded));
+  similarList.hidden = expanded;
+});
+
+// ── Select entry (show in detail panel) ────────────────────────────────────
 async function selectEntry(id) {
   _state.selectedId = id;
 
@@ -616,6 +666,11 @@ async function selectEntry(id) {
     clearTimeout(_detailSuggestTimer);
     _detailSuggestTimer = setTimeout(() => _fetchDetailSuggestions(entry.content), 600);
 
+    // Reset similar entries — collapse and clear, then load lazily
+    resetSimilarEntries();
+    clearTimeout(_similarTimer);
+    _similarTimer = setTimeout(() => _loadSimilarEntries(id), 800);
+
     detailPlaceholder.style.display = 'none';
     detailContent.style.display = 'flex';
   } catch (err) {
@@ -627,6 +682,8 @@ function clearDetail() {
   _state.selectedId = null;
   exitEditMode();
   exitHistoryMode();
+  clearTimeout(_similarTimer);
+  resetSimilarEntries();
   detailPlaceholder.style.display = 'flex';
   detailContent.style.display = 'none';
 }

@@ -732,6 +732,68 @@ html, body {
 }
 .detail-tag-suggestion:hover { background: var(--cortex-teal); color: var(--text); }
 
+/* ── Similar entries section ──────────────────────────────────────────── */
+#similar-entries-section {
+  margin-top: 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.similar-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.similar-toggle:hover { color: var(--text-muted); }
+.similar-toggle-icon { font-size: 9px; transition: transform 0.15s; }
+.similar-toggle[aria-expanded="true"] .similar-toggle-icon { transform: rotate(90deg); }
+
+#similar-entries-list {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.similar-entry-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+  cursor: pointer;
+}
+.similar-entry-card:hover { border-color: var(--cortex-teal); }
+.sec-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sec-date  { font-size: 10px; color: var(--text-dim); }
+.sec-sim   { font-size: 10px; color: var(--cortex-teal); }
+.sec-preview {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 /* ── Detail footer (Edit / History buttons) ───────────────────────────── */
 #detail-footer {
   padding: 8px 16px 12px;
