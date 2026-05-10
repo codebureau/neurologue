@@ -47,6 +47,13 @@ contextBridge.exposeInMainWorld('neurologue', {
   onWorkerStatus:     (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },
   onEntriesUpdated:   (cb) => { ipcRenderer.on('worker:entries-updated',  (_e, d) => cb(d)); },
   onThemesUpdated:    (cb) => { ipcRenderer.on('worker:themes-updated',   (_e, d) => cb(d)); },
+  onContradictionsUpdated: (cb) => { ipcRenderer.on('worker:contradictions-updated', (_e, d) => cb(d)); },
+
+  // ── Contradictions ───────────────────────────────────────────────────────
+  listContradictions:   (opts) => ipcRenderer.invoke('contradictions:list', opts),
+  resolveContradiction: (id, notes) => ipcRenderer.invoke('contradictions:resolve', { id, notes }),
+  dismissContradiction: (id) => ipcRenderer.invoke('contradictions:dismiss', { id }),
+  scanContradictions:   () => ipcRenderer.invoke('contradictions:scan'),
 
   // ── Settings ─────────────────────────────────────────────────────────────
   getSettings:  ()        => ipcRenderer.invoke('settings:get'),

@@ -12,10 +12,11 @@ const { getEmbedding } = require('./backend/db/embeddings');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
 const { listThemes, getThemeById, renameTheme, getThemeWeeklyActivity } = require('./backend/db/themes');
+const { listContradictions, resolveContradiction, dismissContradiction } = require('./backend/db/contradictions');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus, reindexAll, reindexEntry } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, reindexAll, reindexEntry, scanContradictions } = require('./worker/index');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -256,6 +257,28 @@ ipcMain.handle('themes:weekly-activity', async (_e, { id, weeks = 12 }) =>
 // Manually trigger clustering (for dev/debug)
 ipcMain.handle('themes:cluster', async () => {
   return runClustering();
+});
+
+// ── Contradictions IPC ───────────────────────────────────────────────────────
+
+ipcMain.handle('contradictions:list', async (_e, { status = 'active' } = {}) => {
+  return listContradictions({ status });
+});
+
+ipcMain.handle('contradictions:resolve', async (_e, { id, notes = '' }) => {
+  if (!id) return { ok: false, error: 'Missing id' };
+  await resolveContradiction(id, notes);
+  return { ok: true };
+});
+
+ipcMain.handle('contradictions:dismiss', async (_e, { id }) => {
+  if (!id) return { ok: false, error: 'Missing id' };
+  await dismissContradiction(id);
+  return { ok: true };
+});
+
+ipcMain.handle('contradictions:scan', async () => {
+  return scanContradictions();
 });
 
 // ── Help IPC ─────────────────────────────────────────────────────────────────

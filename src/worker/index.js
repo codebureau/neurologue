@@ -13,8 +13,9 @@
 const { listEntriesWithoutEmbedding, upsertEmbedding, deleteEmbedding, clearAllEmbeddings } = require('../backend/db/embeddings');
 const { getEntryById, updateEntryCategory, listEntriesWithoutCategory } = require('../backend/db/entries');
 const { upsertVector, deleteVector, clearAllVectors } = require('../backend/vector/store');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry } = require('./ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry, detectContradiction } = require('./ollama');
 const { runClustering } = require('../backend/clustering/themes');
+const { createContradiction, pairExists } = require('../backend/db/contradictions');
 const { getSettings } = require('../backend/settings');
 const config = require('../config');
 
@@ -23,6 +24,8 @@ const BATCH_SIZE = 5;            // process up to 5 entries per tick
 const CLASSIFY_BATCH_SIZE = 3;   // classify up to 3 already-embedded entries per tick
 // Re-cluster after this many new embeddings are added in one session
 const CLUSTER_AFTER = 5;
+// Maximum contradiction pairs to check per scan pass
+const CONTRADICTION_MAX_PAIRS = 15;
 
 let _timer = null;
 let _running = false;
@@ -32,6 +35,7 @@ let _queueLength = 0;          // entries pending embedding
 let _classifyQueueLength = 0;  // entries pending classification
 let _lastProcessed = null; // ISO timestamp of last successfully embedded entry
 let _webContents = null;  // set by setMainWindow() once the library window opens
+let _lastContradictionScan = null; // ISO timestamp of last contradiction scan
 
 // Push a channel + payload to the renderer (silently no-ops if window not ready)
 function _push(channel, payload) {
@@ -128,6 +132,7 @@ async function processBatch() {
   // Trigger clustering after enough new embeddings
   if (_embeddedSinceCluster >= CLUSTER_AFTER) {
     _embeddedSinceCluster = 0;
+    let clusteringRan = false;
     try {
       const result = await runClustering();
       if (result.skipped) {
@@ -135,9 +140,21 @@ async function processBatch() {
       } else {
         console.log(`[worker] Clustering complete — ${result.themes} themes`);
         _push('worker:themes-updated', {});
+        clusteringRan = true;
       }
     } catch (err) {
       console.error('[worker] Clustering error:', err.message);
+    }
+
+    // Run contradiction scan after clustering (themes are fresh)
+    if (clusteringRan) {
+      try {
+        const cResult = await scanContradictions();
+        console.log(`[worker] Contradiction scan: ${cResult.found} new, ${cResult.checked} checked`);
+        if (cResult.found > 0) _push('worker:contradictions-updated', {});
+      } catch (err) {
+        console.error('[worker] Contradiction scan error:', err.message);
+      }
     }
   }
 
@@ -240,4 +257,74 @@ async function reindexEntry(entryId) {
   return { ok: true };
 }
 
-module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, setMainWindow, getOllamaStatus, reindexAll, reindexEntry };
+/**
+ * Scan themes for contradicting entry pairs.
+ * Only checks pairs involving entries created after the last scan,
+ * skipping pairs already in the contradictions table.
+ * Caps at CONTRADICTION_MAX_PAIRS per run to avoid LLM overload.
+ * @returns {Promise<{ checked: number, found: number }>}
+ */
+async function scanContradictions() {
+  const { openDb } = require('../backend/db/connection');
+  const db = await openDb();
+
+  // Fetch all themes and their entries (id + content + created_at)
+  const themes = db.prepare('SELECT id FROM themes').all();
+  if (themes.length === 0) return { checked: 0, found: 0 };
+
+  let checked = 0;
+  let found = 0;
+  const scanStart = new Date().toISOString();
+
+  for (const { id: themeId } of themes) {
+    if (checked >= CONTRADICTION_MAX_PAIRS) break;
+
+    const entries = db.prepare(`
+      SELECT e.id, e.content, e.created_at
+      FROM entries e
+      INNER JOIN theme_entries te ON te.entry_id = e.id
+      WHERE te.theme_id = ?
+      ORDER BY e.created_at DESC
+    `).all(themeId);
+
+    if (entries.length < 2) continue;
+
+    // Identify entries that are new since the last scan (or all if first scan)
+    const newEntries = _lastContradictionScan
+      ? entries.filter((e) => e.created_at > _lastContradictionScan)
+      : entries.slice(0, Math.min(5, entries.length)); // cold start: check up to 5 newest
+
+    for (const newEntry of newEntries) {
+      if (checked >= CONTRADICTION_MAX_PAIRS) break;
+
+      for (const otherEntry of entries) {
+        if (checked >= CONTRADICTION_MAX_PAIRS) break;
+        if (otherEntry.id === newEntry.id) continue;
+
+        const alreadyKnown = await pairExists(newEntry.id, otherEntry.id);
+        if (alreadyKnown) continue;
+
+        checked++;
+        try {
+          const contradicts = await detectContradiction(newEntry.content, otherEntry.content);
+          if (contradicts) {
+            await createContradiction({
+              entry_a_id: newEntry.id,
+              entry_b_id: otherEntry.id,
+              theme_id: themeId,
+            });
+            found++;
+            console.log(`[worker] Contradiction found: ${newEntry.id.slice(0, 8)}… ↔ ${otherEntry.id.slice(0, 8)}…`);
+          }
+        } catch (err) {
+          console.warn(`[worker] detectContradiction failed: ${err.message}`);
+        }
+      }
+    }
+  }
+
+  _lastContradictionScan = scanStart;
+  return { checked, found };
+}
+
+module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions };

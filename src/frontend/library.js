@@ -1136,6 +1136,7 @@ window.neurologue.onEntriesUpdated(async () => {
   }
 });
 window.neurologue.onThemesUpdated(() => loadThemesView());
+window.neurologue.onContradictionsUpdated(() => loadContradictionsView());
 
 // ── Setup + settings modals ────────────────────────────────────────
 
@@ -1700,7 +1701,8 @@ function activateView(viewId) {
   const isLibrary = viewId === 'library';
   libraryOnlyEls.forEach(el => el.classList.toggle('hidden-for-view', !isLibrary));
 
-  if (viewId === 'themes') loadThemesView();
+  if (viewId === 'themes')         loadThemesView();
+  if (viewId === 'contradictions') loadContradictionsView();
 }
 
 navItems.forEach(btn => {
@@ -1963,6 +1965,179 @@ themesRenameCancel.addEventListener('click', closeRenameForm);
 themesRenameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter')  saveRename();
   if (e.key === 'Escape') closeRenameForm();
+});
+
+// ── Contradictions view controller ──────────────────────────────────────────
+
+const contradictionsListEl       = document.getElementById('contradictions-list');
+const contradictionsListCountEl  = document.getElementById('contradictions-list-count');
+const contradictionsDetailPh     = document.getElementById('contradictions-detail-placeholder');
+const contradictionsDetailCont   = document.getElementById('contradictions-detail-content');
+const contradictionsDetailMeta   = document.getElementById('contradictions-detail-meta');
+const contradictionsStatusBadge  = document.getElementById('contradictions-detail-status-badge');
+const contradictionsDetailTheme  = document.getElementById('contradictions-detail-theme');
+const contradictionsDetailDate   = document.getElementById('contradictions-detail-date');
+const contradictionEntryA        = document.getElementById('contradiction-entry-a');
+const contradictionEntryB        = document.getElementById('contradiction-entry-b');
+const contradictionsActiveActs   = document.getElementById('contradictions-active-actions');
+const contradictionsResolvedMsg  = document.getElementById('contradictions-resolved-msg');
+const contradictionResolvedLabel = document.getElementById('contradiction-resolved-label');
+const contradictionResolvedNotes = document.getElementById('contradiction-resolved-notes');
+const contradictionNotesInput    = document.getElementById('contradiction-resolve-notes');
+const btnResolve                 = document.getElementById('btn-resolve-contradiction');
+const btnDismiss                 = document.getElementById('btn-dismiss-contradiction');
+const btnScan                    = document.getElementById('btn-scan-contradictions');
+
+let _contradictionsFilter   = 'active';
+let _contradictionsActiveId = null;
+
+// Filter tab clicks
+document.querySelectorAll('.contradictions-filter-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    _contradictionsFilter = btn.dataset.status;
+    document.querySelectorAll('.contradictions-filter-btn').forEach((b) => {
+      b.classList.toggle('active', b === btn);
+    });
+    _contradictionsActiveId = null;
+    loadContradictionsView();
+  });
+});
+
+async function loadContradictionsView() {
+  try {
+    const items = await window.neurologue.listContradictions({ status: _contradictionsFilter });
+    contradictionsListCountEl.textContent = items.length ? `${items.length}` : '';
+    contradictionsListEl.innerHTML = '';
+
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = 'padding:16px 14px;font-size:13px;color:var(--text-dim)';
+      empty.textContent = _contradictionsFilter === 'active'
+        ? 'No active conflicts detected yet.'
+        : 'None here.';
+      contradictionsListEl.appendChild(empty);
+      if (_contradictionsActiveId) {
+        _contradictionsActiveId = null;
+        showContradictionPlaceholder();
+      }
+      return;
+    }
+
+    items.forEach((item) => {
+      const el = document.createElement('div');
+      el.className = 'contradiction-list-item' +
+        (item.id === _contradictionsActiveId ? ' active' : '');
+      el.dataset.id = item.id;
+      const preview = escHtml((item.entry_a_content || '').slice(0, 60));
+      const themeStr = item.theme_name
+        ? `<span class="cli-theme">${escHtml(item.theme_name)}</span>` : '';
+      el.innerHTML =
+        `<div class="cli-preview">${preview}\u2026</div>` +
+        `<div class="cli-meta">${formatDate(item.detected_at)}${item.theme_name ? ' · ' : ''}${themeStr}</div>`;
+      el.addEventListener('click', () => selectContradict(item));
+      contradictionsListEl.appendChild(el);
+    });
+
+    // Re-select the active item if it still exists
+    if (_contradictionsActiveId) {
+      const still = items.find((i) => i.id === _contradictionsActiveId);
+      if (still) selectContradict(still);
+      else showContradictionPlaceholder();
+    }
+  } catch (err) {
+    console.error('[contradictions-view] loadContradictionsView failed:', err);
+  }
+}
+
+function showContradictionPlaceholder() {
+  contradictionsDetailPh.style.display   = '';
+  contradictionsDetailCont.style.display = 'none';
+}
+
+function selectContradict(item) {
+  _contradictionsActiveId = item.id;
+  document.querySelectorAll('.contradiction-list-item').forEach((el) => {
+    el.classList.toggle('active', el.dataset.id === item.id);
+  });
+
+  // Status badge
+  contradictionsStatusBadge.textContent  = item.status;
+  contradictionsStatusBadge.className    = `cd-status-badge cd-status-${item.status}`;
+  contradictionsDetailTheme.textContent  = item.theme_name ? `Theme: ${item.theme_name}` : '';
+  contradictionsDetailDate.textContent   = `Detected ${formatDate(item.detected_at)}`;
+
+  // Entry cards
+  _renderEntryCard(contradictionEntryA, item.entry_a_id, item.entry_a_content, item.entry_a_created_at);
+  _renderEntryCard(contradictionEntryB, item.entry_b_id, item.entry_b_content, item.entry_b_created_at);
+
+  // Actions
+  if (item.status === 'active') {
+    contradictionNotesInput.value        = '';
+    contradictionsActiveActs.style.display  = 'flex';
+    contradictionsResolvedMsg.classList.add('hidden');
+  } else {
+    contradictionsActiveActs.style.display  = 'none';
+    contradictionsResolvedMsg.classList.remove('hidden');
+    contradictionResolvedLabel.textContent = item.status === 'resolved' ? 'Resolved' : 'Dismissed';
+    contradictionResolvedNotes.textContent = item.resolution_notes || '';
+  }
+
+  contradictionsDetailPh.style.display   = 'none';
+  contradictionsDetailCont.style.display = 'flex';
+}
+
+function _renderEntryCard(container, entryId, content, createdAt) {
+  container.innerHTML =
+    `<div class="cec-date">${formatDate(createdAt)}</div>` +
+    `<div class="cec-content">${escHtml((content || '').slice(0, 600))}</div>` +
+    `<span class="cec-jump" data-id="${escHtml(entryId)}">Open in Library →</span>`;
+  container.querySelector('.cec-jump').addEventListener('click', () => {
+    activateView('library');
+    selectEntry(entryId);
+  });
+}
+
+btnResolve.addEventListener('click', async () => {
+  if (!_contradictionsActiveId) return;
+  btnResolve.disabled = true;
+  btnResolve.textContent = 'Saving…';
+  try {
+    await window.neurologue.resolveContradiction(_contradictionsActiveId, contradictionNotesInput.value);
+    await loadContradictionsView();
+  } finally {
+    btnResolve.disabled = false;
+    btnResolve.textContent = 'Mark resolved';
+  }
+});
+
+btnDismiss.addEventListener('click', async () => {
+  if (!_contradictionsActiveId) return;
+  btnDismiss.disabled = true;
+  try {
+    await window.neurologue.dismissContradiction(_contradictionsActiveId);
+    await loadContradictionsView();
+  } finally {
+    btnDismiss.disabled = false;
+  }
+});
+
+btnScan.addEventListener('click', async () => {
+  btnScan.disabled = true;
+  btnScan.textContent = 'Scanning…';
+  try {
+    const result = await window.neurologue.scanContradictions();
+    btnScan.textContent = result.found > 0
+      ? `Found ${result.found} new`
+      : 'No new conflicts';
+    if (result.found > 0) await loadContradictionsView();
+  } catch {
+    btnScan.textContent = 'Scan failed';
+  } finally {
+    setTimeout(() => {
+      btnScan.disabled = false;
+      btnScan.textContent = 'Scan now';
+    }, 2500);
+  }
 });
 
 // ── Init ────────────────────────────────────────────────────────────

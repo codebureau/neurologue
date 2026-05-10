@@ -40,6 +40,10 @@
           <span class="nav-icon">&#9672;</span>
           <span class="nav-label">Themes</span>
         </button>
+        <button class="nav-item" data-view="contradictions" title="Conflicts">
+          <span class="nav-icon">&#8800;</span>
+          <span class="nav-label">Conflicts</span>
+        </button>
         <button class="nav-item" data-view="priorities" title="Priorities">
           <span class="nav-icon">&#9650;</span>
           <span class="nav-label">Priorities</span>
@@ -232,6 +236,59 @@
                 </div>
                 <div id="themes-entries-label">Entries in this theme</div>
                 <div id="themes-entries-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── View: Contradictions ───────────────────────────────── -->
+        <div id="view-contradictions" class="view">
+          <!-- Left column: list of conflict pairs -->
+          <div id="contradictions-list-col">
+            <div id="contradictions-list-header">
+              <span class="contradictions-list-title">Conflicts</span>
+              <span id="contradictions-list-count"></span>
+            </div>
+            <div id="contradictions-filter-bar">
+              <button class="contradictions-filter-btn active" data-status="active">Active</button>
+              <button class="contradictions-filter-btn" data-status="resolved">Resolved</button>
+              <button class="contradictions-filter-btn" data-status="dismissed">Dismissed</button>
+            </div>
+            <div id="contradictions-list"></div>
+            <div id="contradictions-scan-row">
+              <button id="btn-scan-contradictions" class="btn-sm">Scan now</button>
+            </div>
+          </div>
+          <!-- Right column: conflict detail + resolve workflow -->
+          <div id="contradictions-detail-col">
+            <div id="contradictions-detail-placeholder">
+              <div class="cdph-icon">&#8800;</div>
+              <div class="cdph-text">Select a conflict to review the two statements</div>
+            </div>
+            <div id="contradictions-detail-content">
+              <div id="contradictions-detail-meta">
+                <span id="contradictions-detail-status-badge"></span>
+                <span id="contradictions-detail-theme"></span>
+                <span id="contradictions-detail-date"></span>
+              </div>
+              <div id="contradictions-entries">
+                <div class="contradiction-entry-card" id="contradiction-entry-a"></div>
+                <div class="contradiction-vs">&#8800;</div>
+                <div class="contradiction-entry-card" id="contradiction-entry-b"></div>
+              </div>
+              <div id="contradictions-actions">
+                <div id="contradictions-active-actions">
+                  <input type="text" id="contradiction-resolve-notes"
+                    placeholder="Resolution note (optional)…" autocomplete="off" />
+                  <div id="contradictions-action-btns">
+                    <button id="btn-resolve-contradiction" class="btn-sm">Mark resolved</button>
+                    <button id="btn-dismiss-contradiction" class="btn-sm btn-secondary">Dismiss</button>
+                  </div>
+                </div>
+                <div id="contradictions-resolved-msg" class="hidden">
+                  <span id="contradiction-resolved-label"></span>
+                  <span id="contradiction-resolved-notes"></span>
+                </div>
               </div>
             </div>
           </div>
