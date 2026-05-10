@@ -10,9 +10,9 @@
  * Never blocks the UI — all operations are async with await.
  */
 
-const { listEntriesWithoutEmbedding, upsertEmbedding } = require('../backend/db/embeddings');
+const { listEntriesWithoutEmbedding, upsertEmbedding, deleteEmbedding, clearAllEmbeddings } = require('../backend/db/embeddings');
 const { getEntryById, updateEntryCategory, listEntriesWithoutCategory } = require('../backend/db/entries');
-const { upsertVector } = require('../backend/vector/store');
+const { upsertVector, deleteVector, clearAllVectors } = require('../backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry } = require('./ollama');
 const { runClustering } = require('../backend/clustering/themes');
 const { getSettings } = require('../backend/settings');
@@ -215,4 +215,29 @@ function setMainWindow(webContents) {
   _webContents = webContents;
 }
 
-module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, setMainWindow, getOllamaStatus };
+/**
+ * Clear embeddings for ALL entries so the worker re-processes everything.
+ * Returns the number of entries queued for reindex.
+ */
+async function reindexAll() {
+  await clearAllEmbeddings();
+  await clearAllVectors();
+  _embeddedSinceCluster = 0;
+  // Kick off an immediate batch so the status bar updates right away
+  processBatch().catch((e) => console.error('[worker] reindexAll batch error:', e.message));
+  const queued = (await listEntriesWithoutEmbedding()).length;
+  return { queued };
+}
+
+/**
+ * Clear the embedding for a single entry so the worker re-processes it.
+ * @param {string} entryId
+ */
+async function reindexEntry(entryId) {
+  await deleteEmbedding(entryId);
+  await deleteVector(entryId);
+  processBatch().catch((e) => console.error('[worker] reindexEntry batch error:', e.message));
+  return { ok: true };
+}
+
+module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, setMainWindow, getOllamaStatus, reindexAll, reindexEntry };

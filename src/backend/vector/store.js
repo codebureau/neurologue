@@ -71,4 +71,12 @@ async function deleteVector(entryId) {
   await _table.delete(`entry_id = '${entryId}'`);
 }
 
-module.exports = { initVectorStore, upsertVector, searchNearest, deleteVector };
+/**
+ * Delete ALL vectors. Used to force a full reindex.
+ */
+async function clearAllVectors() {
+  if (!_table) throw new Error('Vector store not initialised. Call initVectorStore() first.');
+  await _table.delete('entry_id IS NOT NULL');
+}
+
+module.exports = { initVectorStore, upsertVector, searchNearest, deleteVector, clearAllVectors };

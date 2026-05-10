@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   list: (opts) => ipcRenderer.invoke('library:list', opts),
   searchText: (query, opts) => ipcRenderer.invoke('library:search-text', { query, ...opts }),
   searchSemantic: (query, opts) => ipcRenderer.invoke('library:search-semantic', { query, ...opts }),
+  similarEntries: (id, opts) => ipcRenderer.invoke('library:similar-entries', { id, ...opts }),
   getEntry: (id) => ipcRenderer.invoke('library:get-entry', { id }),
   updateEntry: (id, content) => ipcRenderer.invoke('library:update-entry', { id, content }),
   getRevisions: (id) => ipcRenderer.invoke('library:get-revisions', { id }),
@@ -35,6 +36,10 @@ contextBridge.exposeInMainWorld('neurologue', {
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
+
+  // ── Reindex ──────────────────────────────────────────────────────────────
+  reindexAll:   ()   => ipcRenderer.invoke('worker:reindex-all'),
+  reindexEntry: (id) => ipcRenderer.invoke('worker:reindex-entry', { id }),
 
   // ── Status ───────────────────────────────────────────────────────────────
   getStatus: () => ipcRenderer.invoke('status:get'),
