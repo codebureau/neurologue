@@ -15,7 +15,7 @@ const { listThemes, getThemeById, renameTheme } = require('./backend/db/themes')
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, reindexAll, reindexEntry } = require('./worker/index');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -304,6 +304,19 @@ app.whenReady().then(async () => {
 ipcMain.handle('status:get', async () => {
   const ollama = await getOllamaStatus();
   return { worker: workerStatus(), ollama };
+});
+
+// ── Reindex IPC ───────────────────────────────────────────────────────────
+
+// Clears ALL embeddings so the worker re-processes every entry
+ipcMain.handle('worker:reindex-all', async () => {
+  return reindexAll();
+});
+
+// Clears the embedding for a single entry so the worker re-processes it
+ipcMain.handle('worker:reindex-entry', async (_e, { id }) => {
+  if (!id) return { ok: false, error: 'Missing id' };
+  return reindexEntry(id);
 });
 
 // ── Settings IPC ──────────────────────────────────────────────────────────

@@ -584,22 +584,32 @@ detailTagsInput.addEventListener('blur', () => _commitTagInput());
 
 // ── Similar entries (semantic neighbours) ─────────────────────────────────
 
-const similarSection  = document.getElementById('similar-entries-section');
-const similarToggle   = document.getElementById('similar-entries-toggle');
-const similarList     = document.getElementById('similar-entries-list');
-let _similarTimer     = null;
+const similarSection   = document.getElementById('similar-entries-section');
+const similarToggle    = document.getElementById('similar-entries-toggle');
+const similarList      = document.getElementById('similar-entries-list');
+const similarNoEmbed   = document.getElementById('similar-entries-no-embedding');
+let _similarTimer      = null;
 
 function resetSimilarEntries() {
   similarToggle.setAttribute('aria-expanded', 'false');
   similarList.hidden = true;
   similarList.innerHTML = '';
+  similarNoEmbed.hidden = true;
   similarSection.style.display = 'block';
 }
 
 async function _loadSimilarEntries(entryId) {
   try {
     const result = await window.neurologue.similarEntries(entryId);
-    if (!result.ok || result.results.length === 0) {
+    if (!result.ok) {
+      if (result.reason === 'no_embedding') {
+        similarNoEmbed.hidden = false;
+      } else {
+        similarSection.style.display = 'none';
+      }
+      return;
+    }
+    if (result.results.length === 0) {
       similarSection.style.display = 'none';
       return;
     }
@@ -629,6 +639,14 @@ similarToggle.addEventListener('click', () => {
   const expanded = similarToggle.getAttribute('aria-expanded') === 'true';
   similarToggle.setAttribute('aria-expanded', String(!expanded));
   similarList.hidden = expanded;
+});
+
+// Re-embed a single entry on demand (shown when no embedding exists yet)
+document.getElementById('btn-reindex-entry').addEventListener('click', async () => {
+  const id = _state.selectedId;
+  if (!id) return;
+  similarNoEmbed.hidden = true;
+  await window.neurologue.reindexEntry(id);
 });
 
 // ── Select entry (show in detail panel) ────────────────────────────────────
@@ -1385,6 +1403,20 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
   setTimeout(() => msg.classList.add('hidden'), 2000);
+});
+
+// Reindex all entries — clear all embeddings and re-queue everything
+document.getElementById('btn-reindex-all').addEventListener('click', async () => {
+  const confirmed = confirm(
+    'This will clear all stored embeddings and re-process every entry from scratch.\n\n' +
+    'Ollama must be running, and processing will happen in the background. Continue?'
+  );
+  if (!confirmed) return;
+  const { queued } = await window.neurologue.reindexAll();
+  const settingsModal = document.getElementById('settings-modal');
+  settingsModal.classList.add('hidden');
+  window.neurologue.resumeHotkey();
+  console.info(`[library] Reindex started — ${queued} entries queued`);
 });
 
 // ── Tag Management modal ─────────────────────────────────────────────────────

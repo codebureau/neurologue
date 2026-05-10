@@ -794,6 +794,23 @@ html, body {
   -webkit-box-orient: vertical;
 }
 
+#similar-entries-no-embedding {
+  padding: 8px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sec-no-embedding {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.btn-reindex-entry {
+  font-size: 11px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
 /* ── Detail footer (Edit / History buttons) ───────────────────────────── */
 #detail-footer {
   padding: 8px 16px 12px;

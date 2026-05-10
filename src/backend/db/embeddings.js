@@ -67,4 +67,14 @@ async function deleteEmbedding(entryId) {
   db.prepare('DELETE FROM embeddings WHERE entry_id = ?').run(entryId);
 }
 
-module.exports = { upsertEmbedding, getEmbedding, listEntriesWithoutEmbedding, deleteEmbedding };
+/**
+ * Delete ALL embeddings. Used to force a full reindex.
+ * @returns {Promise<number>} number of rows deleted
+ */
+async function clearAllEmbeddings() {
+  const db = await openDb();
+  const info = db.prepare('DELETE FROM embeddings').run();
+  return info.changes;
+}
+
+module.exports = { upsertEmbedding, getEmbedding, listEntriesWithoutEmbedding, deleteEmbedding, clearAllEmbeddings };

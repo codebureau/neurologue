@@ -37,6 +37,10 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
 
+  // ── Reindex ──────────────────────────────────────────────────────────────
+  reindexAll:   ()   => ipcRenderer.invoke('worker:reindex-all'),
+  reindexEntry: (id) => ipcRenderer.invoke('worker:reindex-entry', { id }),
+
   // ── Status ───────────────────────────────────────────────────────────────
   getStatus: () => ipcRenderer.invoke('status:get'),
   onWorkerStatus:     (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },

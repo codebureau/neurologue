@@ -141,6 +141,10 @@
                   <span>Similar entries</span>
                 </button>
                 <div id="similar-entries-list" hidden></div>
+                <div id="similar-entries-no-embedding" hidden>
+                  <p class="sec-no-embedding">This entry has not been embedded yet.</p>
+                  <button id="btn-reindex-entry" class="btn-secondary btn-reindex-entry">Embed now</button>
+                </div>
               </div>
             </div>
             <!-- Edit form (hidden by default) -->
@@ -362,6 +366,13 @@
         </div>
         <span class="settings-hint">Global shortcut to open the capture popup. Must include at least one modifier key (Ctrl, Alt, Shift).</span>
         <span class="hotkey-conflict hidden" id="hotkey-conflict">⚠ That shortcut is already claimed by another application.</span>
+      </div>
+
+      <h3 class="settings-section-heading">Data maintenance</h3>
+      <div class="settings-field">
+        <label>Reindex all entries</label>
+        <button id="btn-reindex-all" class="btn-secondary">Reindex all entries…</button>
+        <span class="settings-hint">Clears all stored embeddings and re-processes every entry. Use this after changing the embedding model, or if semantic search feels off. Requires Ollama.</span>
       </div>
 
       <div class="settings-actions">
