@@ -340,4 +340,38 @@ function setAvailableModels(models) {
 }
 
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels };
+/**
+ * Determine whether two statements directly contradict each other.
+ * Returns true if the LLM judges them contradictory, false otherwise.
+ *
+ * @param {string} textA
+ * @param {string} textB
+ * @returns {Promise<boolean>}
+ */
+async function detectContradiction(textA, textB) {
+  const settings = getSettings();
+  const model = settings.llmModel || 'phi3:mini';
+
+  if (_availableModels !== null && !_availableModels.some((m) => m === model || m.startsWith(model + ':'))) {
+    throw new Error(`LLM model '${model}' is not installed — skipping contradiction check`);
+  }
+
+  const prompt =
+    'You are a careful analyst. Determine whether the two statements below directly ' +
+    'contradict each other. A contradiction means they cannot both be true at the same time.\n\n' +
+    `Statement A: "${textA.slice(0, 400)}"\n` +
+    `Statement B: "${textB.slice(0, 400)}"\n\n` +
+    'Reply with exactly one word: YES or NO.';
+
+  const response = await ollamaRequest('/api/generate', {
+    model,
+    prompt,
+    stream: false,
+    options: { temperature: 0, num_predict: 5 },
+  }, 120_000);
+
+  const raw = (response.response || '').trim().toUpperCase();
+  return raw.startsWith('YES');
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction };
