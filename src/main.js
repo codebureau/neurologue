@@ -249,6 +249,10 @@ ipcMain.handle('themes:rename', async (_event, { id, newName }) => {
   return renameTheme(id, newName.trim());
 });
 
+ipcMain.handle('themes:weekly-activity', async (_e, { id, weeks = 12 }) =>
+  getThemeWeeklyActivity(id, weeks)
+);
+
 // Manually trigger clustering (for dev/debug)
 ipcMain.handle('themes:cluster', async () => {
   return runClustering();
