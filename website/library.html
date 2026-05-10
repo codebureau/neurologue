@@ -142,7 +142,39 @@
     <li>Source and type metadata (if edited, the edit timestamp is shown alongside the capture time)</li>
     <li>All tags as clickable pills — clicking a tag applies that tag filter to the timeline</li>
     <li><strong>Category badge</strong> — the effective category (auto or user-set); click the badge to open a dropdown and override it manually</li>
-    <li><strong>Suggest tags</strong> button — asks the LLM (via Ollama) to suggest tags for this entry; each suggestion appears as a pill you can click to add. Requires Ollama to be running.</li>
+    <li><strong>Tag suggestions</strong> — if Ollama is running, suggested tags appear below the tag editor as pills you can click to add</li>
+    <li><strong>Similar entries</strong> — a collapsible section at the bottom of the panel listing conceptually related entries (see below)</li>
+  </ul>
+
+  <h3 id="similar-entries">Similar entries</h3>
+  <p>
+    At the bottom of every entry's detail panel is a collapsed <strong>Similar entries</strong> section. Click the header to expand it and see up to 8 entries that are semantically close to the one you're reading.
+  </p>
+
+  <h4>How similarity is measured</h4>
+  <p>
+    Similarity is based on <strong>meaning, not wording</strong>. When an entry is saved, the background worker passes its text through the <code>nomic-embed-text</code> embedding model, which produces a 768-dimensional vector encoding the conceptual content of the entry. To find similar entries, Neurologue looks up the stored vector for the selected entry and searches for the nearest neighbours in the vector database — no additional Ollama call is needed.
+  </p>
+  <p>
+    This means:
+  </p>
+  <ul>
+    <li>Two entries can be highly similar even if they share <em>no words in common</em> — what matters is whether they are about the same idea or topic.</li>
+    <li>Entries that share words but are about different things will <em>not</em> be considered similar.</li>
+    <li>Similarity is <em>not</em> sentiment — an anxious note and a calm note about the same topic will still rank as similar.</li>
+  </ul>
+
+  <h4>The similarity percentage</h4>
+  <p>
+    Each card shows a percentage derived from the vector distance between the two entries. It is an approximate indicator — use it as a rough guide rather than a precise score. 80%+ generally indicates strong topical overlap; below 50% the connection may be loose.
+  </p>
+
+  <h4>Requirements and limitations</h4>
+  <ul>
+    <li>Only entries that have been processed by the background worker (and therefore have an embedding) can appear in the list. Newly captured entries may not appear until the worker has run.</li>
+    <li>A working Ollama installation is <em>not</em> required to view similar entries — the lookup uses stored embeddings. Ollama is only needed to <em>generate</em> new embeddings for future entries.</li>
+    <li>The section is hidden if no embedding exists for the selected entry, or if no similar entries are found.</li>
+    <li>Result count (currently 8) and similarity threshold are not user-configurable in this version.</li>
   </ul>
 
   <h3 id="editing">Editing an entry</h3>
@@ -188,9 +220,9 @@
     <li><strong>Broad</strong> — flags loosely related tags (may include false positives)</li>
   </ul>
 
-  <h2>Theme sidebar</h2>
+  <h2>Themes view</h2>
   <p>
-    Below the tag list is a <strong>Themes</strong> section. This lists all auto-generated theme clusters. Click any theme to open its detail view in the right panel. See the <a href="themes.html">Themes</a> section for more.
+    The <strong>Themes</strong> item in the left navigation rail opens a dedicated Themes view with a full two-column layout for browsing and managing your theme clusters. See the <a href="themes.html">Themes</a> page for full details.
   </p>
 
   <h2 id="settings">Settings</h2>

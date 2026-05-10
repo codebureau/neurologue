@@ -31,7 +31,7 @@
     A <strong>theme</strong> is a group of entries that are semantically similar — they're about the same subject, even if you never labelled them that way. Neurologue discovers themes automatically by running k-means clustering on your entry embeddings.
   </p>
   <p>
-    Once clusters are found, Neurologue sends the top entries from each cluster to a local LLM (Phi-3 Mini via Ollama) and asks it to write a short natural-language summary. That summary becomes the theme's description.
+    Once clusters are found, Neurologue sends the top entries from each cluster to a local LLM (Phi-3 Mini via Ollama) to generate two things: a short descriptive <strong>name</strong> (2–4 words, title case) and a multi-sentence <strong>summary</strong> of the cluster. Both are stored and displayed in the Themes view.
   </p>
 
   <div class="callout">
@@ -58,7 +58,7 @@
     </li>
     <li>
       <div>
-        <p><strong>LLM summaries</strong> — Neurologue sends the top 5 entries from each cluster to Phi-3 Mini and asks for a short summary. This becomes the theme description. If Ollama is unavailable, themes are still created but show "No summary yet" until Ollama comes back.</p>
+        <p><strong>LLM name and summary</strong> — Neurologue sends the top 5 entries from each cluster to Phi-3 Mini and makes two requests: one for a 2–4 word descriptive name (replacing the generic "Theme N" placeholder), and one for a 3–5 sentence summary. Both fail gracefully — if Ollama is unavailable, themes are still created with a placeholder name and "No summary yet" until Ollama comes back.</p>
       </div>
     </li>
   </ol>
@@ -88,19 +88,31 @@
   </table>
 
   <div class="callout warning">
-    <p><strong>There is currently no visible indicator</strong> that the background worker is running or that clustering is in progress. If themes don't appear, check that Ollama is running and you have at least 4 captured entries. See <a href="troubleshooting.html">Troubleshooting</a>.</p>
+    <p><strong>There is currently no visible progress indicator</strong> for clustering. If themes don't appear, check that Ollama is running, you have at least 4 captured entries, and wait for the background worker to finish embedding them. See <a href="troubleshooting.html">Troubleshooting</a>.</p>
   </div>
 
   <h2>Viewing themes</h2>
   <p>
-    Themes appear in the <strong>Themes</strong> section of the left sidebar in the library. Each theme is listed by name (e.g. "Theme 1", "Theme 2").
+    Click <strong>Themes</strong> in the left navigation rail to open the dedicated Themes view. The view has two columns:
   </p>
-  <p>Click a theme to open the theme detail panel on the right, which shows:</p>
   <ul>
-    <li><strong>Theme name</strong></li>
-    <li><strong>Summary</strong> — the LLM-generated description, or a placeholder if not yet generated</li>
-    <li><strong>Member entries</strong> — up to 20 entries from the cluster, sorted by similarity score (how close each entry is to the cluster centre). Click any entry to jump to its full detail view.</li>
+    <li><strong>Left column</strong> — the full list of themes, each showing its name and entry count, sorted by size (largest first). The active theme is highlighted.</li>
+    <li><strong>Right column</strong> — the selected theme's detail: name, summary, and up to 30 member entries sorted by similarity score.</li>
   </ul>
+  <p>Click any member entry to jump directly to that entry in the Library view.</p>
+
+  <h2>Theme names</h2>
+  <p>
+    When Ollama is available, each theme is automatically given a short descriptive name by the LLM (e.g. <em>"Meal Planning Ideas"</em> or <em>"Work Stress Reflections"</em>). Without Ollama, themes fall back to placeholder names like <em>"Theme 1"</em>.
+  </p>
+
+  <h3>Renaming a theme</h3>
+  <p>
+    You can override the LLM-generated name with your own. Click the <strong>✎</strong> (pencil) button next to the theme name to open the rename form. Type a new name and press <kbd>Enter</kbd> or <strong>Save</strong>. Press <kbd>Escape</kbd> or <strong>Cancel</strong> to discard.
+  </p>
+  <p>
+    User-set names are <strong>preserved across re-clustering</strong> — even when themes are regenerated as you add new entries, your custom name is kept.
+  </p>
 
   <h2>Understanding the similarity score</h2>
   <p>
