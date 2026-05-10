@@ -1034,6 +1034,8 @@ html, body {
 
 /* ── Themes view ──────────────────────────────────────────────────────── */
 #view-themes {
+  flex: 1;
+  min-height: 0;
   flex-direction: row;
   overflow: hidden;
 }
