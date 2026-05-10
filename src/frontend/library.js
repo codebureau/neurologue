@@ -1722,8 +1722,72 @@ const themesRenameInput  = document.getElementById('themes-rename-input');
 const themesBtnRename    = document.getElementById('themes-btn-rename');
 const themesRenameSave   = document.getElementById('themes-rename-save');
 const themesRenameCancel = document.getElementById('themes-rename-cancel');
+const themesLifespanRow  = document.getElementById('themes-lifespan-row');
+const themesSparklineWrap = document.getElementById('themes-sparkline-wrap');
+const themesSparkline    = document.getElementById('themes-sparkline');
 
 let _themesActiveId = null;
+let _themesFilter   = 0; // 0 = all, 7 = last 7 days, 30 = last 30 days
+
+// Filter bar click handlers
+document.querySelectorAll('.themes-filter-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    _themesFilter = parseInt(btn.dataset.days, 10) || 0;
+    document.querySelectorAll('.themes-filter-btn').forEach((b) => {
+      b.classList.toggle('active', b === btn);
+    });
+    loadThemesView();
+  });
+});
+
+/**
+ * Compute first-seen / last-active / status from a theme's entries array.
+ * Returns null if there are no entries with parseable dates.
+ */
+function computeLifespan(entries) {
+  if (!entries || entries.length === 0) return null;
+  const times = entries
+    .map((e) => new Date(e.created_at))
+    .filter((d) => !isNaN(d.getTime()))
+    .map((d) => d.getTime());
+  if (times.length === 0) return null;
+  const first = new Date(Math.min(...times));
+  const last  = new Date(Math.max(...times));
+  const daysSinceLast = (Date.now() - last.getTime()) / 86400000;
+  const spanDays      = (last.getTime() - first.getTime()) / 86400000;
+  let status, statusClass;
+  if (daysSinceLast < 14)      { status = 'Active';  statusClass = 'active';  }
+  else if (daysSinceLast < 60) { status = 'Fading';  statusClass = 'fading';  }
+  else                         { status = 'Dormant'; statusClass = 'dormant'; }
+  let event = null;
+  if (first.getTime() > Date.now() - 14 * 86400000) event = 'Newly formed';
+  else if (spanDays < 7 && entries.length >= 5)      event = 'Concentrated burst';
+  return { first, last, status, statusClass, event };
+}
+
+/** Draw an SVG area + line sparkline into container from { weeksAgo, count }[] data. */
+function renderSparkline(container, data) {
+  if (!data || data.every((d) => d.count === 0)) {
+    container.innerHTML = '<span class="sparkline-empty">No activity in this period</span>';
+    return;
+  }
+  const W = 220, H = 44, PAD = 4;
+  const max = Math.max(...data.map((d) => d.count), 1);
+  const n = data.length;
+  const pts = data.map((d, i) => {
+    const x = PAD + (n <= 1 ? (W - PAD * 2) / 2 : (i / (n - 1)) * (W - PAD * 2));
+    const y = PAD + (1 - d.count / max) * (H - PAD * 2);
+    return [+x.toFixed(1), +y.toFixed(1)];
+  });
+  const polyPts = pts.map(([x, y]) => `${x},${y}`).join(' ');
+  const bx = pts[0][0], ex = pts[pts.length - 1][0], floor = H - PAD;
+  const areaPath = `M${bx},${floor} ${pts.map(([x, y]) => `L${x},${y}`).join(' ')} L${ex},${floor} Z`;
+  container.innerHTML =
+    `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
+    `<path d="${areaPath}" fill="var(--cortex-teal)" fill-opacity="0.15"/>` +
+    `<polyline points="${polyPts}" fill="none" stroke="var(--cortex-teal)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>` +
+    `</svg>`;
+}
 
 async function loadThemesView() {
   try {
