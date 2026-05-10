@@ -1722,14 +1722,104 @@ const themesRenameInput  = document.getElementById('themes-rename-input');
 const themesBtnRename    = document.getElementById('themes-btn-rename');
 const themesRenameSave   = document.getElementById('themes-rename-save');
 const themesRenameCancel = document.getElementById('themes-rename-cancel');
+const themesLifespanRow  = document.getElementById('themes-lifespan-row');
+const themesSparklineWrap = document.getElementById('themes-sparkline-wrap');
+const themesSparkline    = document.getElementById('themes-sparkline');
 
 let _themesActiveId = null;
+let _themesFilter   = 0; // 0 = all, 7 = last 7 days, 30 = last 30 days
+
+// Filter bar click handlers
+document.querySelectorAll('.themes-filter-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    _themesFilter = parseInt(btn.dataset.days, 10) || 0;
+    document.querySelectorAll('.themes-filter-btn').forEach((b) => {
+      b.classList.toggle('active', b === btn);
+    });
+    loadThemesView();
+  });
+});
+
+/**
+ * Compute first-seen / last-active / status from a theme's entries array.
+ * Returns null if there are no entries with parseable dates.
+ */
+function computeLifespan(entries) {
+  if (!entries || entries.length === 0) return null;
+  const times = entries
+    .map((e) => new Date(e.created_at))
+    .filter((d) => !isNaN(d.getTime()))
+    .map((d) => d.getTime());
+  if (times.length === 0) return null;
+  const first = new Date(Math.min(...times));
+  const last  = new Date(Math.max(...times));
+  const daysSinceLast = (Date.now() - last.getTime()) / 86400000;
+  const spanDays      = (last.getTime() - first.getTime()) / 86400000;
+  let status, statusClass;
+  if (daysSinceLast < 14)      { status = 'Active';  statusClass = 'active';  }
+  else if (daysSinceLast < 60) { status = 'Fading';  statusClass = 'fading';  }
+  else                         { status = 'Dormant'; statusClass = 'dormant'; }
+  let event = null;
+  if (first.getTime() > Date.now() - 14 * 86400000) event = 'Newly formed';
+  else if (spanDays < 7 && entries.length >= 5)      event = 'Concentrated burst';
+  return { first, last, status, statusClass, event };
+}
+
+/** Draw an SVG area + line sparkline into container from { weeksAgo, count }[] data. */
+function renderSparkline(container, data) {
+  if (!data || data.every((d) => d.count === 0)) {
+    container.innerHTML = '<span class="sparkline-empty">No activity in this period</span>';
+    return;
+  }
+  // Use a fixed viewBox coordinate space; SVG stretches to container width via CSS.
+  const VW = 300, VH = 64, PAD_X = 6, PAD_Y = 8;
+  const max = Math.max(...data.map((d) => d.count), 1);
+  const n = data.length;
+  const pts = data.map((d, i) => {
+    const x = PAD_X + (n <= 1 ? (VW - PAD_X * 2) / 2 : (i / (n - 1)) * (VW - PAD_X * 2));
+    const y = PAD_Y + (1 - d.count / max) * (VH - PAD_Y * 2);
+    return [+x.toFixed(1), +y.toFixed(1)];
+  });
+  const polyPts = pts.map(([x, y]) => `${x},${y}`).join(' ');
+  const bx = pts[0][0], ex = pts[pts.length - 1][0], floor = VH - PAD_Y;
+  const areaPath = `M${bx},${floor} ${pts.map(([x, y]) => `L${x},${y}`).join(' ')} L${ex},${floor} Z`;
+  // Dot markers at each data point
+  const dots = pts
+    .map(([x, y], i) => data[i].count > 0
+      ? `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--cortex-teal)"/>` : '')
+    .join('');
+  // Baseline rule
+  const baseline = `<line x1="${bx}" y1="${floor}" x2="${ex}" y2="${floor}" stroke="var(--border)" stroke-width="1"/>`;
+  container.innerHTML =
+    `<svg width="100%" height="${VH}" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none">` +
+    baseline +
+    `<path d="${areaPath}" fill="var(--cortex-teal)" fill-opacity="0.25"/>` +
+    `<polyline points="${polyPts}" fill="none" stroke="var(--cortex-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    dots +
+    `</svg>`;
+}
 
 async function loadThemesView() {
   try {
-    const themes = await window.neurologue.listThemes();
+    let themes = await window.neurologue.listThemes();
+    const countKey = _themesFilter === 7 ? 'count_7d' : 'count_30d';
+
+    // When a time filter is active: sort by recent activity, dim zero-activity entries
+    if (_themesFilter > 0) {
+      themes = [...themes].sort((a, b) =>
+        (b[countKey] || 0) - (a[countKey] || 0) || b.entry_count - a.entry_count
+      );
+    }
+
+    const activeCount = _themesFilter > 0
+      ? themes.filter((t) => (t[countKey] || 0) > 0).length
+      : themes.length;
+
+    themesListCountEl.textContent = themes.length
+      ? (_themesFilter > 0 ? `${activeCount} of ${themes.length} active` : `${themes.length} themes`)
+      : '';
+
     themesListEl.innerHTML = '';
-    themesListCountEl.textContent = themes.length ? `${themes.length} themes` : '';
 
     if (themes.length === 0) {
       const empty = document.createElement('div');
@@ -1740,13 +1830,18 @@ async function loadThemesView() {
     }
 
     themes.forEach((theme) => {
+      const recentCount = _themesFilter > 0 ? (theme[countKey] || 0) : null;
+      const isDimmed    = _themesFilter > 0 && recentCount === 0;
       const item = document.createElement('div');
-      item.className = 'themes-list-item' + (theme.id === _themesActiveId ? ' active' : '');
+      item.className = 'themes-list-item' +
+        (theme.id === _themesActiveId ? ' active' : '') +
+        (isDimmed ? ' dimmed' : '');
       item.dataset.id = theme.id;
-      const entryWord = theme.entry_count === 1 ? '1 entry' : `${theme.entry_count} entries`;
+      const entryWord  = theme.entry_count === 1 ? '1 entry' : `${theme.entry_count} entries`;
+      const recentStr  = recentCount !== null && recentCount > 0 ? ` · ${recentCount} recent` : '';
       item.innerHTML =
         `<div class="tli-name">${escHtml(theme.display_name || theme.name)}</div>` +
-        `<div class="tli-meta">${entryWord}</div>`;
+        `<div class="tli-meta">${entryWord}${recentStr}</div>`;
       item.addEventListener('click', () => selectThemeView(theme.id));
       themesListEl.appendChild(item);
     });
@@ -1792,6 +1887,32 @@ async function selectThemeView(id) {
       });
       themesEntriesList.appendChild(card);
     });
+
+    // Lifespan (computed from ALL entries, not just the first 30)
+    const lifespan = computeLifespan(theme.entries);
+    if (lifespan) {
+      const eventBit = lifespan.event
+        ? `<span class="tls-event">· ${lifespan.event}</span>`
+        : '';
+      themesLifespanRow.innerHTML =
+        `<span class="tls-first">Born ${formatDate(lifespan.first.toISOString())}</span>` +
+        `<span class="tls-sep">·</span>` +
+        `<span class="tls-last">Last active ${formatDate(lifespan.last.toISOString())}</span>` +
+        `<span class="tls-badge tls-${lifespan.statusClass}">${lifespan.status}</span>` +
+        eventBit;
+      themesLifespanRow.classList.remove('hidden');
+    } else {
+      themesLifespanRow.classList.add('hidden');
+    }
+
+    // Sparkline — fetch weekly activity for last 12 weeks
+    try {
+      const activity = await window.neurologue.getThemeWeeklyActivity(id, 12);
+      renderSparkline(themesSparkline, activity);
+      themesSparklineWrap.classList.remove('hidden');
+    } catch {
+      themesSparklineWrap.classList.add('hidden');
+    }
 
     themesDetailPh.style.display   = 'none';
     themesDetailCont.style.display = 'flex';

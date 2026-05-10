@@ -11,7 +11,7 @@ const { searchNearest } = require('./backend/vector/store');
 const { getEmbedding } = require('./backend/db/embeddings');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
-const { listThemes, getThemeById, renameTheme } = require('./backend/db/themes');
+const { listThemes, getThemeById, renameTheme, getThemeWeeklyActivity } = require('./backend/db/themes');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
@@ -248,6 +248,10 @@ ipcMain.handle('themes:rename', async (_event, { id, newName }) => {
   if (!newName || !newName.trim()) throw new Error('Name cannot be empty');
   return renameTheme(id, newName.trim());
 });
+
+ipcMain.handle('themes:weekly-activity', async (_e, { id, weeks = 12 }) =>
+  getThemeWeeklyActivity(id, weeks)
+);
 
 // Manually trigger clustering (for dev/debug)
 ipcMain.handle('themes:cluster', async () => {
