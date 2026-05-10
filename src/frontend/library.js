@@ -1771,21 +1771,31 @@ function renderSparkline(container, data) {
     container.innerHTML = '<span class="sparkline-empty">No activity in this period</span>';
     return;
   }
-  const W = 220, H = 44, PAD = 4;
+  // Use a fixed viewBox coordinate space; SVG stretches to container width via CSS.
+  const VW = 300, VH = 64, PAD_X = 6, PAD_Y = 8;
   const max = Math.max(...data.map((d) => d.count), 1);
   const n = data.length;
   const pts = data.map((d, i) => {
-    const x = PAD + (n <= 1 ? (W - PAD * 2) / 2 : (i / (n - 1)) * (W - PAD * 2));
-    const y = PAD + (1 - d.count / max) * (H - PAD * 2);
+    const x = PAD_X + (n <= 1 ? (VW - PAD_X * 2) / 2 : (i / (n - 1)) * (VW - PAD_X * 2));
+    const y = PAD_Y + (1 - d.count / max) * (VH - PAD_Y * 2);
     return [+x.toFixed(1), +y.toFixed(1)];
   });
   const polyPts = pts.map(([x, y]) => `${x},${y}`).join(' ');
-  const bx = pts[0][0], ex = pts[pts.length - 1][0], floor = H - PAD;
+  const bx = pts[0][0], ex = pts[pts.length - 1][0], floor = VH - PAD_Y;
   const areaPath = `M${bx},${floor} ${pts.map(([x, y]) => `L${x},${y}`).join(' ')} L${ex},${floor} Z`;
+  // Dot markers at each data point
+  const dots = pts
+    .map(([x, y], i) => data[i].count > 0
+      ? `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--cortex-teal)"/>` : '')
+    .join('');
+  // Baseline rule
+  const baseline = `<line x1="${bx}" y1="${floor}" x2="${ex}" y2="${floor}" stroke="var(--border)" stroke-width="1"/>`;
   container.innerHTML =
-    `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">` +
-    `<path d="${areaPath}" fill="var(--cortex-teal)" fill-opacity="0.15"/>` +
-    `<polyline points="${polyPts}" fill="none" stroke="var(--cortex-teal)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>` +
+    `<svg width="100%" height="${VH}" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none">` +
+    baseline +
+    `<path d="${areaPath}" fill="var(--cortex-teal)" fill-opacity="0.25"/>` +
+    `<polyline points="${polyPts}" fill="none" stroke="var(--cortex-teal)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    dots +
     `</svg>`;
 }
 

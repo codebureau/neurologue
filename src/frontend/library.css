@@ -1272,7 +1272,8 @@ html, body {
   color: var(--text-dim);
   margin-bottom: 5px;
 }
-#themes-sparkline { line-height: 0; }
+#themes-sparkline { line-height: 0; display: block; }
+#themes-sparkline svg { display: block; width: 100%; overflow: visible; }
 .sparkline-empty { font-size: 11px; color: var(--text-dim); }
 #themes-entries-label {
   font-size: 11px;
