@@ -595,7 +595,7 @@ function resetSimilarEntries() {
   similarList.hidden = true;
   similarList.innerHTML = '';
   similarNoEmbed.hidden = true;
-  similarSection.style.display = 'block';
+  similarSection.style.display = 'none';
 }
 
 async function _loadSimilarEntries(entryId) {
@@ -603,16 +603,17 @@ async function _loadSimilarEntries(entryId) {
     const result = await window.neurologue.similarEntries(entryId);
     if (!result.ok) {
       if (result.reason === 'no_embedding') {
+        similarSection.style.display = 'block';
         similarNoEmbed.hidden = false;
-      } else {
-        similarSection.style.display = 'none';
       }
+      // any other failure: leave section hidden
       return;
     }
     if (result.results.length === 0) {
-      similarSection.style.display = 'none';
+      // leave section hidden — nothing to show
       return;
     }
+    similarSection.style.display = 'block';
     similarList.innerHTML = '';
     result.results.forEach((entry) => {
       const card = document.createElement('div');
@@ -631,7 +632,7 @@ async function _loadSimilarEntries(entryId) {
       similarList.appendChild(card);
     });
   } catch {
-    similarSection.style.display = 'none';
+    // leave section hidden on error
   }
 }
 
@@ -1257,6 +1258,22 @@ document.getElementById('btn-pull-all').addEventListener('click', pullAllMissing
 
 // ── Settings modal ─────────────────────────────────────────────────
 
+// Tab switching
+function activateSettingsTab(name) {
+  document.querySelectorAll('.settings-tab').forEach((t) => {
+    const active = t.dataset.tab === name;
+    t.classList.toggle('active', active);
+    t.setAttribute('aria-selected', String(active));
+  });
+  document.querySelectorAll('.settings-panel').forEach((p) => {
+    p.classList.toggle('hidden', p.id !== `settings-tab-${name}`);
+  });
+}
+
+document.querySelectorAll('.settings-tab').forEach((tab) => {
+  tab.addEventListener('click', () => activateSettingsTab(tab.dataset.tab));
+});
+
 // ── Hotkey recorder ─────────────────────────────────────────────────────────
 let _recordingHotkey = false;
 let _pendingHotkey   = null;
@@ -1370,6 +1387,7 @@ btnSettings.addEventListener('click', async () => {
   hotkeyDisplay.dataset.saved = currentHotkey;
   hotkeyDisplay.textContent   = formatAccelerator(currentHotkey);
 
+  activateSettingsTab('models');
   settingsModal.classList.remove('hidden');
   window.neurologue.pauseHotkey();
 });

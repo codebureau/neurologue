@@ -1417,6 +1417,42 @@ html, body {
 }
 
 /* ── Settings modal fields ──────────────────────────────────────────────── */
+.modal-box--settings {
+  max-width: 500px;
+}
+
+/* Tab bar */
+.settings-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin: 12px 0 20px;
+}
+.settings-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 14px 8px;
+  cursor: pointer;
+  border-radius: var(--radius) var(--radius) 0 0;
+  transition: color 0.15s;
+}
+.settings-tab:hover { color: var(--text-muted); }
+.settings-tab.active {
+  color: var(--cortex-teal);
+  border-bottom-color: var(--cortex-teal);
+}
+
+/* Tab panels */
+.settings-panel { min-height: 140px; }
+.settings-panel.hidden { display: none; }
+
 .settings-field {
   margin-bottom: 20px;
 }

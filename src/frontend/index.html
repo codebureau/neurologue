@@ -321,58 +321,73 @@
   </div>
   <!-- ── Settings modal ────────────────────────────────────────────────────── -->
   <div id="settings-modal" class="modal-overlay hidden">
-    <div class="modal-box">
+    <div class="modal-box modal-box--settings">
       <button class="modal-close" id="settings-close" title="Close">✕</button>
       <h2>Settings</h2>
 
-      <h3 class="settings-section-heading">Model settings</h3>
-      <p>Choose which Ollama models Neurologue uses. Only models available in your local Ollama install are shown.</p>
-      <div class="settings-field">
-        <label for="select-embed-model">Embedding model</label>
-        <select id="select-embed-model"></select>
-        <span class="settings-hint">Used for semantic search. Changing this will re-embed your entries over time.</span>
-      </div>
-      <div class="settings-field">
-        <label for="select-llm-model">LLM model (theme summaries)</label>
-        <select id="select-llm-model"></select>
-        <span class="settings-hint">Used to generate human-readable theme descriptions.</span>
+      <div class="settings-tabs" role="tablist">
+        <button class="settings-tab active" data-tab="models" role="tab" aria-selected="true">Models</button>
+        <button class="settings-tab" data-tab="tags"   role="tab" aria-selected="false">Tags</button>
+        <button class="settings-tab" data-tab="hotkey" role="tab" aria-selected="false">Hotkey</button>
+        <button class="settings-tab" data-tab="data"   role="tab" aria-selected="false">Data</button>
       </div>
 
-      <h3 class="settings-section-heading">Tag suggestions</h3>
-      <div class="settings-field">
-        <label for="select-tag-format">Multi-word tag format</label>
-        <select id="select-tag-format">
-          <option value="hyphenated">Hyphenated (two-words)</option>
-          <option value="concatenated">Concatenated (twowords)</option>
-        </select>
-        <span class="settings-hint">How suggested tags with multiple words are formatted when applied.</span>
-      </div>
-      <div class="settings-field">
-        <label for="select-similarity-threshold">Duplicate detection sensitivity</label>
-        <select id="select-similarity-threshold">
-          <option value="0.93">Strict — near-identical meanings only</option>
-          <option value="0.88">Balanced — recommended</option>
-          <option value="0.82">Broad — more suggestions, more noise</option>
-        </select>
-        <span class="settings-hint">How closely two tags must be related (semantically) to appear as possible duplicates. Requires Ollama.</span>
-      </div>
-
-      <h3 class="settings-section-heading">Capture hotkey</h3>
-      <div class="settings-field">
-        <label>Global shortcut</label>
-        <div class="hotkey-row">
-          <span id="hotkey-display" class="hotkey-display"></span>
-          <button id="btn-record-hotkey" class="btn-record-hotkey">Change</button>
+      <!-- Models panel -->
+      <div class="settings-panel" id="settings-tab-models">
+        <p>Choose which Ollama models Neurologue uses. Only models available in your local Ollama install are shown.</p>
+        <div class="settings-field">
+          <label for="select-embed-model">Embedding model</label>
+          <select id="select-embed-model"></select>
+          <span class="settings-hint">Used for semantic search. Changing this will re-embed your entries over time.</span>
         </div>
-        <span class="settings-hint">Global shortcut to open the capture popup. Must include at least one modifier key (Ctrl, Alt, Shift).</span>
-        <span class="hotkey-conflict hidden" id="hotkey-conflict">⚠ That shortcut is already claimed by another application.</span>
+        <div class="settings-field">
+          <label for="select-llm-model">LLM model (theme summaries)</label>
+          <select id="select-llm-model"></select>
+          <span class="settings-hint">Used to generate human-readable theme descriptions.</span>
+        </div>
       </div>
 
-      <h3 class="settings-section-heading">Data maintenance</h3>
-      <div class="settings-field">
-        <label>Reindex all entries</label>
-        <button id="btn-reindex-all" class="btn-secondary">Reindex all entries…</button>
-        <span class="settings-hint">Clears all stored embeddings and re-processes every entry. Use this after changing the embedding model, or if semantic search feels off. Requires Ollama.</span>
+      <!-- Tags panel -->
+      <div class="settings-panel hidden" id="settings-tab-tags">
+        <div class="settings-field">
+          <label for="select-tag-format">Multi-word tag format</label>
+          <select id="select-tag-format">
+            <option value="hyphenated">Hyphenated (two-words)</option>
+            <option value="concatenated">Concatenated (twowords)</option>
+          </select>
+          <span class="settings-hint">How suggested tags with multiple words are formatted when applied.</span>
+        </div>
+        <div class="settings-field">
+          <label for="select-similarity-threshold">Duplicate detection sensitivity</label>
+          <select id="select-similarity-threshold">
+            <option value="0.93">Strict — near-identical meanings only</option>
+            <option value="0.88">Balanced — recommended</option>
+            <option value="0.82">Broad — more suggestions, more noise</option>
+          </select>
+          <span class="settings-hint">How closely two tags must be related (semantically) to appear as possible duplicates. Requires Ollama.</span>
+        </div>
+      </div>
+
+      <!-- Hotkey panel -->
+      <div class="settings-panel hidden" id="settings-tab-hotkey">
+        <div class="settings-field">
+          <label>Global shortcut</label>
+          <div class="hotkey-row">
+            <span id="hotkey-display" class="hotkey-display"></span>
+            <button id="btn-record-hotkey" class="btn-record-hotkey">Change</button>
+          </div>
+          <span class="settings-hint">Global shortcut to open the capture popup. Must include at least one modifier key (Ctrl, Alt, Shift).</span>
+          <span class="hotkey-conflict hidden" id="hotkey-conflict">⚠ That shortcut is already claimed by another application.</span>
+        </div>
+      </div>
+
+      <!-- Data panel -->
+      <div class="settings-panel hidden" id="settings-tab-data">
+        <div class="settings-field">
+          <label>Reindex all entries</label>
+          <button id="btn-reindex-all" class="btn-secondary">Reindex all entries…</button>
+          <span class="settings-hint">Clears all stored embeddings and re-processes every entry. Use this after changing the embedding model, or if semantic search feels off. Requires Ollama.</span>
+        </div>
       </div>
 
       <div class="settings-actions">
