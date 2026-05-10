@@ -1057,6 +1057,39 @@ html, body {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+
+/* Filter bar — All | 7 days | 30 days */
+#themes-filter-bar {
+  display: flex;
+  gap: 3px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.themes-filter-btn {
+  flex: 1;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 0;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.15s;
+}
+.themes-filter-btn:hover { color: var(--text-muted); }
+.themes-filter-btn.active {
+  background: var(--surface2);
+  color: var(--cortex-teal);
+  border-color: var(--border);
+}
+
+/* Dimmed items (no activity in the selected period) */
+.themes-list-item.dimmed { opacity: 0.35; }
+.themes-list-item.dimmed:hover { opacity: 0.6; }
 .themes-list-title {
   font-size: 11px;
   font-weight: 600;
@@ -1201,6 +1234,46 @@ html, body {
   overflow-y: auto;
   padding: 14px 18px;
 }
+
+/* Lifespan row — Born · Last active · Status badge */
+#themes-lifespan-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 11px;
+}
+#themes-lifespan-row.hidden { display: none; }
+.tls-first, .tls-last { color: var(--text-dim); }
+.tls-sep   { color: var(--border); }
+.tls-event { color: var(--text-dim); font-style: italic; }
+.tls-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid;
+}
+.tls-active  { color: var(--cortex-teal);  border-color: var(--cortex-teal); }
+.tls-fading  { color: var(--synapse-gold); border-color: var(--synapse-gold); }
+.tls-dormant { color: var(--text-dim);     border-color: var(--text-dim); }
+
+/* Sparkline section */
+#themes-sparkline-wrap { margin-bottom: 16px; }
+#themes-sparkline-wrap.hidden { display: none; }
+.themes-sparkline-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+#themes-sparkline { line-height: 0; }
+.sparkline-empty { font-size: 11px; color: var(--text-dim); }
 #themes-entries-label {
   font-size: 11px;
   font-weight: 600;

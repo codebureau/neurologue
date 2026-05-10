@@ -1727,9 +1727,25 @@ let _themesActiveId = null;
 
 async function loadThemesView() {
   try {
-    const themes = await window.neurologue.listThemes();
+    let themes = await window.neurologue.listThemes();
+    const countKey = _themesFilter === 7 ? 'count_7d' : 'count_30d';
+
+    // When a time filter is active: sort by recent activity, dim zero-activity entries
+    if (_themesFilter > 0) {
+      themes = [...themes].sort((a, b) =>
+        (b[countKey] || 0) - (a[countKey] || 0) || b.entry_count - a.entry_count
+      );
+    }
+
+    const activeCount = _themesFilter > 0
+      ? themes.filter((t) => (t[countKey] || 0) > 0).length
+      : themes.length;
+
+    themesListCountEl.textContent = themes.length
+      ? (_themesFilter > 0 ? `${activeCount} of ${themes.length} active` : `${themes.length} themes`)
+      : '';
+
     themesListEl.innerHTML = '';
-    themesListCountEl.textContent = themes.length ? `${themes.length} themes` : '';
 
     if (themes.length === 0) {
       const empty = document.createElement('div');
@@ -1740,13 +1756,18 @@ async function loadThemesView() {
     }
 
     themes.forEach((theme) => {
+      const recentCount = _themesFilter > 0 ? (theme[countKey] || 0) : null;
+      const isDimmed    = _themesFilter > 0 && recentCount === 0;
       const item = document.createElement('div');
-      item.className = 'themes-list-item' + (theme.id === _themesActiveId ? ' active' : '');
+      item.className = 'themes-list-item' +
+        (theme.id === _themesActiveId ? ' active' : '') +
+        (isDimmed ? ' dimmed' : '');
       item.dataset.id = theme.id;
-      const entryWord = theme.entry_count === 1 ? '1 entry' : `${theme.entry_count} entries`;
+      const entryWord  = theme.entry_count === 1 ? '1 entry' : `${theme.entry_count} entries`;
+      const recentStr  = recentCount !== null && recentCount > 0 ? ` · ${recentCount} recent` : '';
       item.innerHTML =
         `<div class="tli-name">${escHtml(theme.display_name || theme.name)}</div>` +
-        `<div class="tli-meta">${entryWord}</div>`;
+        `<div class="tli-meta">${entryWord}${recentStr}</div>`;
       item.addEventListener('click', () => selectThemeView(theme.id));
       themesListEl.appendChild(item);
     });
@@ -1792,6 +1813,32 @@ async function selectThemeView(id) {
       });
       themesEntriesList.appendChild(card);
     });
+
+    // Lifespan (computed from ALL entries, not just the first 30)
+    const lifespan = computeLifespan(theme.entries);
+    if (lifespan) {
+      const eventBit = lifespan.event
+        ? `<span class="tls-event">· ${lifespan.event}</span>`
+        : '';
+      themesLifespanRow.innerHTML =
+        `<span class="tls-first">Born ${formatDate(lifespan.first.toISOString())}</span>` +
+        `<span class="tls-sep">·</span>` +
+        `<span class="tls-last">Last active ${formatDate(lifespan.last.toISOString())}</span>` +
+        `<span class="tls-badge tls-${lifespan.statusClass}">${lifespan.status}</span>` +
+        eventBit;
+      themesLifespanRow.classList.remove('hidden');
+    } else {
+      themesLifespanRow.classList.add('hidden');
+    }
+
+    // Sparkline — fetch weekly activity for last 12 weeks
+    try {
+      const activity = await window.neurologue.getThemeWeeklyActivity(id, 12);
+      renderSparkline(themesSparkline, activity);
+      themesSparklineWrap.classList.remove('hidden');
+    } catch {
+      themesSparklineWrap.classList.add('hidden');
+    }
 
     themesDetailPh.style.display   = 'none';
     themesDetailCont.style.display = 'flex';

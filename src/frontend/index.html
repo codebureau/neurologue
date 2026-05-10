@@ -196,6 +196,11 @@
               <span class="themes-list-title">Themes</span>
               <span id="themes-list-count"></span>
             </div>
+            <div id="themes-filter-bar">
+              <button class="themes-filter-btn active" data-days="0">All</button>
+              <button class="themes-filter-btn" data-days="7">7 days</button>
+              <button class="themes-filter-btn" data-days="30">30 days</button>
+            </div>
             <div id="themes-list"></div>
           </div>
           <!-- Right column: theme detail -->
@@ -220,6 +225,11 @@
                 <div id="themes-detail-summary"></div>
               </div>
               <div id="themes-detail-body">
+                <div id="themes-lifespan-row" class="hidden"></div>
+                <div id="themes-sparkline-wrap" class="hidden">
+                  <div class="themes-sparkline-label">Activity (last 12 weeks)</div>
+                  <div id="themes-sparkline"></div>
+                </div>
                 <div id="themes-entries-label">Entries in this theme</div>
                 <div id="themes-entries-list"></div>
               </div>

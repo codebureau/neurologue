@@ -74,12 +74,46 @@ async function listThemes() {
   return db.prepare(`
     SELECT t.*,
            COALESCE(t.user_name, t.name) AS display_name,
-           COUNT(te.entry_id)            AS entry_count
+           COUNT(DISTINCT te.entry_id)   AS entry_count,
+           COUNT(DISTINCT CASE WHEN julianday('now') - julianday(e.created_at) <= 7.0  THEN te.entry_id END) AS count_7d,
+           COUNT(DISTINCT CASE WHEN julianday('now') - julianday(e.created_at) <= 30.0 THEN te.entry_id END) AS count_30d,
+           MIN(e.created_at) AS first_seen,
+           MAX(e.created_at) AS last_active
     FROM themes t
     LEFT JOIN theme_entries te ON te.theme_id = t.id
+    LEFT JOIN entries e ON e.id = te.entry_id
     GROUP BY t.id
     ORDER BY entry_count DESC, display_name ASC
   `).all();
+}
+
+/**
+ * Return weekly entry counts for a theme over the last N weeks.
+ * Index 0 = oldest week, index (weeks-1) = most recent.
+ * @param {string} themeId
+ * @param {number} weeks
+ * @returns {Promise<{ weeksAgo: number, count: number }[]>}
+ */
+async function getThemeWeeklyActivity(themeId, weeks = 12) {
+  const db = await openDb();
+  const rows = db.prepare(`
+    SELECT
+      CAST((julianday('now') - julianday(e.created_at)) / 7 AS INTEGER) AS weeks_ago,
+      COUNT(*) AS count
+    FROM theme_entries te
+    JOIN entries e ON e.id = te.entry_id
+    WHERE te.theme_id = ?
+      AND CAST((julianday('now') - julianday(e.created_at)) / 7 AS INTEGER) < ?
+    GROUP BY weeks_ago
+  `).all(themeId, weeks);
+
+  // Build chronological array: index 0 = oldest, index (weeks-1) = this week
+  const result = [];
+  for (let i = weeks - 1; i >= 0; i--) {
+    const found = rows.find((r) => r.weeks_ago === i);
+    result.push({ weeksAgo: i, count: found ? found.count : 0 });
+  }
+  return result;
 }
 
 /**
@@ -130,6 +164,7 @@ module.exports = {
   renameTheme,
   getThemeById,
   listThemes,
+  getThemeWeeklyActivity,
   deleteTheme,
   setThemeEntries,
   getEntriesForTheme,
