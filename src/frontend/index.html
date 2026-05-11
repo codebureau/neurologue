@@ -464,6 +464,53 @@
     </div>
   </div>
 
+  <!-- ── Export modal ──────────────────────────────────────────────────────── -->
+  <div id="export-modal" class="modal-overlay hidden">
+    <div class="modal-box modal-box--export">
+      <button class="modal-close" id="export-modal-close" title="Cancel">✕</button>
+      <h2 class="modal-title">Export your data</h2>
+      <p class="export-modal-desc">Choose the formats to include in the export.</p>
+
+      <div class="export-format-list">
+        <label class="export-format-row">
+          <input type="checkbox" class="export-fmt-check" value="json" checked />
+          <span class="export-fmt-label">JSON files</span>
+          <span class="export-fmt-desc">entries.json + themes.json</span>
+        </label>
+        <label class="export-format-row">
+          <input type="checkbox" class="export-fmt-check" value="jsonl" checked />
+          <span class="export-fmt-label">JSONL</span>
+          <span class="export-fmt-desc">entries.jsonl — one entry per line, LLM-ready</span>
+        </label>
+        <label class="export-format-row">
+          <input type="checkbox" class="export-fmt-check" value="markdown" checked />
+          <span class="export-fmt-label">Markdown (flat)</span>
+          <span class="export-fmt-desc">entries.md + themes.md — single documents</span>
+        </label>
+        <label class="export-format-row">
+          <input type="checkbox" class="export-fmt-check" value="markdownBundle" checked />
+          <span class="export-fmt-label">Markdown bundle</span>
+          <span class="export-fmt-desc">markdown/ folder — one file per entry with frontmatter + index</span>
+        </label>
+        <label class="export-format-row">
+          <input type="checkbox" class="export-fmt-check" value="embeddings" />
+          <span class="export-fmt-label">Embeddings JSONL</span>
+          <span class="export-fmt-desc">embeddings.jsonl — raw vectors (large file)</span>
+        </label>
+        <label class="export-format-row">
+          <input type="checkbox" class="export-fmt-check" value="vectorDb" />
+          <span class="export-fmt-label">Vector DB copy</span>
+          <span class="export-fmt-desc">vectors/ folder — LanceDB store snapshot</span>
+        </label>
+      </div>
+
+      <div class="export-modal-actions">
+        <button id="btn-export-cancel" class="btn-secondary">Cancel</button>
+        <button id="btn-export-confirm" class="btn-primary">Choose folder…</button>
+      </div>
+    </div>
+  </div>
+
   <script src="library.js"></script>
 </body>
 </html>
