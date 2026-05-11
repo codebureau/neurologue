@@ -16,13 +16,18 @@ const config = require('../config');
 
 const SETTINGS_PATH = config.settings.path;
 
-/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string, tagSuggestionFormat: string, tagSimilarityThreshold: number }} */
+/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string, tagSuggestionFormat: string, tagSimilarityThreshold: number, workerIntervals: object }} */
 const DEFAULTS = {
   embeddingModel:         config.ollama.embeddingModel,
   llmModel:               config.ollama.llmModel,
   captureHotkey:          config.hotkey.capture,
   tagSuggestionFormat:    'hyphenated', // 'hyphenated' = two-words, 'concatenated' = twowords
   tagSimilarityThreshold: 0.88,         // cosine similarity cutoff for semantic tag dedup
+  workerIntervals: {
+    embedding:     60,   // seconds between embedding scan ticks
+    clustering:    300,  // seconds between clustering runs (also triggers theming)
+    contradiction: 900,  // seconds between contradiction scan runs
+  },
 };
 
 /**

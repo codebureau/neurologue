@@ -44,10 +44,13 @@ contextBridge.exposeInMainWorld('neurologue', {
 
   // ── Status ───────────────────────────────────────────────────────────────
   getStatus: () => ipcRenderer.invoke('status:get'),
-  onWorkerStatus:     (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },
-  onEntriesUpdated:   (cb) => { ipcRenderer.on('worker:entries-updated',  (_e, d) => cb(d)); },
-  onThemesUpdated:    (cb) => { ipcRenderer.on('worker:themes-updated',   (_e, d) => cb(d)); },
-  onContradictionsUpdated: (cb) => { ipcRenderer.on('worker:contradictions-updated', (_e, d) => cb(d)); },
+  getWorkerLog: () => ipcRenderer.invoke('worker:get-log'),
+  onWorkerStatus:         (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },
+  onEntriesUpdated:       (cb) => { ipcRenderer.on('worker:entries-updated',  (_e, d) => cb(d)); },
+  onThemesUpdated:        (cb) => { ipcRenderer.on('worker:themes-updated',   (_e, d) => cb(d)); },
+  onContradictionsUpdated:(cb) => { ipcRenderer.on('worker:contradictions-updated', (_e, d) => cb(d)); },
+  onWorkerTaskStarted:    (cb) => { ipcRenderer.on('worker:task-started',     (_e, d) => cb(d)); },
+  onWorkerTaskCompleted:  (cb) => { ipcRenderer.on('worker:task-completed',   (_e, d) => cb(d)); },
 
   // ── Contradictions ───────────────────────────────────────────────────────
   listContradictions:   (opts) => ipcRenderer.invoke('contradictions:list', opts),

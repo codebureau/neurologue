@@ -2070,3 +2070,108 @@ html, body {
   transition: background 0.1s;
 }
 .btn-primary:hover { background: var(--teal-hover, #1ab8a0); }
+
+/* ── Worker status bar enhancements ──────────────────────────────────────── */
+.status-task {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--synapse-gold);
+  animation: status-pulse 1.4s ease-in-out infinite;
+}
+.status-task.hidden { display: none; }
+.status-task-spinner {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border: 1.5px solid var(--synapse-gold);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+.status-error-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--danger, #e06c6c);
+  border: 1px solid var(--danger, #e06c6c);
+  border-radius: 9999px;
+  padding: 1px 7px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.status-error-badge.hidden { display: none; }
+.status-error-badge:hover { background: var(--danger, #e06c6c); color: #fff; }
+
+/* ── Worker log panel (in Settings → Worker) ──────────────────────────── */
+.worker-log-panel {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
+.worker-log-empty {
+  display: block;
+  padding: 10px 12px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.worker-log-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.5;
+}
+.worker-log-row:last-child { border-bottom: none; }
+
+.wlr-status {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+  background: var(--text-dim);
+}
+.wlr-status.success { background: var(--cortex-teal); }
+.wlr-status.error   { background: var(--danger, #e06c6c); }
+.wlr-status.running { background: var(--synapse-gold); }
+
+.wlr-task {
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 110px;
+  text-transform: capitalize;
+}
+.wlr-msg  { flex: 1; color: var(--text-dim); }
+.wlr-dur  { color: var(--text-dim); font-size: 10px; white-space: nowrap; }
+.wlr-time { color: var(--text-dim); font-size: 10px; white-space: nowrap; }
+
+/* ── Settings panel description text ──────────────────────────────────── */
+.settings-panel-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* ── Settings number input ────────────────────────────────────────────── */
+.settings-number-input {
+  width: 100px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 5px 8px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+.settings-number-input:focus { border-color: var(--cortex-teal); }
