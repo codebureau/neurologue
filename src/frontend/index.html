@@ -475,30 +475,6 @@
         </div>
       </div>
 
-      <!-- Worker panel -->
-      <div class="settings-panel hidden" id="settings-tab-worker">
-        <p class="settings-panel-desc">Tune how often background tasks run. Changes take effect immediately without restart.</p>
-        <div class="settings-field">
-          <label for="input-interval-embedding">Embedding scan interval (seconds)</label>
-          <input type="number" id="input-interval-embedding" class="settings-number-input" min="10" max="3600" step="10" value="60" />
-          <span class="settings-hint">How often to check for new entries that need embedding. Default: 60 s.</span>
-        </div>
-        <div class="settings-field">
-          <label for="input-interval-clustering">Clustering interval (seconds)</label>
-          <input type="number" id="input-interval-clustering" class="settings-number-input" min="60" max="86400" step="60" value="300" />
-          <span class="settings-hint">How often to re-cluster entries into themes. Default: 300 s (5 min).</span>
-        </div>
-        <div class="settings-field">
-          <label for="input-interval-contradiction">Contradiction scan interval (seconds)</label>
-          <input type="number" id="input-interval-contradiction" class="settings-number-input" min="60" max="86400" step="60" value="900" />
-          <span class="settings-hint">How often to scan for contradicting entries. Default: 900 s (15 min).</span>
-        </div>
-        <div class="settings-field">
-          <label>Activity log <button id="btn-refresh-worker-log" class="btn-secondary btn-sm" style="margin-left:8px">Refresh</button></label>
-          <div id="worker-log-panel" class="worker-log-panel"><span class="worker-log-empty">No tasks recorded yet.</span></div>
-        </div>
-      </div>
-
       <!-- Data panel -->
       <div class="settings-panel hidden" id="settings-tab-data">
         <div class="settings-field">

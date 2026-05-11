@@ -310,6 +310,15 @@ function getWorkerLog() {
 }
 
 /**
+ * Clear the in-memory task activity log and reset lastError state.
+ * Primarily used in tests to reset module-level state between cases.
+ */
+function clearWorkerLog() {
+  _taskLog.length = 0;
+  _currentTask = null;
+}
+
+/**
  * Build the full status payload (worker + ollama) for pushing to renderer.
  * @param {boolean} ollamaReachable - whether the current tick found Ollama up
  */
@@ -422,4 +431,4 @@ async function scanContradictions() {
   return { checked, found };
 }
 
-module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions };
+module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions };
