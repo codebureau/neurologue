@@ -106,10 +106,10 @@ describe('runExport', () => {
     expect(lines).toHaveLength(2);
   });
 
-  test('skips embeddings.jsonl when includeEmbeddings=false', async () => {
+  test('skips embeddings.jsonl when embeddings format not requested', async () => {
     const { runExport } = require('../../../src/backend/export/runner');
     await seedData();
-    const result = await runExport(exportDir, { includeEmbeddings: false });
+    const result = await runExport(exportDir, { formats: ['json', 'markdown'] });
     expect(fs.existsSync(path.join(exportDir, 'embeddings.jsonl'))).toBe(false);
     expect(result.embeddingCount).toBe(0);
     expect(result.files).not.toContain(path.join(exportDir, 'embeddings.jsonl'));

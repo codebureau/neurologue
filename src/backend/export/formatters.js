@@ -95,6 +95,29 @@ function themesToMarkdown(themes) {
   return lines.join('\n');
 }
 
+// ── Entries JSONL ─────────────────────────────────────────────────────────────
+
+/**
+ * Serialise entries to JSONL — one full entry object per line.
+ * Suitable for LLM fine-tuning pipelines and bulk ingest tools.
+ * @param {object[]} entries
+ * @returns {string}
+ */
+function entriesToJsonl(entries) {
+  return entries
+    .map((e) => JSON.stringify({
+      id: e.id,
+      content: e.content,
+      source: e.source || 'manual',
+      type: e.type || 'note',
+      category: e.user_category || e.category || null,
+      created_at: e.created_at,
+      edited_at: e.edited_at || null,
+      tags: (e.tags || []).map((t) => t.name),
+    }))
+    .join('\n');
+}
+
 // ── Embeddings JSONL ───────────────────────────────────────────────────────────
 
 /**
@@ -112,6 +135,57 @@ function embeddingsToJsonl(embeddings) {
     .join('\n');
 }
 
+// ── Markdown bundle helpers ───────────────────────────────────────────────────
+
+/**
+ * Produce the content for a single per-entry Markdown file with YAML frontmatter.
+ * @param {object} entry
+ * @returns {string}
+ */
+function entryToMarkdownFile(entry) {
+  const tags = (entry.tags || []).map((t) => t.name);
+  const category = entry.user_category || entry.category || null;
+  const lines = [
+    '---',
+    `id: ${entry.id}`,
+    `created_at: "${entry.created_at}"`,
+  ];
+  if (entry.edited_at) lines.push(`edited_at: "${entry.edited_at}"`);
+  if (category) lines.push(`category: ${category}`);
+  if (tags.length > 0) lines.push(`tags: [${tags.map((t) => `"${t}"`).join(', ')}]`);
+  lines.push(`source: ${entry.source || 'manual'}`);
+  lines.push('---');
+  lines.push('');
+  lines.push(entry.content);
+  lines.push('');
+  return lines.join('\n');
+}
+
+/**
+ * Build an index.md linking all per-entry files, grouped by date.
+ * @param {object[]} entries  Must be sorted newest-first.
+ * @param {Map<string, string>} filenameMap  entry.id → filename
+ * @returns {string}
+ */
+function buildMarkdownIndex(entries, filenameMap) {
+  const lines = ['# Neurologue — Entry Index', ''];
+  let lastDate = null;
+  for (const e of entries) {
+    const dateStr = (e.created_at || '').slice(0, 10);
+    if (dateStr !== lastDate) {
+      if (lastDate !== null) lines.push('');
+      lines.push(`## ${dateStr}`);
+      lines.push('');
+      lastDate = dateStr;
+    }
+    const filename = filenameMap.get(e.id) || `${e.id}.md`;
+    const preview = (e.content || '').slice(0, 80).replace(/\n/g, ' ');
+    lines.push(`- [${preview}…](./${filename})`);
+  }
+  lines.push('');
+  return lines.join('\n');
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function formatDate(dateStr) {
@@ -120,4 +194,13 @@ function formatDate(dateStr) {
   return d.toISOString().replace('T', ' ').replace(/\.\d+Z$/, ' UTC');
 }
 
-module.exports = { entriesToJson, themesToJson, entriesToMarkdown, themesToMarkdown, embeddingsToJsonl };
+module.exports = {
+  entriesToJson,
+  entriesToJsonl,
+  themesToJson,
+  entriesToMarkdown,
+  themesToMarkdown,
+  embeddingsToJsonl,
+  entryToMarkdownFile,
+  buildMarkdownIndex,
+};

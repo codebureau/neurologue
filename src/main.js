@@ -293,7 +293,7 @@ ipcMain.handle('ollama:open-download', () => {
 // ── Export IPC ───────────────────────────────────────────────────────────────
 
 // Show native folder picker and run export to chosen directory
-ipcMain.handle('export:run', async (_event, { includeEmbeddings = true } = {}) => {
+ipcMain.handle('export:run', async (_event, { formats } = {}) => {
   const { dialog } = require('electron');
   const win = BrowserWindow.getFocusedWindow();
   const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
@@ -303,7 +303,7 @@ ipcMain.handle('export:run', async (_event, { includeEmbeddings = true } = {}) =
   if (canceled || !filePaths || filePaths.length === 0) {
     return { canceled: true };
   }
-  const result = await runExport(filePaths[0], { includeEmbeddings });
+  const result = await runExport(filePaths[0], { formats });
   return { canceled: false, destDir: filePaths[0], ...result };
 });
 

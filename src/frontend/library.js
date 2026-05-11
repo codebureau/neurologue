@@ -1045,7 +1045,7 @@ document.getElementById('btn-history-export').addEventListener('click', async ()
   }
 });
 
-// ── Export ─────────────────────────────────────────────────────────────────
+// ── Export modal ────────────────────────────────────────────────────────────
 
 let _exportToastTimer = null;
 
@@ -1057,16 +1057,43 @@ function showToast(message, type = 'success') {
   _exportToastTimer = setTimeout(() => { exportToast.style.display = 'none'; }, 5000);
 }
 
-exportBtn.addEventListener('click', async () => {
+const exportModal      = document.getElementById('export-modal');
+const exportModalClose = document.getElementById('export-modal-close');
+const exportCancelBtn  = document.getElementById('btn-export-cancel');
+const exportConfirmBtn = document.getElementById('btn-export-confirm');
+const exportFmtChecks  = () => [...document.querySelectorAll('.export-fmt-check')];
+
+function openExportModal() { exportModal.classList.remove('hidden'); }
+function closeExportModal() { exportModal.classList.add('hidden'); }
+
+exportBtn.addEventListener('click', openExportModal);
+exportModalClose.addEventListener('click', closeExportModal);
+exportCancelBtn.addEventListener('click', closeExportModal);
+
+exportModal.addEventListener('click', (e) => {
+  if (e.target === exportModal) closeExportModal();
+});
+
+exportConfirmBtn.addEventListener('click', async () => {
+  const formats = exportFmtChecks()
+    .filter((cb) => cb.checked)
+    .map((cb) => cb.value);
+
+  if (formats.length === 0) {
+    showToast('Select at least one format.', 'error');
+    return;
+  }
+
+  closeExportModal();
   exportBtn.disabled = true;
   exportBtn.textContent = 'Exporting…';
   try {
-    const result = await window.neurologue.exportAll({ includeEmbeddings: true });
+    const result = await window.neurologue.exportAll({ formats });
     if (result.canceled) {
       showToast('Export cancelled.', 'success');
     } else {
       showToast(
-        `Exported ${result.entryCount} entries, ${result.themeCount} themes to ${result.destDir}`,
+        `Exported ${result.entryCount} entries, ${result.themeCount} themes → ${result.destDir}`,
         'success'
       );
     }
