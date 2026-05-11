@@ -109,7 +109,9 @@ async function runExport(destDir, { formats = ['json', 'jsonl', 'markdown', 'mar
       const safeName = (t.display_name || t.name)
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+        .replace(/^-|-$/g, '')
+        .slice(0, 60)          // guard against Windows MAX_PATH on long AI names
+        .replace(/-+$/, '');   // strip any trailing dash after truncation
       const themePath = path.join(themeMdDir, `${safeName}.md`);
       const themeLines = [
         `# ${t.display_name || t.name}`,
