@@ -29,9 +29,14 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Themes ───────────────────────────────────────────────────────────────
   listThemes: () => ipcRenderer.invoke('themes:list'),
   getTheme: (id) => ipcRenderer.invoke('themes:get', { id }),
-  renameTheme: (id, newName) => ipcRenderer.invoke('themes:rename', { id, newName }),
+  renameTheme:  (id, newName) => ipcRenderer.invoke('themes:rename', { id, newName }),
+  deleteTheme:  (id)          => ipcRenderer.invoke('themes:delete', { id }),
   triggerClustering: () => ipcRenderer.invoke('themes:cluster'),
   getThemeWeeklyActivity: (id, weeks) => ipcRenderer.invoke('themes:weekly-activity', { id, weeks }),
+
+  // ── Entry delete ─────────────────────────────────────────────────────────
+  deleteEntry:      (id)  => ipcRenderer.invoke('library:delete-entry', { id }),
+  bulkDeleteEntries: (ids) => ipcRenderer.invoke('library:bulk-delete-entries', { ids }),
   // ── Export ───────────────────────────────────────────────────────────────
   exportAll: (opts) => ipcRenderer.invoke('export:run', opts),
 
@@ -73,5 +78,6 @@ contextBridge.exposeInMainWorld('neurologue', {
   checkOllamaInstalled: ()    => ipcRenderer.invoke('ollama:check-installed'),
   pullModel:           (name) => ipcRenderer.invoke('ollama:pull-model', { name }),
   onPullProgress:      (cb)   => { ipcRenderer.on('ollama:pull-progress', (_e, d) => cb(d)); },
+  onIpcError:          (cb)   => { ipcRenderer.on('app:ipc-error', (_e, d) => cb(d)); },
 });
 

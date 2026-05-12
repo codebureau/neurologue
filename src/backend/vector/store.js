@@ -54,12 +54,15 @@ async function upsertVector(entryId, vector, modelName) {
 async function searchNearest(queryVector, topN = 10) {
   if (!_table) throw new Error('Vector store not initialised. Call initVectorStore() first.');
 
-  const results = await _table
+  const raw = await _table
     .search(Array.from(queryVector))
     .limit(topN)
     .execute();
 
-  return results;
+  // LanceDB 0.17+ may return an Arrow Table rather than a plain array
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw.toArray === 'function') return raw.toArray();
+  return Array.from(raw);
 }
 
 /**

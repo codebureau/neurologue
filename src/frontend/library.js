@@ -633,8 +633,8 @@ async function _loadSimilarEntries(entryId) {
       card.addEventListener('click', () => selectEntry(entry.id));
       similarList.appendChild(card);
     });
-  } catch {
-    // leave section hidden on error
+  } catch (err) {
+    showToast(`Similar entries failed: ${err && err.message ? err.message : err}`, 'error');
   }
 }
 
@@ -1213,6 +1213,11 @@ statusErrorBadge.addEventListener('click', () => {
 });
 
 window.neurologue.onWorkerStatus(updateStatus);
+
+// Surface unexpected main-process IPC errors as toasts so they are visible
+window.neurologue.onIpcError(({ channel, message }) => {
+  showToast(`Error (${channel}): ${message}`, 'error');
+});
 
 // ── Theme ───────────────────────────────────────────────────────────────────
 
