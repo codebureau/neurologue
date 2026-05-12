@@ -3,15 +3,14 @@
 const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron');
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
-const { initVectorStore } = require('./backend/vector/store');
-const { createEntry, listEntries, updateEntry, getEntryRevisions, updateEntryCategory, getActivityByDay } = require('./backend/db/entries');
+const { initVectorStore, searchNearest, deleteVector } = require('./backend/vector/store');
+const { createEntry, listEntries, updateEntry, deleteEntry, getEntryRevisions, updateEntryCategory, getActivityByDay } = require('./backend/db/entries');
 const { setTagsForEntry, listTags, listTagsWithCounts, renameTag, deleteTag, mergeTag, findSimilarTags } = require('./backend/db/tags');
 const { searchEntriesText, listEntriesByTag, getEntryWithTags, listEntriesWithTags, listEntriesFiltered, listCategoriesWithCounts } = require('./backend/db/search');
-const { searchNearest } = require('./backend/vector/store');
 const { getEmbedding } = require('./backend/db/embeddings');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, suggestTags } = require('./worker/ollama');
 const { getSettings, saveSettings } = require('./backend/settings');
-const { listThemes, getThemeById, renameTheme, getThemeWeeklyActivity } = require('./backend/db/themes');
+const { listThemes, getThemeById, renameTheme, deleteTheme, getThemeWeeklyActivity } = require('./backend/db/themes');
 const { listContradictions, resolveContradiction, dismissContradiction } = require('./backend/db/contradictions');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
@@ -25,6 +24,27 @@ async function initialise() {
 }
 
 let _mainWindow = null;
+
+/**
+ * Wrap an IPC handler so that unhandled rejections are forwarded to the
+ * renderer as a toast notification rather than silently disappearing.
+ * @param {string} channel
+ * @param {Function} fn
+ */
+function handle(channel, fn) {
+  ipcMain.handle(channel, async (event, ...args) => {
+    try {
+      return await fn(event, ...args);
+    } catch (err) {
+      const msg = err && err.message ? err.message : String(err);
+      console.error(`[IPC] ${channel} threw:`, err);
+      if (_mainWindow && !_mainWindow.isDestroyed()) {
+        _mainWindow.webContents.send('app:ipc-error', { channel, message: msg });
+      }
+      throw err; // still reject so the renderer's own catch can handle it
+    }
+  });
+}
 
 function createMainWindow() {
   _mainWindow = new BrowserWindow({
@@ -74,7 +94,7 @@ ipcMain.handle('library:search-text', async (_event, { query, tag, category, lim
 ipcMain.handle('library:list-categories', async () => listCategoriesWithCounts());
 
 // Semantic search — requires Ollama to be running
-ipcMain.handle('library:search-semantic', async (_event, { query, topN = 10 }) => {
+handle('library:search-semantic', async (_event, { query, topN = 10 }) => {
   const available = await isOllamaAvailable();
   if (!available) return { ok: false, reason: 'ollama_unavailable', results: [] };
   const queryVector = await generateEmbedding(query);
@@ -90,7 +110,7 @@ ipcMain.handle('library:search-semantic', async (_event, { query, topN = 10 }) =
 });
 
 // Semantic neighbours — find entries similar to a given entry (no Ollama needed)
-ipcMain.handle('library:similar-entries', async (_event, { id, topN = 8 }) => {
+handle('library:similar-entries', async (_event, { id, topN = 8 }) => {
   const emb = await getEmbedding(id);
   if (!emb) return { ok: false, reason: 'no_embedding', results: [] };
   // topN + 1 so we can exclude the source entry itself
@@ -125,6 +145,31 @@ ipcMain.handle('library:set-category', async (_event, { id, category }) => {
   if (!id) return { ok: false, error: 'Invalid input' };
   const entry = await updateEntryCategory(id, category || null, 'user');
   return entry ? { ok: true, entry } : { ok: false, error: 'Entry not found' };
+});
+
+// Delete a single entry (SQLite rows + LanceDB vector)
+ipcMain.handle('library:delete-entry', async (_event, { id }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  await deleteEntry(id);
+  await deleteVector(id).catch(() => {}); // vector may not exist yet — ignore
+  return { ok: true };
+});
+
+// Delete multiple entries in one call
+ipcMain.handle('library:bulk-delete-entries', async (_event, { ids }) => {
+  if (!Array.isArray(ids) || ids.length === 0) return { ok: false, error: 'Invalid input' };
+  for (const id of ids) {
+    await deleteEntry(id);
+    await deleteVector(id).catch(() => {});
+  }
+  return { ok: true, deleted: ids.length };
+});
+
+// Delete a theme
+ipcMain.handle('library:delete-theme', async (_event, { id }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  await deleteTheme(id);
+  return { ok: true };
 });
 
 // List all tags (for sidebar)
@@ -248,6 +293,12 @@ ipcMain.handle('themes:get', async (_event, { id }) => {
 ipcMain.handle('themes:rename', async (_event, { id, newName }) => {
   if (!newName || !newName.trim()) throw new Error('Name cannot be empty');
   return renameTheme(id, newName.trim());
+});
+
+ipcMain.handle('themes:delete', async (_event, { id }) => {
+  if (!id) return { ok: false, error: 'Invalid input' };
+  await deleteTheme(id);
+  return { ok: true };
 });
 
 ipcMain.handle('themes:weekly-activity', async (_e, { id, weeks = 12 }) =>

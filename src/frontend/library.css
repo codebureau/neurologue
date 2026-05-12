@@ -863,6 +863,19 @@ html, body {
 .btn-secondary:hover { border-color: var(--cortex-teal); color: var(--text); }
 .btn-secondary.active { border-color: var(--cortex-teal); color: var(--cortex-teal); }
 
+.btn-danger {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  border-radius: var(--radius);
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.1s, color 0.1s;
+}
+.btn-danger:hover { background: var(--danger); color: #fff; }
+
 /* ── Edit toolbar ──────────────────────────────────────────────────────── */
 #edit-toolbar {
   display: flex;
@@ -1214,6 +1227,8 @@ html, body {
   line-height: 1;
 }
 .btn-icon-sm:hover { border-color: var(--border); color: var(--text); }
+.btn-icon-danger { color: var(--danger); }
+.btn-icon-danger:hover { border-color: var(--danger); color: var(--danger); }
 
 #themes-rename-form {
   display: none;

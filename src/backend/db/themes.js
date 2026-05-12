@@ -117,12 +117,15 @@ async function getThemeWeeklyActivity(themeId, weeks = 12) {
 }
 
 /**
- * Delete a theme by ID.
+ * Delete a theme by ID, including all its entry assignments.
  * @param {string} id
  */
 async function deleteTheme(id) {
   const db = await openDb();
-  db.prepare('DELETE FROM themes WHERE id = ?').run(id);
+  db.transaction(() => {
+    db.prepare('DELETE FROM theme_entries WHERE theme_id = ?').run(id);
+    db.prepare('DELETE FROM themes WHERE id = ?').run(id);
+  })();
 }
 
 /**
