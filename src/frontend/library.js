@@ -1049,6 +1049,23 @@ document.getElementById('btn-history-export').addEventListener('click', async ()
 
 // ── Export modal ────────────────────────────────────────────────────────────
 
+// Delete entry
+document.getElementById('btn-delete-entry').addEventListener('click', async () => {
+  if (!_state.selectedId) return;
+  const confirmed = confirm('Delete this note permanently? This cannot be undone.');
+  if (!confirmed) return;
+  const id = _state.selectedId;
+  const result = await window.neurologue.deleteEntry(id);
+  if (!result.ok) { alert(`Delete failed: ${result.error}`); return; }
+  _state.selectedId = null;
+  await loadEntries();
+  await loadTags();
+  await loadCategories();
+  // Clear detail panel
+  document.getElementById('detail-placeholder').removeAttribute('hidden');
+  document.getElementById('detail-content').setAttribute('hidden', '');
+});
+
 let _exportToastTimer = null;
 
 function showToast(message, type = 'success') {
@@ -2142,6 +2159,20 @@ themesRenameCancel.addEventListener('click', closeRenameForm);
 themesRenameInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter')  saveRename();
   if (e.key === 'Escape') closeRenameForm();
+});
+
+document.getElementById('themes-btn-delete').addEventListener('click', async () => {
+  if (!_themesActiveId) return;
+  const name = themesDetailName.textContent || 'this theme';
+  const confirmed = confirm(`Delete theme "${name}"?\n\nThe entries will not be deleted, but theme assignments will be removed.`);
+  if (!confirmed) return;
+  const result = await window.neurologue.deleteTheme(_themesActiveId);
+  if (!result.ok) { alert(`Delete failed: ${result.error}`); return; }
+  _themesActiveId = null;
+  // Hide detail panel and reload list
+  themesDetailCont.style.display = 'none';
+  themesDetailPh.style.display   = '';
+  await loadThemesView();
 });
 
 // ── Contradictions view controller ──────────────────────────────────────────
