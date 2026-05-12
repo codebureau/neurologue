@@ -1196,6 +1196,20 @@ statusErrorBadge.addEventListener('click', () => {
 });
 
 window.neurologue.onWorkerStatus(updateStatus);
+
+// ── Theme ───────────────────────────────────────────────────────────────────
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme || 'dark');
+  document.querySelectorAll('.theme-toggle-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.themeValue === (theme || 'dark'));
+  });
+}
+
+document.querySelectorAll('.theme-toggle-btn').forEach((btn) => {
+  btn.addEventListener('click', () => applyTheme(btn.dataset.themeValue));
+});
+
 window.neurologue.onEntriesUpdated(async () => {
   await loadEntries();
   await loadTags();
@@ -1463,6 +1477,9 @@ btnSettings.addEventListener('click', async () => {
   hotkeyDisplay.dataset.saved = currentHotkey;
   hotkeyDisplay.textContent   = formatAccelerator(currentHotkey);
 
+  // Populate appearance toggle
+  applyTheme(settings.theme || 'dark');
+
   // Populate worker interval inputs
   const wi = settings.workerIntervals || {};
   const inputEmbed  = document.getElementById('input-interval-embedding');
@@ -1502,11 +1519,15 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
+  const selectedTheme = document.querySelector('.theme-toggle-btn.active')?.dataset.themeValue || 'dark';
+  applyTheme(selectedTheme);
+
   await window.neurologue.saveSettings({
     embeddingModel: embedModel,
     llmModel,
     tagSuggestionFormat: tagFmt,
     tagSimilarityThreshold,
+    theme: selectedTheme,
     workerIntervals: {
       embedding:     parseInt(document.getElementById('input-interval-embedding').value, 10)    || 60,
       clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
@@ -2299,6 +2320,10 @@ btnScan.addEventListener('click', async () => {
 // ── Init ────────────────────────────────────────────────────────────
 
 (async () => {
+  // Apply persisted theme before first paint
+  const initSettings = await window.neurologue.getSettings();
+  applyTheme(initSettings.theme || 'dark');
+
   await loadTags();
   await loadCategories();
   await loadEntries();

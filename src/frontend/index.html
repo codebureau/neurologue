@@ -398,8 +398,9 @@
         <button class="settings-tab active" data-tab="models" role="tab" aria-selected="true">Models</button>
         <button class="settings-tab" data-tab="tags"    role="tab" aria-selected="false">Tags</button>
         <button class="settings-tab" data-tab="hotkey"  role="tab" aria-selected="false">Hotkey</button>
-        <button class="settings-tab" data-tab="worker"  role="tab" aria-selected="false">Worker</button>
-        <button class="settings-tab" data-tab="data"    role="tab" aria-selected="false">Data</button>
+        <button class="settings-tab" data-tab="worker"     role="tab" aria-selected="false">Worker</button>
+        <button class="settings-tab" data-tab="appearance" role="tab" aria-selected="false">Appearance</button>
+        <button class="settings-tab" data-tab="data"       role="tab" aria-selected="false">Data</button>
       </div>
 
       <!-- Models panel -->
@@ -472,6 +473,18 @@
         <div class="settings-field">
           <label>Activity log <button id="btn-refresh-worker-log" class="btn-secondary btn-sm" style="margin-left:8px">Refresh</button></label>
           <div id="worker-log-panel" class="worker-log-panel"><span class="worker-log-empty">No tasks recorded yet.</span></div>
+        </div>
+      </div>
+
+      <!-- Appearance panel -->
+      <div class="settings-panel hidden" id="settings-tab-appearance">
+        <p class="settings-panel-desc">Choose your preferred colour scheme.</p>
+        <div class="settings-field">
+          <label>Colour scheme</label>
+          <div class="theme-toggle-group" id="theme-toggle-group">
+            <button class="theme-toggle-btn active" data-theme-value="dark">Dark</button>
+            <button class="theme-toggle-btn" data-theme-value="light">Light</button>
+          </div>
         </div>
       </div>
 

@@ -15,4 +15,7 @@ contextBridge.exposeInMainWorld('capture', {
 
   /** Close the popup without saving. */
   close: () => ipcRenderer.send('capture:close'),
+
+  /** Read persisted settings. */
+  getSettings: () => ipcRenderer.invoke('settings:get'),
 });
