@@ -343,3 +343,8 @@ function hideError() {
 }
 
 contentEl.focus();
+
+// Apply persisted theme
+window.capture.getSettings().then((s) => {
+  document.documentElement.setAttribute('data-theme', (s && s.theme) || 'dark');
+});

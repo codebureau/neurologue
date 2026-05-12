@@ -34,6 +34,7 @@ describe('getSettings', () => {
     const s = getSettings();
     expect(s.embeddingModel).toBe('nomic-embed-text');
     expect(s.llmModel).toBe('phi3:mini');
+    expect(s.theme).toBe('dark');
   });
 
   test('returns defaults merged with saved values', () => {

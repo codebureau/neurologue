@@ -19,6 +19,27 @@
   --detail-w:     360px;
 }
 
+/* ── Light theme overrides ────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:           #F0F4F8;
+  --surface:      #FFFFFF;
+  --surface2:     #E4ECF3;
+  --border:       #C5D4E0;
+  --text:         #1A2C3D;
+  --text-muted:   #3A5A78;
+  --text-dim:     #5A7A95;
+  --neuro-blue:   #DDEAF4;
+  --synapse-gold: #A07820;
+}
+
+/* Category badge light-theme overrides — pale tinted backgrounds */
+[data-theme="light"] .category-badge[data-cat="Task"]     { background: #d6f0e2; border-color: #7dcda5; color: #1a6640; }
+[data-theme="light"] .category-badge[data-cat="Thought"]  { background: #d6e8f7; border-color: #7ab5dc; color: #1a4a70; }
+[data-theme="light"] .category-badge[data-cat="Reminder"] { background: #fde8d2; border-color: #e0a06a; color: #7a3a10; }
+[data-theme="light"] .category-badge[data-cat="Idea"]     { background: #fdf0d2; border-color: #d4b050; color: #6a4a08; }
+[data-theme="light"] .category-badge[data-cat="Question"] { background: #ece0f7; border-color: #b090d8; color: #4a2080; }
+[data-theme="light"] .category-badge[data-cat="Decision"] { background: #fadddd; border-color: #e09090; color: #7a1a1a; }
+
 html, body {
   height: 100%;
   background: var(--bg);
@@ -2175,3 +2196,26 @@ html, body {
   outline: none;
 }
 .settings-number-input:focus { border-color: var(--cortex-teal); }
+
+/* ── Theme toggle ─────────────────────────────────────────────────────── */
+.theme-toggle-group {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.theme-toggle-btn {
+  padding: 6px 20px;
+  background: var(--surface2);
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.theme-toggle-btn + .theme-toggle-btn { border-left: 1px solid var(--border); }
+.theme-toggle-btn.active {
+  background: var(--cortex-teal);
+  color: #fff;
+}

@@ -16,7 +16,7 @@ const config = require('../config');
 
 const SETTINGS_PATH = config.settings.path;
 
-/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string, tagSuggestionFormat: string, tagSimilarityThreshold: number, workerIntervals: object }} */
+/** @type {{ embeddingModel: string, llmModel: string, captureHotkey: string, tagSuggestionFormat: string, tagSimilarityThreshold: number, workerIntervals: object, theme: string }} */
 const DEFAULTS = {
   embeddingModel:         config.ollama.embeddingModel,
   llmModel:               config.ollama.llmModel,
@@ -28,6 +28,7 @@ const DEFAULTS = {
     clustering:    300,  // seconds between clustering runs (also triggers theming)
     contradiction: 900,  // seconds between contradiction scan runs
   },
+  theme: 'dark',          // 'dark' | 'light'
 };
 
 /**
