@@ -122,3 +122,50 @@ describe('runClustering', () => {
     expect(countAfterSecond).toBe(countAfterFirst);
   });
 });
+
+// ── _cleanThemeName ──────────────────────────────────────────────────────────
+
+describe('_cleanThemeName', () => {
+  let _cleanThemeName;
+  beforeEach(() => {
+    jest.resetModules();
+    ({ _cleanThemeName } = require('../../../src/backend/clustering/themes'));
+  });
+
+  test('returns a clean short name unchanged', () => {
+    expect(_cleanThemeName('Personal Knowledge Tools')).toBe('Personal Knowledge Tools');
+  });
+
+  test('strips markdown bold artefacts', () => {
+    expect(_cleanThemeName('**Neurologue UI Exploration**')).toBe('Neurologue UI Exploration');
+  });
+
+  test('strips leading and trailing double quotes', () => {
+    expect(_cleanThemeName('"Creative Writing Projects"')).toBe('Creative Writing Projects');
+  });
+
+  test('strips leading and trailing curly quotes', () => {
+    expect(_cleanThemeName('\u201cBook Strategy\u201d')).toBe('Book Strategy');
+  });
+
+  test('truncates to first 4 words when LLM returns a sentence (6+ words)', () => {
+    expect(_cleanThemeName('This cluster is about exploring productivity tools and workflows'))
+      .toBe('This cluster is about');
+  });
+
+  test('keeps a 5-word name as-is', () => {
+    expect(_cleanThemeName('Daily Habits And Routine Tracking')).toBe('Daily Habits And Routine Tracking');
+  });
+
+  test('collapses internal whitespace', () => {
+    expect(_cleanThemeName('Personal   Knowledge   Tools')).toBe('Personal Knowledge Tools');
+  });
+
+  test('returns empty string for empty input', () => {
+    expect(_cleanThemeName('')).toBe('');
+  });
+
+  test('strips leading dashes (bullet point artefact)', () => {
+    expect(_cleanThemeName('- Neurologue Tools')).toBe('Neurologue Tools');
+  });
+});
