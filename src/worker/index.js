@@ -118,9 +118,9 @@ async function processBatch() {
   _push('worker:status', await _buildStatus(true));
 
   const batch = entryIds.slice(0, BATCH_SIZE);
+  const embedLog = _logStart('embedding');
   if (batch.length > 0) {
     console.log(`[worker] Embedding ${batch.length} of ${entryIds.length} pending entries`);
-    const embedLog = _logStart('embedding');
     let newEmbeddings = 0;
     let embedErrors = 0;
     for (const id of batch) {
@@ -160,6 +160,8 @@ async function processBatch() {
     if (newEmbeddings > 0) {
       _push('worker:entries-updated', {});
     }
+  } else {
+    _logEnd(embedLog, 'success', 'queue empty');
   }
 
   // ── Pass 2: classify entries that are embedded but have no category ───
@@ -167,8 +169,8 @@ async function processBatch() {
   _classifyQueueLength = unclassifiedIds.length;
   _push('worker:status', await _buildStatus(true));
 
+  const classLog = _logStart('classification');
   if (unclassifiedIds.length > 0) {
-    const classLog = _logStart('classification');
     let newCategories = 0;
     let classErrors = 0;
     for (const id of unclassifiedIds) {
@@ -191,6 +193,8 @@ async function processBatch() {
     if (newCategories > 0) {
       _push('worker:entries-updated', {});
     }
+  } else {
+    _logEnd(classLog, 'success', 'queue empty');
   }
 
   // ── Clustering (time-based interval + after enough new embeddings) ─────
