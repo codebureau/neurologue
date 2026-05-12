@@ -16,7 +16,7 @@ const { listContradictions, resolveContradiction, dismissContradiction } = requi
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus, reindexAll, reindexEntry, scanContradictions } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions } = require('./worker/index');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -349,7 +349,15 @@ ipcMain.handle('worker:reindex-entry', async (_e, { id }) => {
 // ── Settings IPC ──────────────────────────────────────────────────────────
 
 ipcMain.handle('settings:get', () => getSettings());
-ipcMain.handle('settings:save', (_e, updates) => saveSettings(updates));
+ipcMain.handle('settings:save', (_e, updates) => {
+  const result = saveSettings(updates);
+  // Propagate interval changes to running worker immediately
+  if (updates.workerIntervals) setWorkerIntervals(updates.workerIntervals);
+  return result;
+});
+
+// ── Worker log IPC ───────────────────────────────────────────────────────
+ipcMain.handle('worker:get-log', () => getWorkerLog());
 
 // ── Hotkey IPC ────────────────────────────────────────────────────────────
 

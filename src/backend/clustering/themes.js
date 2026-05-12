@@ -102,17 +102,8 @@ async function runClustering() {
     let description = '';
     if (ollamaUp) {
       const topContent = scored.slice(0, 5).map((m, n) => `${n + 1}. ${m.content}`).join('\n');
-      try {
-        const namePrompt =
-          `You are a personal knowledge assistant. The following are a cluster of related journal entries:\n\n${topContent}\n\n` +
-          `Give this cluster a short, meaningful name of 2–4 words that captures its essence. ` +
-          `Use title case. Reply with the name only — no punctuation, no explanation.`;
-        themeName = await generateTextCompletion(namePrompt);
-        // Trim stray punctuation/quotes the LLM occasionally adds
-        themeName = themeName.replace(/^["'""]+|["'""]+$/g, '').trim() || `Theme ${i + 1}`;
-      } catch (err) {
-        console.warn(`[clustering] LLM name generation failed for cluster ${i}:`, err.message);
-      }
+
+      // Generate description first so it can serve as name fallback
       try {
         const summaryPrompt =
           `You are a personal knowledge assistant. The following are a cluster of related journal entries:\n\n${topContent}\n\n` +
@@ -121,6 +112,25 @@ async function runClustering() {
         description = await generateTextCompletion(summaryPrompt);
       } catch (err) {
         console.warn(`[clustering] LLM summary failed for cluster ${i}:`, err.message);
+      }
+
+      try {
+        const namePrompt =
+          `You are a personal knowledge assistant. The following are a cluster of related journal entries:\n\n${topContent}\n\n` +
+          `Give this cluster a short, meaningful name of 2–4 words that captures its essence. ` +
+          `Use title case. Reply with the name only — no punctuation, no explanation.`;
+        const raw = await generateTextCompletion(namePrompt);
+        // Strip markdown artefacts and clamp to 4 words if LLM returns a sentence
+        const cleaned = _cleanThemeName(raw);
+        themeName = cleaned || themeName;
+      } catch (err) {
+        console.warn(`[clustering] LLM name generation failed for cluster ${i}:`, err.message);
+      }
+
+      // If name is still a placeholder but we have a description, derive from it
+      if (/^Theme \d+$/.test(themeName) && description) {
+        const firstWords = description.replace(/\s+/g, ' ').trim().split(' ').slice(0, 4).join(' ');
+        themeName = firstWords || themeName;
       }
     }
 
@@ -178,4 +188,21 @@ function generateTextCompletion(prompt) {
   });
 }
 
-module.exports = { runClustering };
+module.exports = { runClustering, _cleanThemeName };
+
+/**
+ * Sanitise a raw LLM name response into a clean 2–5 word title.
+ * Exported for unit testing.
+ * @param {string} raw
+ * @returns {string}
+ */
+function _cleanThemeName(raw) {
+  const cleaned = raw
+    .replace(/[*_`#>\-]/g, '')  // markdown symbols
+    .replace(/^[\s"'\u201c\u201d\u2018\u2019([\]]+|[\s"'\u201c\u201d\u2018\u2019)[\]]+$/g, '') // brackets/quotes
+    .replace(/\s+/g, ' ')        // collapse whitespace
+    .trim();
+  const words = cleaned.split(' ').filter(Boolean);
+  // If LLM returned a sentence instead of 2–4 words, take the first 4
+  return words.length > 5 ? words.slice(0, 4).join(' ') : cleaned;
+}

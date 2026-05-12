@@ -52,8 +52,10 @@ const exportToast   = document.getElementById('export-toast');
 const newNoteBtn    = document.getElementById('btn-new-note');
 const helpBtn       = document.getElementById('btn-help');
 const semanticNotice = document.getElementById('semantic-notice');
-const statusOllama  = document.getElementById('status-ollama');
-const statusWorker  = document.getElementById('status-worker');
+const statusOllama     = document.getElementById('status-ollama');
+const statusWorker     = document.getElementById('status-worker');
+const statusTask       = document.getElementById('status-task');
+const statusErrorBadge = document.getElementById('status-error-badge');
 
 // ── Timeline controls DOM refs ─────────────────────────────────────────────
 const grpNoneBtn      = document.getElementById('grp-none');
@@ -1113,7 +1115,14 @@ newNoteBtn.addEventListener('click', () => {
   window.neurologue.openCapture();
 });
 
-// ── Status bar ──────────────────────────────────────────────────────
+// ── Status bar ──────────────────────────────────────────────────────────────
+
+const TASK_LABELS = {
+  embedding:          'Embedding',
+  classification:     'Classifying',
+  clustering:         'Clustering',
+  'contradiction-scan': 'Contradiction scan',
+};
 
 function updateStatus({ worker, ollama } = {}) {
   if (ollama) {
@@ -1144,8 +1153,47 @@ function updateStatus({ worker, ollama } = {}) {
       label = 'Worker idle';
     }
     statusWorker.innerHTML = `<span class="status-dot ${dot}"></span>${label}`;
+
+    // Current task in-progress indicator
+    if (worker.currentTask) {
+      const taskLabel = TASK_LABELS[worker.currentTask.task] || worker.currentTask.task;
+      statusTask.innerHTML = `<span class="status-task-spinner"></span>${taskLabel}…`;
+      statusTask.classList.remove('hidden');
+    } else {
+      statusTask.classList.add('hidden');
+    }
+
+    // Error badge
+    if (worker.lastError) {
+      statusErrorBadge.classList.remove('hidden');
+    } else {
+      statusErrorBadge.classList.add('hidden');
+    }
   }
 }
+
+// Live task started/completed → update status task indicator
+window.neurologue.onWorkerTaskStarted(({ task }) => {
+  const label = TASK_LABELS[task] || task;
+  statusTask.innerHTML = `<span class="status-task-spinner"></span>${label}…`;
+  statusTask.classList.remove('hidden');
+});
+
+window.neurologue.onWorkerTaskCompleted(({ task, status, message }) => {
+  statusTask.classList.add('hidden');
+  if (status === 'error') {
+    statusErrorBadge.classList.remove('hidden');
+    statusErrorBadge.title = `${TASK_LABELS[task] || task} failed: ${message}`;
+  }
+});
+
+// Clicking the error badge opens Settings → Worker tab
+statusErrorBadge.addEventListener('click', () => {
+  settingsModal.classList.remove('hidden');
+  window.neurologue.pauseHotkey();
+  activateSettingsTab('worker');
+  renderWorkerLog();
+});
 
 window.neurologue.onWorkerStatus(updateStatus);
 window.neurologue.onEntriesUpdated(async () => {
@@ -1415,6 +1463,15 @@ btnSettings.addEventListener('click', async () => {
   hotkeyDisplay.dataset.saved = currentHotkey;
   hotkeyDisplay.textContent   = formatAccelerator(currentHotkey);
 
+  // Populate worker interval inputs
+  const wi = settings.workerIntervals || {};
+  const inputEmbed  = document.getElementById('input-interval-embedding');
+  const inputClust  = document.getElementById('input-interval-clustering');
+  const inputContra = document.getElementById('input-interval-contradiction');
+  if (inputEmbed)  inputEmbed.value  = wi.embedding     ?? 60;
+  if (inputClust)  inputClust.value  = wi.clustering    ?? 300;
+  if (inputContra) inputContra.value = wi.contradiction ?? 900;
+
   activateSettingsTab('models');
   settingsModal.classList.remove('hidden');
   window.neurologue.pauseHotkey();
@@ -1445,7 +1502,17 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
-  await window.neurologue.saveSettings({ embeddingModel: embedModel, llmModel, tagSuggestionFormat: tagFmt, tagSimilarityThreshold });
+  await window.neurologue.saveSettings({
+    embeddingModel: embedModel,
+    llmModel,
+    tagSuggestionFormat: tagFmt,
+    tagSimilarityThreshold,
+    workerIntervals: {
+      embedding:     parseInt(document.getElementById('input-interval-embedding').value, 10)    || 60,
+      clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
+      contradiction: parseInt(document.getElementById('input-interval-contradiction').value, 10) || 900,
+    },
+  });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
   setTimeout(() => msg.classList.add('hidden'), 2000);
@@ -1463,6 +1530,68 @@ document.getElementById('btn-reindex-all').addEventListener('click', async () =>
   settingsModal.classList.add('hidden');
   window.neurologue.resumeHotkey();
   console.info(`[library] Reindex started — ${queued} entries queued`);
+});
+
+// ── Worker log ───────────────────────────────────────────────────────────────
+
+function _formatWLTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+async function renderWorkerLog() {
+  const panel = document.getElementById('worker-log-panel');
+  if (!panel) return;
+  const entries = await window.neurologue.getWorkerLog();
+  panel.innerHTML = '';
+  if (!entries || entries.length === 0) {
+    const empty = document.createElement('span');
+    empty.className = 'worker-log-empty';
+    empty.textContent = 'No tasks recorded yet.';
+    panel.appendChild(empty);
+    return;
+  }
+  // Newest first
+  [...entries].reverse().forEach((e) => {
+    const row = document.createElement('div');
+    row.className = 'worker-log-row';
+
+    const dot = document.createElement('span');
+    dot.className = `wlr-status ${e.status || 'running'}`;
+    row.appendChild(dot);
+
+    const task = document.createElement('span');
+    task.className = 'wlr-task';
+    task.textContent = TASK_LABELS[e.task] || e.task;
+    row.appendChild(task);
+
+    const msg = document.createElement('span');
+    msg.className = 'wlr-msg';
+    msg.textContent = e.message || '';
+    row.appendChild(msg);
+
+    const dur = document.createElement('span');
+    dur.className = 'wlr-dur';
+    dur.textContent = e.durationMs != null ? `${e.durationMs}ms` : '…';
+    row.appendChild(dur);
+
+    const time = document.createElement('span');
+    time.className = 'wlr-time';
+    time.textContent = _formatWLTime(e.startedAt);
+    row.appendChild(time);
+
+    panel.appendChild(row);
+  });
+}
+
+document.getElementById('btn-refresh-worker-log').addEventListener('click', renderWorkerLog);
+
+// Load the worker log whenever the Worker settings tab is activated
+document.querySelectorAll('.settings-tab').forEach((tab) => {
+  if (tab.dataset.tab === 'worker') {
+    tab.addEventListener('click', renderWorkerLog);
+  }
 });
 
 // ── Tag Management modal ─────────────────────────────────────────────────────

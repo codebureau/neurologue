@@ -46,9 +46,10 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  const { stopWorker, resumeWorker } = require('../../../src/worker/index');
+  const { stopWorker, resumeWorker, clearWorkerLog } = require('../../../src/worker/index');
   stopWorker();
   resumeWorker(); // reset _paused in case a test set it
+  clearWorkerLog(); // reset task log and currentTask/_lastError
 });
 
 // ---------------------------------------------------------------------------
@@ -241,5 +242,82 @@ describe('workerStatus', () => {
     const status = workerStatus();
     expect(status.running).toBe(false);
     expect(status.paused).toBe(false);
+  });
+
+  test('returns currentTask: null and lastError: null initially', () => {
+    const { workerStatus } = require('../../../src/worker/index');
+    const { currentTask, lastError } = workerStatus();
+    expect(currentTask).toBeNull();
+    expect(lastError).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getWorkerLog
+// ---------------------------------------------------------------------------
+
+describe('getWorkerLog', () => {
+  test('returns an empty array initially', () => {
+    const { getWorkerLog } = require('../../../src/worker/index');
+    expect(getWorkerLog()).toEqual([]);
+  });
+
+  test('returns a copy — mutating the result does not affect the log', () => {
+    const { getWorkerLog } = require('../../../src/worker/index');
+    const log = getWorkerLog();
+    log.push({ fake: true });
+    expect(getWorkerLog()).toHaveLength(0);
+  });
+
+  test('records a completed entry after a successful embedding batch', async () => {
+    mockEmbeddings.listEntriesWithoutEmbedding.mockResolvedValue(['id-1']);
+    mockEntries.getEntryById.mockResolvedValue({ id: 'id-1', content: 'hello' });
+
+    const { startWorker, getWorkerLog } = require('../../../src/worker/index');
+    startWorker();
+    await flushAsync();
+
+    const log = getWorkerLog();
+    const embeddingEntry = log.find((e) => e.task === 'embedding');
+    expect(embeddingEntry).toBeDefined();
+    expect(embeddingEntry.status).toBe('success');
+    expect(embeddingEntry.completedAt).toBeDefined();
+    expect(embeddingEntry.durationMs).toBeGreaterThanOrEqual(0);
+  });
+
+  test('records an error entry when all entries in a batch fail to embed', async () => {
+    mockEmbeddings.listEntriesWithoutEmbedding.mockResolvedValue(['fail-id']);
+    mockEntries.getEntryById.mockResolvedValue({ id: 'fail-id', content: 'bad content' });
+    mockOllama.generateEmbedding.mockRejectedValue(new Error('Ollama unavailable'));
+
+    const { startWorker, getWorkerLog } = require('../../../src/worker/index');
+    startWorker();
+    await flushAsync();
+
+    const log = getWorkerLog();
+    const errEntry = log.find((e) => e.task === 'embedding' && e.status === 'error');
+    expect(errEntry).toBeDefined();
+    expect(errEntry.message).toMatch(/failed/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// setWorkerIntervals
+// ---------------------------------------------------------------------------
+
+describe('setWorkerIntervals', () => {
+  test('accepts partial updates without throwing', () => {
+    const { setWorkerIntervals } = require('../../../src/worker/index');
+    expect(() => setWorkerIntervals({ clustering: 120 })).not.toThrow();
+  });
+
+  test('accepts a full update without throwing', () => {
+    const { setWorkerIntervals } = require('../../../src/worker/index');
+    expect(() => setWorkerIntervals({ embedding: 30, clustering: 120, contradiction: 600 })).not.toThrow();
+  });
+
+  test('is a no-op when called with an empty object', () => {
+    const { setWorkerIntervals } = require('../../../src/worker/index');
+    expect(() => setWorkerIntervals({})).not.toThrow();
   });
 });

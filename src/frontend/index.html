@@ -328,6 +328,8 @@
     <div id="status-bar">
       <span id="status-ollama"></span>
       <span id="status-worker"></span>
+      <span id="status-task" class="status-task hidden"></span>
+      <span id="status-error-badge" class="status-error-badge hidden" title="Worker error — click to view log">⚠ error</span>
     </div>
 
   </div><!-- /#app -->
@@ -394,9 +396,10 @@
 
       <div class="settings-tabs" role="tablist">
         <button class="settings-tab active" data-tab="models" role="tab" aria-selected="true">Models</button>
-        <button class="settings-tab" data-tab="tags"   role="tab" aria-selected="false">Tags</button>
-        <button class="settings-tab" data-tab="hotkey" role="tab" aria-selected="false">Hotkey</button>
-        <button class="settings-tab" data-tab="data"   role="tab" aria-selected="false">Data</button>
+        <button class="settings-tab" data-tab="tags"    role="tab" aria-selected="false">Tags</button>
+        <button class="settings-tab" data-tab="hotkey"  role="tab" aria-selected="false">Hotkey</button>
+        <button class="settings-tab" data-tab="worker"  role="tab" aria-selected="false">Worker</button>
+        <button class="settings-tab" data-tab="data"    role="tab" aria-selected="false">Data</button>
       </div>
 
       <!-- Models panel -->
@@ -445,6 +448,30 @@
           </div>
           <span class="settings-hint">Global shortcut to open the capture popup. Must include at least one modifier key (Ctrl, Alt, Shift).</span>
           <span class="hotkey-conflict hidden" id="hotkey-conflict">⚠ That shortcut is already claimed by another application.</span>
+        </div>
+      </div>
+
+      <!-- Worker panel -->
+      <div class="settings-panel hidden" id="settings-tab-worker">
+        <p class="settings-panel-desc">Tune how often background tasks run. Changes take effect immediately.</p>
+        <div class="settings-field">
+          <label for="input-interval-embedding">Embedding scan interval (seconds)</label>
+          <input type="number" id="input-interval-embedding" class="settings-number-input" min="10" max="3600" step="10" value="60" />
+          <span class="settings-hint">How often to check for new entries that need embedding. Default: 60 s.</span>
+        </div>
+        <div class="settings-field">
+          <label for="input-interval-clustering">Clustering interval (seconds)</label>
+          <input type="number" id="input-interval-clustering" class="settings-number-input" min="60" max="86400" step="60" value="300" />
+          <span class="settings-hint">How often to re-cluster entries into themes. Default: 300 s (5 min).</span>
+        </div>
+        <div class="settings-field">
+          <label for="input-interval-contradiction">Contradiction scan interval (seconds)</label>
+          <input type="number" id="input-interval-contradiction" class="settings-number-input" min="60" max="86400" step="60" value="900" />
+          <span class="settings-hint">How often to check for contradicting entries across themes. Default: 900 s (15 min).</span>
+        </div>
+        <div class="settings-field">
+          <label>Activity log <button id="btn-refresh-worker-log" class="btn-secondary btn-sm" style="margin-left:8px">Refresh</button></label>
+          <div id="worker-log-panel" class="worker-log-panel"><span class="worker-log-empty">No tasks recorded yet.</span></div>
         </div>
       </div>
 
