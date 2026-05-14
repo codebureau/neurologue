@@ -374,4 +374,78 @@ async function detectContradiction(textA, textB) {
   return raw.startsWith('YES');
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction };
+/**
+ * Compute entry signals (EVOM components) for a piece of text using an LLM.
+ * Returns a parsed object; falls back to neutral defaults on parse failure.
+ *
+ * @param {string} text
+ * @returns {Promise<{
+ *   sentiment_score: number,
+ *   emotional_intensity: number,
+ *   obligation_flag: boolean,
+ *   motivation_flag: boolean,
+ *   value_reference_flag: boolean,
+ *   open_loop_flag: boolean,
+ * }>}
+ */
+async function computeEntrySignals(text) {
+  const settings = getSettings();
+  const model = settings.llmModel || 'phi3:mini';
+
+  if (_availableModels !== null && !_availableModels.some((m) => m === model || m.startsWith(model + ':'))) {
+    throw new Error(`LLM model '${model}' is not installed — skipping signal computation`);
+  }
+
+  const prompt =
+    'Analyse the following note and respond with a JSON object only — no explanation.\n\n' +
+    'Fields:\n' +
+    '  sentiment_score: number from -1 (very negative) to 1 (very positive)\n' +
+    '  emotional_intensity: number from 0 (neutral) to 1 (highly emotional)\n' +
+    '  obligation_flag: true if the note contains a commitment, deadline, or duty\n' +
+    '  motivation_flag: true if the note expresses desire, enthusiasm, or personal drive\n' +
+    '  value_reference_flag: true if the note references personal values or long-term goals\n' +
+    '  open_loop_flag: true if the note suggests an unresolved question or incomplete action\n\n' +
+    `Note: ${text.slice(0, 600)}\n\n` +
+    'Respond with only valid JSON.';
+
+  const response = await ollamaRequest('/api/generate', {
+    model,
+    prompt,
+    stream: false,
+    options: { temperature: 0, num_predict: 120 },
+  }, 120_000);
+
+  const raw = (response.response || '').trim();
+  // Extract JSON object from response (model may wrap it in markdown)
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) return _neutralSignals();
+
+  try {
+    const parsed = JSON.parse(jsonMatch[0]);
+    return {
+      sentiment_score:      clamp(Number(parsed.sentiment_score)     ?? 0, -1, 1),
+      emotional_intensity:  clamp(Number(parsed.emotional_intensity) ?? 0,  0, 1),
+      obligation_flag:      Boolean(parsed.obligation_flag),
+      motivation_flag:      Boolean(parsed.motivation_flag),
+      value_reference_flag: Boolean(parsed.value_reference_flag),
+      open_loop_flag:       Boolean(parsed.open_loop_flag),
+    };
+  } catch {
+    return _neutralSignals();
+  }
+}
+
+function _neutralSignals() {
+  return {
+    sentiment_score: 0, emotional_intensity: 0,
+    obligation_flag: false, motivation_flag: false,
+    value_reference_flag: false, open_loop_flag: false,
+  };
+}
+
+function clamp(val, min, max) {
+  if (!Number.isFinite(val)) return (min + max) / 2;
+  return Math.min(max, Math.max(min, val));
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction, computeEntrySignals };

@@ -13,14 +13,17 @@
 const { listEntriesWithoutEmbedding, upsertEmbedding, deleteEmbedding, clearAllEmbeddings } = require('../backend/db/embeddings');
 const { getEntryById, updateEntryCategory, listEntriesWithoutCategory } = require('../backend/db/entries');
 const { upsertVector, deleteVector, clearAllVectors } = require('../backend/vector/store');
-const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry, detectContradiction } = require('./ollama');
+const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry, detectContradiction, computeEntrySignals } = require('./ollama');
 const { runClustering } = require('../backend/clustering/themes');
 const { createContradiction, pairExists } = require('../backend/db/contradictions');
+const { upsertEntrySignals, listEntriesWithoutSignals } = require('../backend/db/entry_signals');
+const { upsertThemeMetrics, recomputeAllThemeMetrics } = require('../backend/db/theme_metrics');
 const { getSettings } = require('../backend/settings');
 const config = require('../config');
 
 const BATCH_SIZE = 5;            // process up to 5 entries per tick
 const CLASSIFY_BATCH_SIZE = 3;   // classify up to 3 already-embedded entries per tick
+const SIGNALS_BATCH_SIZE = 3;    // compute signals for up to 3 entries per tick
 // Re-cluster after this many new embeddings are added in one session
 const CLUSTER_AFTER = 5;
 // Maximum contradiction pairs to check per scan pass
@@ -197,6 +200,33 @@ async function processBatch() {
     _logEnd(classLog, 'success', 'queue empty');
   }
 
+  // ── Pass 3: compute entry signals for entries that have none yet ──────
+  const signalIds = await listEntriesWithoutSignals(SIGNALS_BATCH_SIZE);
+  const signalLog = _logStart('signals');
+  if (signalIds.length > 0) {
+    let signalsDone = 0;
+    let signalErrors = 0;
+    for (const id of signalIds) {
+      try {
+        const entry = await getEntryById(id);
+        if (!entry) continue;
+        const signals = await computeEntrySignals(entry.content);
+        // Simple token count: split on whitespace
+        const lengthTokens = entry.content.trim().split(/\s+/).length;
+        await upsertEntrySignals({ entry_id: id, ...signals, length_tokens: lengthTokens });
+        signalsDone++;
+      } catch (err) {
+        signalErrors++;
+        console.warn(`[worker] Signal computation failed for ${id.slice(0, 8)}…: ${err.message}`);
+      }
+    }
+    _logEnd(signalLog,
+      signalErrors > 0 && signalsDone === 0 ? 'error' : 'success',
+      `${signalsDone} signals${signalErrors > 0 ? `, ${signalErrors} failed` : ''}`);
+  } else {
+    _logEnd(signalLog, 'success', 'queue empty');
+  }
+
   // ── Clustering (time-based interval + after enough new embeddings) ─────
   _ticksUntilCluster--;
   const shouldCluster = _embeddedSinceCluster >= CLUSTER_AFTER || _ticksUntilCluster <= 0;
@@ -215,6 +245,11 @@ async function processBatch() {
         _logEnd(clusterLog, 'success', `${result.themes} themes`);
         _push('worker:themes-updated', {});
         clusteringRan = true;
+
+        // Recompute ThemeMetrics now that clusters are fresh
+        recomputeAllThemeMetrics()
+          .then((n) => console.log(`[worker] ThemeMetrics updated for ${n} themes`))
+          .catch((err) => console.warn('[worker] ThemeMetrics recompute failed:', err.message));
       }
     } catch (err) {
       console.error('[worker] Clustering error:', err.message);
