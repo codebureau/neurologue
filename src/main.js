@@ -17,6 +17,7 @@ const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
+const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 // getOllamaStatus and getSettings imported above
 
@@ -333,6 +334,10 @@ ipcMain.handle('contradictions:dismiss', async (_e, { id }) => {
 ipcMain.handle('contradictions:scan', async () => {
   return scanContradictions();
 });
+
+// ── Dashboard IPC ──────────────────────────────────────────────────────────────
+
+handle('dashboard:summary', async () => getDashboardSummary());
 
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 

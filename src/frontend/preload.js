@@ -57,6 +57,9 @@ contextBridge.exposeInMainWorld('neurologue', {
   onWorkerTaskStarted:    (cb) => { ipcRenderer.on('worker:task-started',     (_e, d) => cb(d)); },
   onWorkerTaskCompleted:  (cb) => { ipcRenderer.on('worker:task-completed',   (_e, d) => cb(d)); },
 
+  // ── Dashboard ────────────────────────────────────────────────────────────
+  getDashboardSummary: () => ipcRenderer.invoke('dashboard:summary'),
+
   // ── Contradictions ───────────────────────────────────────────────────────
   listContradictions:   (opts) => ipcRenderer.invoke('contradictions:list', opts),
   resolveContradiction: (id, notes) => ipcRenderer.invoke('contradictions:resolve', { id, notes }),

@@ -1907,6 +1907,7 @@ function activateView(viewId) {
   if (viewId === 'themes')         loadThemesView();
   if (viewId === 'contradictions') loadContradictionsView();
   if (viewId === 'priorities')     loadPrioritiesView();
+  if (viewId === 'explore')        loadDashboardView();
 }
 
 navItems.forEach(btn => {
@@ -2539,6 +2540,147 @@ btnPriRecompute.addEventListener('click', async () => {
     btnPriRecompute.textContent = '↻';
   }
 });
+
+// ── Cognitive Dashboard view controller ─────────────────────────────────────
+
+const dashNumEntries       = document.getElementById('dash-num-entries');
+const dashNumWeek          = document.getElementById('dash-num-week');
+const dashNumLoops         = document.getElementById('dash-num-loops');
+const dashNumContradictions = document.getElementById('dash-num-contradictions');
+const dashDensityChart     = document.getElementById('dash-density-chart');
+const dashActiveThemes     = document.getElementById('dash-active-themes');
+const dashActiveCount      = document.getElementById('dash-active-count');
+const dashEmergingThemes   = document.getElementById('dash-emerging-themes');
+const dashEmergingCount    = document.getElementById('dash-emerging-count');
+const dashOpenLoops        = document.getElementById('dash-open-loops');
+const dashLoopsCount       = document.getElementById('dash-loops-count');
+const dashRecentCaptures   = document.getElementById('dash-recent-captures');
+const btnDashRefresh       = document.getElementById('btn-dash-refresh');
+
+function _truncate(text, len = 72) {
+  if (!text) return '—';
+  return text.length > len ? text.slice(0, len) + '…' : text;
+}
+
+/** Navigate to a view and then call an action once rendered */
+function _dashNavigate(viewId, action) {
+  activateView(viewId);
+  if (action) setTimeout(action, 160);
+}
+
+async function loadDashboardView() {
+  try {
+    const d = await window.neurologue.getDashboardSummary();
+
+    // Stat cards — deep links
+    dashNumEntries.textContent        = d.totalEntries ?? 0;
+    dashNumWeek.textContent           = d.weeklyEntryCount ?? 0;
+    dashNumLoops.textContent          = d.openLoopCount ?? 0;
+    dashNumContradictions.textContent = d.contradictionCount ?? 0;
+
+    document.getElementById('dash-stat-entries').onclick =
+      () => _dashNavigate('library');
+    document.getElementById('dash-stat-week').onclick =
+      () => _dashNavigate('library');
+    document.getElementById('dash-stat-contradictions').onclick =
+      () => _dashNavigate('contradictions');
+    document.getElementById('dash-stat-loops').onclick = () => {
+      if (d.openLoopEntries.length > 0) {
+        _dashNavigate('library', () => selectEntry(d.openLoopEntries[0].id));
+      }
+    };
+
+    // Thought density bar chart
+    dashDensityChart.innerHTML = '';
+    if (d.thoughtDensity && d.thoughtDensity.length > 0) {
+      const maxCount = Math.max(...d.thoughtDensity.map((r) => r.count), 1);
+      const dayMap = Object.fromEntries(d.thoughtDensity.map((r) => [r.day, r.count]));
+      for (let i = 13; i >= 0; i--) {
+        const d2 = new Date(Date.now() - i * 86400000);
+        const key = d2.toISOString().slice(0, 10);
+        const count = dayMap[key] || 0;
+        const bar = document.createElement('div');
+        bar.className = 'dash-density-bar';
+        bar.style.height = `${Math.max(4, Math.round((count / maxCount) * 36))}px`;
+        bar.title = `${key}: ${count} note${count !== 1 ? 's' : ''}`;
+        dashDensityChart.appendChild(bar);
+      }
+    }
+
+    // Active themes — navigate to Themes and select
+    dashActiveCount.textContent = d.activeThemes.length ? `(${d.activeThemes.length})` : '';
+    dashActiveThemes.innerHTML = '';
+    if (d.activeThemes.length === 0) {
+      dashActiveThemes.innerHTML = '<div class="dash-empty">No recent theme activity</div>';
+    } else {
+      d.activeThemes.forEach((t) => {
+        const el = document.createElement('div');
+        el.className = 'dash-theme-chip';
+        el.innerHTML = `<span>${t.display_name}</span><span class="dash-theme-entry-count">${t.entry_count} entries</span>`;
+        el.addEventListener('click', () =>
+          _dashNavigate('themes', () => selectThemeView(t.id))
+        );
+        dashActiveThemes.appendChild(el);
+      });
+    }
+
+    // Emerging themes — navigate to Themes and select
+    dashEmergingCount.textContent = d.emergingThemes.length ? `(${d.emergingThemes.length})` : '';
+    dashEmergingThemes.innerHTML = '';
+    if (d.emergingThemes.length === 0) {
+      dashEmergingThemes.innerHTML = '<div class="dash-empty">No new themes this week</div>';
+    } else {
+      d.emergingThemes.forEach((t) => {
+        const el = document.createElement('div');
+        el.className = 'dash-theme-chip';
+        el.innerHTML = `<div class="dash-emerging-dot"></div><span>${t.display_name}</span><span class="dash-theme-entry-count">${t.entry_count} entries</span>`;
+        el.addEventListener('click', () =>
+          _dashNavigate('themes', () => selectThemeView(t.id))
+        );
+        dashEmergingThemes.appendChild(el);
+      });
+    }
+
+    // Open loops — navigate to Library and select the entry
+    dashLoopsCount.textContent = d.openLoopCount ? `(${d.openLoopCount})` : '';
+    dashOpenLoops.innerHTML = '';
+    if (d.openLoopEntries.length === 0) {
+      dashOpenLoops.innerHTML = '<div class="dash-empty">No open loops detected</div>';
+    } else {
+      d.openLoopEntries.forEach((e) => {
+        const el = document.createElement('div');
+        el.className = 'dash-loop-item';
+        el.textContent = _truncate(e.content, 80);
+        el.title = e.content;
+        el.addEventListener('click', () =>
+          _dashNavigate('library', () => selectEntry(e.id))
+        );
+        dashOpenLoops.appendChild(el);
+      });
+    }
+
+    // Recent captures — navigate to Library and select the entry
+    dashRecentCaptures.innerHTML = '';
+    if (d.recentCaptures.length === 0) {
+      dashRecentCaptures.innerHTML = '<div class="dash-empty">No notes yet</div>';
+    } else {
+      d.recentCaptures.forEach((e) => {
+        const el = document.createElement('div');
+        el.className = 'dash-capture-item';
+        el.innerHTML = `<span class="dash-capture-text">${_truncate(e.content, 60)}</span>${e.category ? `<span class="dash-capture-cat">${e.category}</span>` : ''}`;
+        el.title = e.content;
+        el.addEventListener('click', () =>
+          _dashNavigate('library', () => selectEntry(e.id))
+        );
+        dashRecentCaptures.appendChild(el);
+      });
+    }
+  } catch (err) {
+    console.error('[dashboard] loadDashboardView failed:', err);
+  }
+}
+
+btnDashRefresh.addEventListener('click', loadDashboardView);
 
 // ── Init ────────────────────────────────────────────────────────────
 
