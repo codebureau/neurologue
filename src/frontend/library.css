@@ -2608,7 +2608,6 @@ html, body {
 /* ── Cognitive Dashboard ───────────────────────────────────────────────────── */
 
 #view-explore {
-  display: flex;
   flex-direction: column;
   overflow: hidden;
 }
@@ -2649,6 +2648,14 @@ html, body {
   border-radius: 8px;
   padding: 12px 14px;
   text-align: center;
+}
+.dash-stat-link {
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dash-stat-link:hover {
+  border-color: var(--cortex-teal);
+  background: var(--surface3, var(--surface2));
 }
 .dash-stat-num {
   font-size: 26px;
@@ -2750,8 +2757,10 @@ html, body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
 }
 .dash-loop-item:last-child { border-bottom: none; }
+.dash-loop-item:hover { color: var(--cortex-teal); }
 
 /* Recent capture items */
 .dash-capture-item {
@@ -2762,8 +2771,10 @@ html, body {
   border-bottom: 1px solid var(--border);
   font-size: 12px;
   color: var(--text);
+  cursor: pointer;
 }
 .dash-capture-item:last-child { border-bottom: none; }
+.dash-capture-item:hover .dash-capture-text { color: var(--cortex-teal); }
 .dash-capture-text {
   flex: 1;
   white-space: nowrap;
