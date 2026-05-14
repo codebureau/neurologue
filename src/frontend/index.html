@@ -52,9 +52,9 @@
           <span class="nav-icon">&#11041;</span>
           <span class="nav-label">Graph</span>
         </button>
-        <button class="nav-item" data-view="explore" title="Explore">
+        <button class="nav-item" data-view="explore" title="Dashboard">
           <span class="nav-icon">&#8635;</span>
-          <span class="nav-label">Explore</span>
+          <span class="nav-label">Dashboard</span>
         </button>
       </nav>
 
@@ -395,13 +395,70 @@
           </div>
         </div>
 
-        <!-- ── View: Explore ─────────────────────────────────────── -->
+        <!-- ── View: Explore (Cognitive Dashboard) ──────────────── -->
         <div id="view-explore" class="view">
-          <div class="view-placeholder">
-            <div class="vp-icon">&#8635;</div>
-            <div class="vp-title">Explore</div>
-            <div class="vp-desc">Cognitive dashboard, memory replay, and agentic queries — coming in 0.6.x</div>
+          <div id="dash-header">
+            <span id="dash-title">Dashboard</span>
+            <button id="btn-dash-refresh" class="btn-sm" title="Refresh">↻</button>
           </div>
+          <div id="dash-body">
+
+            <!-- Row 1: stat cards -->
+            <div id="dash-stats-row">
+              <div class="dash-stat-card" id="dash-stat-entries">
+                <div class="dash-stat-num" id="dash-num-entries">—</div>
+                <div class="dash-stat-label">Total notes</div>
+              </div>
+              <div class="dash-stat-card" id="dash-stat-week">
+                <div class="dash-stat-num" id="dash-num-week">—</div>
+                <div class="dash-stat-label">This week</div>
+              </div>
+              <div class="dash-stat-card" id="dash-stat-loops">
+                <div class="dash-stat-num" id="dash-num-loops">—</div>
+                <div class="dash-stat-label">Open loops</div>
+              </div>
+              <div class="dash-stat-card" id="dash-stat-contradictions">
+                <div class="dash-stat-num" id="dash-num-contradictions">—</div>
+                <div class="dash-stat-label">Conflicts</div>
+              </div>
+            </div>
+
+            <!-- Row 2: thought density sparkbar -->
+            <div class="dash-section">
+              <div class="dash-section-title">Thought density <span class="dash-section-sub">last 14 days</span></div>
+              <div id="dash-density-chart"></div>
+            </div>
+
+            <!-- Row 3: two columns -->
+            <div id="dash-two-col">
+
+              <!-- Left: active + emerging themes -->
+              <div class="dash-col">
+                <div class="dash-section">
+                  <div class="dash-section-title">Active themes <span class="dash-section-sub" id="dash-active-count"></span></div>
+                  <div id="dash-active-themes"></div>
+                </div>
+                <div class="dash-section">
+                  <div class="dash-section-title">Emerging themes <span class="dash-section-sub" id="dash-emerging-count"></span></div>
+                  <div id="dash-emerging-themes"></div>
+                </div>
+              </div>
+
+              <!-- Right: open loops + recent captures -->
+              <div class="dash-col">
+                <div class="dash-section">
+                  <div class="dash-section-title">Open loops <span class="dash-section-sub" id="dash-loops-count"></span></div>
+                  <div id="dash-open-loops"></div>
+                </div>
+                <div class="dash-section">
+                  <div class="dash-section-title">Recent captures</div>
+                  <div id="dash-recent-captures"></div>
+                </div>
+              </div>
+
+            </div><!-- /#dash-two-col -->
+
+          </div><!-- /#dash-body -->
         </div>
 
       </div><!-- /#view-container -->
