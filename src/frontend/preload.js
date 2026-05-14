@@ -63,6 +63,12 @@ contextBridge.exposeInMainWorld('neurologue', {
   dismissContradiction: (id) => ipcRenderer.invoke('contradictions:dismiss', { id }),
   scanContradictions:   () => ipcRenderer.invoke('contradictions:scan'),
 
+  // ── Priorities ───────────────────────────────────────────────────────────
+  listPriorityMetrics:     ()         => ipcRenderer.invoke('priorities:list-metrics'),
+  getPriorityEntrySignals: (themeId)  => ipcRenderer.invoke('priorities:get-entry-signals', { themeId }),
+  getPriorityHistory:      (themeId)  => ipcRenderer.invoke('priorities:get-history', { themeId }),
+  recomputePriorities:     ()         => ipcRenderer.invoke('priorities:recompute'),
+
   // ── Settings ─────────────────────────────────────────────────────────────
   getSettings:  ()        => ipcRenderer.invoke('settings:get'),
   saveSettings: (updates) => ipcRenderer.invoke('settings:save', updates),

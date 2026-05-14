@@ -28,6 +28,7 @@ const DEFAULTS = {
     clustering:    300,  // seconds between clustering runs (also triggers theming)
     contradiction: 900,  // seconds between contradiction scan runs
   },
+  signalsEnabled: true,   // enable LLM entry signal classification (Pass 3)
   theme: 'dark',          // 'dark' | 'light'
 };
 

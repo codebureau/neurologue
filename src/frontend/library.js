@@ -1248,6 +1248,9 @@ window.neurologue.onEntriesUpdated(async () => {
   }
 });
 window.neurologue.onThemesUpdated(() => loadThemesView());
+window.neurologue.onThemesUpdated(() => {
+  if (document.getElementById('view-priorities').classList.contains('active-view')) loadPrioritiesView();
+});
 window.neurologue.onContradictionsUpdated(() => loadContradictionsView());
 
 // ── Setup + settings modals ────────────────────────────────────────
@@ -1903,6 +1906,7 @@ function activateView(viewId) {
 
   if (viewId === 'themes')         loadThemesView();
   if (viewId === 'contradictions') loadContradictionsView();
+  if (viewId === 'priorities')     loadPrioritiesView();
 }
 
 navItems.forEach(btn => {
@@ -2351,6 +2355,143 @@ btnScan.addEventListener('click', async () => {
       btnScan.disabled = false;
       btnScan.textContent = 'Scan now';
     }, 2500);
+  }
+});
+
+// ── Priorities view controller ───────────────────────────────────────────────
+
+const priListEl       = document.getElementById('pri-list');
+const priListCountEl  = document.getElementById('pri-list-count');
+const priDetailPh     = document.getElementById('pri-detail-placeholder');
+const priDetailCont   = document.getElementById('pri-detail-content');
+const priDetailName   = document.getElementById('pri-detail-name');
+const priDetailBadge  = document.getElementById('pri-detail-priority-badge');
+const priBarE         = document.getElementById('pri-bar-e');
+const priBarV         = document.getElementById('pri-bar-v');
+const priBarO         = document.getElementById('pri-bar-o');
+const priBarM         = document.getElementById('pri-bar-m');
+const priValE         = document.getElementById('pri-val-e');
+const priValV         = document.getElementById('pri-val-v');
+const priValO         = document.getElementById('pri-val-o');
+const priValM         = document.getElementById('pri-val-m');
+const priQDots        = document.getElementById('pri-quadrant-dots');
+const priOpenLoops    = document.getElementById('pri-open-loops');
+const priEntriesCount = document.getElementById('pri-entries-count');
+const priComputedAt   = document.getElementById('pri-computed-at');
+const btnPriRecompute = document.getElementById('btn-pri-recompute');
+
+let _priActiveId = null;
+let _priAllMetrics = [];
+
+function _pct(v) { return `${Math.round((v || 0) * 100)}%`; }
+
+function _showPriDetail(metrics) {
+  _priActiveId = metrics.theme_id;
+  priDetailPh.style.display = 'none';
+  priDetailCont.style.display = '';
+
+  priDetailName.textContent  = metrics.theme_name || 'Unnamed';
+  const pct = Math.round((metrics.priority_score || 0) * 100);
+  priDetailBadge.textContent = `Priority ${pct}`;
+
+  priBarE.style.width = _pct(metrics.energy_score);
+  priBarV.style.width = _pct(metrics.value_alignment_score);
+  priBarO.style.width = _pct(metrics.obligation_score);
+  priBarM.style.width = _pct(metrics.motivation_score);
+  priValE.textContent = _pct(metrics.energy_score);
+  priValV.textContent = _pct(metrics.value_alignment_score);
+  priValO.textContent = _pct(metrics.obligation_score);
+  priValM.textContent = _pct(metrics.motivation_score);
+
+  // Quadrant dots — plot all themes; highlight selected
+  priQDots.innerHTML = '';
+  for (const m of _priAllMetrics) {
+    const dot = document.createElement('div');
+    dot.className = 'pri-q-dot' + (m.theme_id === metrics.theme_id ? ' pri-q-dot-active' : '');
+    // x = energy (left→right), y = value (bottom→top, so invert)
+    const x = (m.energy_score || 0) * 100;
+    const y = (1 - (m.value_alignment_score || 0)) * 100;
+    dot.style.left = `${x}%`;
+    dot.style.top  = `${y}%`;
+    dot.title = m.theme_name || 'Unnamed';
+    dot.addEventListener('click', () => _selectPriTheme(m.theme_id));
+    priQDots.appendChild(dot);
+  }
+
+  priOpenLoops.textContent    = metrics.open_loops_count ?? '—';
+  priEntriesCount.textContent = metrics.entries_count ?? '—';
+  priComputedAt.textContent   = metrics.computed_at
+    ? new Date(metrics.computed_at).toLocaleString()
+    : '—';
+
+  // Highlight active row
+  priListEl.querySelectorAll('.pri-theme-row').forEach((row) => {
+    row.classList.toggle('active', row.dataset.themeId === metrics.theme_id);
+  });
+}
+
+function _selectPriTheme(themeId) {
+  const m = _priAllMetrics.find((x) => x.theme_id === themeId);
+  if (m) _showPriDetail(m);
+}
+
+async function loadPrioritiesView() {
+  try {
+    const metrics = await window.neurologue.listPriorityMetrics();
+    _priAllMetrics = metrics;
+    priListCountEl.textContent = metrics.length ? `(${metrics.length})` : '';
+
+    priListEl.innerHTML = '';
+    if (metrics.length === 0) {
+      priListEl.innerHTML = '<div class="pri-no-data">No priority data yet.<br>The worker computes scores after clustering.</div>';
+      priDetailPh.style.display = '';
+      priDetailCont.style.display = 'none';
+      return;
+    }
+
+    metrics.forEach((m, i) => {
+      const row = document.createElement('div');
+      row.className = 'pri-theme-row';
+      row.dataset.themeId = m.theme_id;
+      if (m.theme_id === _priActiveId) row.classList.add('active');
+
+      const pct = Math.round((m.priority_score || 0) * 100);
+      row.innerHTML = `
+        <span class="pri-rank-badge">#${i + 1}</span>
+        <div class="pri-theme-info">
+          <div class="pri-theme-name">${m.theme_name || 'Unnamed'}</div>
+          <div class="pri-theme-subtitle">${pct}% priority · ${m.entries_count ?? 0} entries</div>
+        </div>
+        <div class="pri-mini-bar-wrap">
+          <div class="pri-mini-bar" style="width:${pct}%"></div>
+        </div>`;
+      row.addEventListener('click', () => _showPriDetail(m));
+      priListEl.appendChild(row);
+    });
+
+    // Re-show active detail or auto-select first
+    const active = _priActiveId ? metrics.find((m) => m.theme_id === _priActiveId) : null;
+    if (active) {
+      _showPriDetail(active);
+    } else if (metrics.length > 0) {
+      _showPriDetail(metrics[0]);
+    }
+  } catch (err) {
+    console.error('[priorities-view] loadPrioritiesView failed:', err);
+  }
+}
+
+btnPriRecompute.addEventListener('click', async () => {
+  btnPriRecompute.disabled = true;
+  btnPriRecompute.textContent = '…';
+  try {
+    await window.neurologue.recomputePriorities();
+    await loadPrioritiesView();
+  } catch {
+    // error shown via IPC error toast
+  } finally {
+    btnPriRecompute.disabled = false;
+    btnPriRecompute.textContent = '↻';
   }
 });
 

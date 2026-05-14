@@ -35,6 +35,7 @@ describe('getSettings', () => {
     expect(s.embeddingModel).toBe('nomic-embed-text');
     expect(s.llmModel).toBe('phi3:mini');
     expect(s.theme).toBe('dark');
+    expect(s.signalsEnabled).toBe(true);
   });
 
   test('returns defaults merged with saved values', () => {

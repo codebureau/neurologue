@@ -201,6 +201,7 @@ async function processBatch() {
   }
 
   // ── Pass 3: compute entry signals for entries that have none yet ──────
+  if (!getSettings().signalsEnabled) return _push('worker:status', await _buildStatus(true));
   const signalIds = await listEntriesWithoutSignals(SIGNALS_BATCH_SIZE);
   const signalLog = _logStart('signals');
   if (signalIds.length > 0) {
@@ -470,4 +471,8 @@ async function scanContradictions() {
   return { checked, found };
 }
 
-module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions };
+async function recomputeMetrics() {
+  return recomputeAllThemeMetrics();
+}
+
+module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions, recomputeMetrics };

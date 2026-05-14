@@ -15,7 +15,9 @@ const { listContradictions, resolveContradiction, dismissContradiction } = requi
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
+const { listLatestThemeMetrics, getThemeMetricsHistory } = require('./backend/db/theme_metrics');
+const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -330,6 +332,30 @@ ipcMain.handle('contradictions:dismiss', async (_e, { id }) => {
 
 ipcMain.handle('contradictions:scan', async () => {
   return scanContradictions();
+});
+
+// ── Priorities IPC ───────────────────────────────────────────────────────────
+
+handle('priorities:list-metrics', async () => {
+  const metrics = await listLatestThemeMetrics();
+  // Enrich with theme name
+  return Promise.all(metrics.map(async (m) => {
+    const theme = await getThemeById(m.theme_id);
+    return { ...m, theme_name: theme ? (theme.user_name || theme.name || 'Unnamed') : 'Deleted theme' };
+  }));
+});
+
+handle('priorities:get-entry-signals', async (_event, { themeId }) => {
+  return getSignalsByTheme(themeId);
+});
+
+handle('priorities:get-history', async (_event, { themeId }) => {
+  return getThemeMetricsHistory(themeId);
+});
+
+handle('priorities:recompute', async () => {
+  const n = await recomputeMetrics();
+  return { updated: n };
 });
 
 // ── Help IPC ─────────────────────────────────────────────────────────────────

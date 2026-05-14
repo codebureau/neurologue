@@ -298,10 +298,77 @@
 
         <!-- ── View: Priorities ──────────────────────────────────── -->
         <div id="view-priorities" class="view">
-          <div class="view-placeholder">
-            <div class="vp-icon">&#9650;</div>
-            <div class="vp-title">Priorities</div>
-            <div class="vp-desc">Energy, value, obligation, and motivation scoring — coming in 0.7.x</div>
+          <!-- Left column: ranked theme list -->
+          <div id="pri-list-col">
+            <div id="pri-list-header">
+              <span class="pri-list-title">Priorities</span>
+              <span id="pri-list-count"></span>
+              <button id="btn-pri-recompute" class="btn-sm" title="Recompute now">↻</button>
+            </div>
+            <div id="pri-list"></div>
+          </div>
+          <!-- Right column: theme detail + scores -->
+          <div id="pri-detail-col">
+            <div id="pri-detail-placeholder">
+              <div class="vp-icon">&#9650;</div>
+              <div class="vp-title">No theme selected</div>
+              <div class="vp-desc">Select a theme to view its EVOM scores and signals</div>
+            </div>
+            <div id="pri-detail-content" style="display:none">
+              <div id="pri-detail-header">
+                <div id="pri-detail-name"></div>
+                <div id="pri-detail-priority-badge"></div>
+              </div>
+              <!-- EVOM score bars -->
+              <div id="pri-evom-bars">
+                <div class="pri-score-row">
+                  <span class="pri-score-label">Energy</span>
+                  <div class="pri-score-bar-wrap"><div class="pri-score-bar pri-bar-e" id="pri-bar-e"></div></div>
+                  <span class="pri-score-val" id="pri-val-e"></span>
+                </div>
+                <div class="pri-score-row">
+                  <span class="pri-score-label">Value</span>
+                  <div class="pri-score-bar-wrap"><div class="pri-score-bar pri-bar-v" id="pri-bar-v"></div></div>
+                  <span class="pri-score-val" id="pri-val-v"></span>
+                </div>
+                <div class="pri-score-row">
+                  <span class="pri-score-label">Obligation</span>
+                  <div class="pri-score-bar-wrap"><div class="pri-score-bar pri-bar-o" id="pri-bar-o"></div></div>
+                  <span class="pri-score-val" id="pri-val-o"></span>
+                </div>
+                <div class="pri-score-row">
+                  <span class="pri-score-label">Motivation</span>
+                  <div class="pri-score-bar-wrap"><div class="pri-score-bar pri-bar-m" id="pri-bar-m"></div></div>
+                  <span class="pri-score-val" id="pri-val-m"></span>
+                </div>
+              </div>
+              <!-- Quadrant: Energy × Value -->
+              <div id="pri-quadrant-wrap">
+                <div id="pri-quadrant-title">Energy × Value quadrant</div>
+                <div id="pri-quadrant">
+                  <div class="pri-q-label pri-q-label-tl">High E, Low V</div>
+                  <div class="pri-q-label pri-q-label-tr">High E, High V</div>
+                  <div class="pri-q-label pri-q-label-bl">Low E, Low V</div>
+                  <div class="pri-q-label pri-q-label-br">Low V, High V</div>
+                  <div id="pri-quadrant-dots"></div>
+                </div>
+              </div>
+              <!-- Signal stats -->
+              <div id="pri-signal-stats">
+                <div class="pri-stat-row">
+                  <span class="pri-stat-label">Open loops</span>
+                  <span class="pri-stat-val" id="pri-open-loops"></span>
+                </div>
+                <div class="pri-stat-row">
+                  <span class="pri-stat-label">Entries (30 d)</span>
+                  <span class="pri-stat-val" id="pri-entries-count"></span>
+                </div>
+                <div class="pri-stat-row">
+                  <span class="pri-stat-label">Computed</span>
+                  <span class="pri-stat-val" id="pri-computed-at"></span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
