@@ -2360,40 +2360,69 @@ btnScan.addEventListener('click', async () => {
 
 // ── Priorities view controller ───────────────────────────────────────────────
 
-const priListEl       = document.getElementById('pri-list');
-const priListCountEl  = document.getElementById('pri-list-count');
-const priDetailPh     = document.getElementById('pri-detail-placeholder');
-const priDetailCont   = document.getElementById('pri-detail-content');
-const priDetailName   = document.getElementById('pri-detail-name');
-const priDetailBadge  = document.getElementById('pri-detail-priority-badge');
-const priBarE         = document.getElementById('pri-bar-e');
-const priBarV         = document.getElementById('pri-bar-v');
-const priBarO         = document.getElementById('pri-bar-o');
-const priBarM         = document.getElementById('pri-bar-m');
-const priValE         = document.getElementById('pri-val-e');
-const priValV         = document.getElementById('pri-val-v');
-const priValO         = document.getElementById('pri-val-o');
-const priValM         = document.getElementById('pri-val-m');
-const priQDots        = document.getElementById('pri-quadrant-dots');
-const priOpenLoops    = document.getElementById('pri-open-loops');
-const priEntriesCount = document.getElementById('pri-entries-count');
-const priComputedAt   = document.getElementById('pri-computed-at');
-const btnPriRecompute = document.getElementById('btn-pri-recompute');
+const priListEl           = document.getElementById('pri-list');
+const priListCountEl      = document.getElementById('pri-list-count');
+const priNeglectedBanner  = document.getElementById('pri-neglected-banner');
+const priDetailPh         = document.getElementById('pri-detail-placeholder');
+const priDetailCont       = document.getElementById('pri-detail-content');
+const priDetailName       = document.getElementById('pri-detail-name');
+const priDetailDriftBadge = document.getElementById('pri-detail-drift-badge');
+const priDetailBadge      = document.getElementById('pri-detail-priority-badge');
+const priBarE             = document.getElementById('pri-bar-e');
+const priBarV             = document.getElementById('pri-bar-v');
+const priBarO             = document.getElementById('pri-bar-o');
+const priBarM             = document.getElementById('pri-bar-m');
+const priValE             = document.getElementById('pri-val-e');
+const priValV             = document.getElementById('pri-val-v');
+const priValO             = document.getElementById('pri-val-o');
+const priValM             = document.getElementById('pri-val-m');
+const priQDots            = document.getElementById('pri-quadrant-dots');
+const priOpenLoops        = document.getElementById('pri-open-loops');
+const priEntriesCount     = document.getElementById('pri-entries-count');
+const priComputedAt       = document.getElementById('pri-computed-at');
+const btnPriRecompute     = document.getElementById('btn-pri-recompute');
+const priSparkEnergy      = document.getElementById('pri-spark-energy');
+const priSparkPriority    = document.getElementById('pri-spark-priority');
+const priDriftAlert       = document.getElementById('pri-drift-neglect-alert');
 
 let _priActiveId = null;
 let _priAllMetrics = [];
 
+const DRIFT_LABELS = { rising: '↑ Rising', falling: '↓ Falling', neglected: '⚠ Neglected', stable: '→ Stable' };
+const DRIFT_CLASSES = { rising: 'pri-drift-rising', falling: 'pri-drift-falling', neglected: 'pri-drift-neglected', stable: 'pri-drift-stable' };
+
 function _pct(v) { return `${Math.round((v || 0) * 100)}%`; }
+
+/** Render an SVG polyline points string from an array of 0–1 values into a 200×50 viewBox */
+function _sparkPoints(values) {
+  if (!values || values.length === 0) return '';
+  const w = 200; const h = 50; const pad = 4;
+  const xs = values.length === 1
+    ? [w / 2]
+    : values.map((_, i) => pad + (i / (values.length - 1)) * (w - pad * 2));
+  return values.map((v, i) => `${xs[i].toFixed(1)},${(pad + (1 - (v || 0)) * (h - pad * 2)).toFixed(1)}`).join(' ');
+}
 
 function _showPriDetail(metrics) {
   _priActiveId = metrics.theme_id;
   priDetailPh.style.display = 'none';
   priDetailCont.style.display = '';
 
-  priDetailName.textContent  = metrics.theme_name || 'Unnamed';
-  const pct = Math.round((metrics.priority_score || 0) * 100);
-  priDetailBadge.textContent = `Priority ${pct}`;
+  priDetailName.textContent = metrics.theme_name || 'Unnamed';
 
+  // Priority badge
+  const pct = Math.round((metrics.priority_score || 0) * 100);
+  priDetailBadge.textContent = `Priority ${pct}%`;
+
+  // Drift badge
+  const drift = metrics.drift || 'stable';
+  priDetailDriftBadge.textContent  = DRIFT_LABELS[drift] || drift;
+  priDetailDriftBadge.className    = `pri-drift-badge ${DRIFT_CLASSES[drift] || DRIFT_CLASSES.stable}`;
+
+  // Neglected alert
+  priDriftAlert.classList.toggle('hidden', drift !== 'neglected');
+
+  // EVOM bars
   priBarE.style.width = _pct(metrics.energy_score);
   priBarV.style.width = _pct(metrics.value_alignment_score);
   priBarO.style.width = _pct(metrics.obligation_score);
@@ -2403,12 +2432,16 @@ function _showPriDetail(metrics) {
   priValO.textContent = _pct(metrics.obligation_score);
   priValM.textContent = _pct(metrics.motivation_score);
 
+  // Drift sparkline
+  const history = metrics.history || [];
+  priSparkEnergy.setAttribute('points',   _sparkPoints(history.map((h) => h.energy_score)));
+  priSparkPriority.setAttribute('points', _sparkPoints(history.map((h) => h.priority_score)));
+
   // Quadrant dots — plot all themes; highlight selected
   priQDots.innerHTML = '';
   for (const m of _priAllMetrics) {
     const dot = document.createElement('div');
     dot.className = 'pri-q-dot' + (m.theme_id === metrics.theme_id ? ' pri-q-dot-active' : '');
-    // x = energy (left→right), y = value (bottom→top, so invert)
     const x = (m.energy_score || 0) * 100;
     const y = (1 - (m.value_alignment_score || 0)) * 100;
     dot.style.left = `${x}%`;
@@ -2441,6 +2474,15 @@ async function loadPrioritiesView() {
     _priAllMetrics = metrics;
     priListCountEl.textContent = metrics.length ? `(${metrics.length})` : '';
 
+    // Neglected banner
+    const neglected = metrics.filter((m) => m.drift === 'neglected');
+    if (neglected.length > 0) {
+      priNeglectedBanner.textContent = `⚠ ${neglected.length} neglected obligation${neglected.length > 1 ? 's' : ''}: ${neglected.map((m) => m.theme_name).join(', ')}`;
+      priNeglectedBanner.classList.remove('hidden');
+    } else {
+      priNeglectedBanner.classList.add('hidden');
+    }
+
     priListEl.innerHTML = '';
     if (metrics.length === 0) {
       priListEl.innerHTML = '<div class="pri-no-data">No priority data yet.<br>The worker computes scores after clustering.</div>';
@@ -2456,12 +2498,15 @@ async function loadPrioritiesView() {
       if (m.theme_id === _priActiveId) row.classList.add('active');
 
       const pct = Math.round((m.priority_score || 0) * 100);
+      const drift = m.drift || 'stable';
+      const driftIcon = { rising: '↑', falling: '↓', neglected: '⚠', stable: '' }[drift] || '';
       row.innerHTML = `
         <span class="pri-rank-badge">#${i + 1}</span>
         <div class="pri-theme-info">
           <div class="pri-theme-name">${m.theme_name || 'Unnamed'}</div>
           <div class="pri-theme-subtitle">${pct}% priority · ${m.entries_count ?? 0} entries</div>
         </div>
+        ${driftIcon ? `<span class="pri-drift-badge ${DRIFT_CLASSES[drift]}">${driftIcon}</span>` : ''}
         <div class="pri-mini-bar-wrap">
           <div class="pri-mini-bar" style="width:${pct}%"></div>
         </div>`;

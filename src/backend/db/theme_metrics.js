@@ -212,10 +212,64 @@ async function getLatestThemeMetrics(themeId) {
   ).get(themeId);
 }
 
+/**
+ * Classify the drift direction for a single theme based on its last two metric snapshots.
+ * Returns 'rising' | 'falling' | 'neglected' | 'stable'
+ *
+ * neglected = high obligation (>0.5) with low or falling energy
+ * rising    = energy or priority improved by >0.05 since last snapshot
+ * falling   = energy or priority dropped by >0.05 since last snapshot
+ * stable    = change within ±0.05
+ *
+ * @param {string} themeId
+ * @returns {Promise<string>}
+ */
+async function getDriftClassification(themeId) {
+  const db = await openDb();
+  const rows = db.prepare(
+    'SELECT * FROM theme_metrics WHERE theme_id = ? ORDER BY window_end DESC LIMIT 2'
+  ).all(themeId);
+
+  const latest = rows[0];
+  if (!latest) return 'stable';
+
+  // Neglected: high obligation with low or falling energy
+  if (latest.obligation_score > 0.5 && latest.energy_score < 0.3) return 'neglected';
+
+  if (rows.length < 2) return 'stable';
+  const prev = rows[1];
+  const dE = latest.energy_score   - prev.energy_score;
+  const dP = latest.priority_score - prev.priority_score;
+  if (latest.obligation_score > 0.5 && dE < -0.05) return 'neglected';
+  if (dE > 0.05 || dP > 0.05)  return 'rising';
+  if (dE < -0.05 || dP < -0.05) return 'falling';
+  return 'stable';
+}
+
+/**
+ * Return latest metrics for all themes augmented with a drift classification
+ * and an energy history array for sparkline rendering.
+ * @returns {Promise<Array>}
+ */
+async function listThemesWithDrift() {
+  const db = await openDb();
+  const latest = await listLatestThemeMetrics();
+  return Promise.all(latest.map(async (m) => {
+    const drift = await getDriftClassification(m.theme_id);
+    // Last 8 snapshots for sparkline (oldest → newest)
+    const history = db.prepare(
+      'SELECT energy_score, priority_score, computed_at FROM theme_metrics WHERE theme_id = ? ORDER BY computed_at ASC LIMIT 8'
+    ).all(m.theme_id);
+    return { ...m, drift, history };
+  }));
+}
+
 module.exports = {
   upsertThemeMetrics,
   listLatestThemeMetrics,
   getThemeMetricsHistory,
   getLatestThemeMetrics,
   recomputeAllThemeMetrics,
+  getDriftClassification,
+  listThemesWithDrift,
 };

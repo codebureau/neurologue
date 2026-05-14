@@ -121,3 +121,53 @@ describe('getThemeMetricsHistory', () => {
     expect(await getThemeMetricsHistory('no-such-theme')).toEqual([]);
   });
 });
+
+describe('getDriftClassification', () => {
+  test('returns stable when no history exists', async () => {
+    const { getDriftClassification } = require('../../../src/backend/db/theme_metrics');
+    expect(await getDriftClassification('no-theme')).toBe('stable');
+  });
+
+  test('returns stable when only one snapshot exists', async () => {
+    const { upsertThemeMetrics, getDriftClassification } = require('../../../src/backend/db/theme_metrics');
+    const themeId = await makeTheme();
+    await upsertThemeMetrics(baseMetrics(themeId));
+    expect(await getDriftClassification(themeId)).toBe('stable');
+  });
+
+  test('detects rising when energy improves by >0.05', async () => {
+    const { upsertThemeMetrics, getDriftClassification } = require('../../../src/backend/db/theme_metrics');
+    const themeId = await makeTheme();
+    await upsertThemeMetrics({ ...baseMetrics(themeId, 0), energy_score: 0.3, priority_score: 0.3 });
+    await upsertThemeMetrics({ ...baseMetrics(themeId, 5), energy_score: 0.5, priority_score: 0.5 });
+    expect(await getDriftClassification(themeId)).toBe('rising');
+  });
+
+  test('detects falling when energy drops by >0.05', async () => {
+    const { upsertThemeMetrics, getDriftClassification } = require('../../../src/backend/db/theme_metrics');
+    const themeId = await makeTheme();
+    await upsertThemeMetrics({ ...baseMetrics(themeId, 0), energy_score: 0.7, priority_score: 0.7 });
+    await upsertThemeMetrics({ ...baseMetrics(themeId, 5), energy_score: 0.4, priority_score: 0.4 });
+    expect(await getDriftClassification(themeId)).toBe('falling');
+  });
+
+  test('detects neglected when high obligation and low energy', async () => {
+    const { upsertThemeMetrics, getDriftClassification } = require('../../../src/backend/db/theme_metrics');
+    const themeId = await makeTheme();
+    await upsertThemeMetrics({ ...baseMetrics(themeId), obligation_score: 0.8, energy_score: 0.1, priority_score: 0.3 });
+    expect(await getDriftClassification(themeId)).toBe('neglected');
+  });
+});
+
+describe('listThemesWithDrift', () => {
+  test('includes drift and history for each theme', async () => {
+    const { upsertThemeMetrics, listThemesWithDrift } = require('../../../src/backend/db/theme_metrics');
+    const themeId = await makeTheme('Drift Theme');
+    await upsertThemeMetrics(baseMetrics(themeId));
+    const rows = await listThemesWithDrift();
+    const row = rows.find((r) => r.theme_id === themeId);
+    expect(row).toBeDefined();
+    expect(row.drift).toBeDefined();
+    expect(Array.isArray(row.history)).toBe(true);
+  });
+});

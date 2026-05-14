@@ -16,7 +16,7 @@ const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
-const { listLatestThemeMetrics, getThemeMetricsHistory } = require('./backend/db/theme_metrics');
+const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 // getOllamaStatus and getSettings imported above
 
@@ -337,7 +337,7 @@ ipcMain.handle('contradictions:scan', async () => {
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 
 handle('priorities:list-metrics', async () => {
-  const metrics = await listLatestThemeMetrics();
+  const metrics = await listThemesWithDrift();
   // Enrich with theme name
   return Promise.all(metrics.map(async (m) => {
     const theme = await getThemeById(m.theme_id);
