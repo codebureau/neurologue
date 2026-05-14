@@ -2518,3 +2518,90 @@ html, body {
   text-align: center;
 }
 
+/* ── Drift badges ─────────────────────────────────────────────────────── */
+.pri-drift-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.pri-drift-rising    { background: rgba(129,178,154,0.25); color: #4a9970; }
+.pri-drift-falling   { background: rgba(224,122,95,0.20); color: #c0513a; }
+.pri-drift-neglected { background: rgba(255,190,0,0.20);  color: #9a7000; }
+.pri-drift-stable    { background: var(--surface2); color: var(--text-dim); }
+
+/* Drift badge in detail header */
+#pri-detail-drift-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  flex-shrink: 0;
+}
+
+/* Neglected banner in list column */
+#pri-neglected-banner {
+  margin: 6px 10px;
+  padding: 7px 10px;
+  background: rgba(255,190,0,0.12);
+  border: 1px solid rgba(255,190,0,0.35);
+  border-radius: var(--radius);
+  font-size: 11px;
+  color: #9a7000;
+  line-height: 1.4;
+}
+#pri-neglected-banner.hidden { display: none; }
+
+/* ── Drift sparkline ──────────────────────────────────────────────────── */
+#pri-drift-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#pri-drift-title {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+#pri-drift-neglect-alert {
+  font-size: 11px;
+  padding: 5px 8px;
+  background: rgba(255,190,0,0.12);
+  border: 1px solid rgba(255,190,0,0.35);
+  border-radius: var(--radius);
+  color: #9a7000;
+}
+#pri-drift-neglect-alert.hidden { display: none; }
+#pri-sparkline {
+  width: 100%;
+  height: 50px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: block;
+}
+#pri-spark-energy  { stroke: var(--cortex-teal); }
+#pri-spark-priority { stroke: var(--neuro-blue); }
+#pri-spark-legend {
+  display: flex;
+  gap: 14px;
+}
+.pri-spark-leg {
+  font-size: 10px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pri-spark-leg::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+.pri-spark-leg-e::before { background: var(--cortex-teal); }
+.pri-spark-leg-p::before { background: var(--neuro-blue); border-top: 1px dashed var(--neuro-blue); height: 0; }
+

@@ -304,8 +304,7 @@
               <span class="pri-list-title">Priorities</span>
               <span id="pri-list-count"></span>
               <button id="btn-pri-recompute" class="btn-sm" title="Recompute now">↻</button>
-            </div>
-            <div id="pri-list"></div>
+            </div>            <div id="pri-neglected-banner" class="hidden"></div>            <div id="pri-list"></div>
           </div>
           <!-- Right column: theme detail + scores -->
           <div id="pri-detail-col">
@@ -317,6 +316,7 @@
             <div id="pri-detail-content" style="display:none">
               <div id="pri-detail-header">
                 <div id="pri-detail-name"></div>
+                <div id="pri-detail-drift-badge"></div>
                 <div id="pri-detail-priority-badge"></div>
               </div>
               <!-- EVOM score bars -->
@@ -340,6 +340,20 @@
                   <span class="pri-score-label">Motivation</span>
                   <div class="pri-score-bar-wrap"><div class="pri-score-bar pri-bar-m" id="pri-bar-m"></div></div>
                   <span class="pri-score-val" id="pri-val-m"></span>
+                </div>
+              </div>
+              <!-- Drift sparkline -->
+              <div id="pri-drift-wrap">
+                <div id="pri-drift-title">Energy &amp; priority over time</div>
+                <div id="pri-drift-neglect-alert" class="hidden">&#9888; Neglected obligation — high commitment, low energy</div>
+                <svg id="pri-sparkline" viewBox="0 0 200 50" preserveAspectRatio="none"
+                     xmlns="http://www.w3.org/2000/svg">
+                  <polyline id="pri-spark-energy"   fill="none" stroke-width="1.5"/>
+                  <polyline id="pri-spark-priority"  fill="none" stroke-width="1.5" stroke-dasharray="4 2"/>
+                </svg>
+                <div id="pri-spark-legend">
+                  <span class="pri-spark-leg pri-spark-leg-e">Energy</span>
+                  <span class="pri-spark-leg pri-spark-leg-p">Priority</span>
                 </div>
               </div>
               <!-- Quadrant: Energy × Value -->
