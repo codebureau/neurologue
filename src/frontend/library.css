@@ -2237,9 +2237,8 @@ html, body {
 
 /* ── Priorities view ──────────────────────────────────────────────────── */
 #view-priorities {
-  display: flex;
-  flex: 1;
-  min-height: 0;
+  flex-direction: row;
+  overflow: hidden;
 }
 
 /* Left column */
