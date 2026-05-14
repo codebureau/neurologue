@@ -1139,6 +1139,7 @@ const TASK_LABELS = {
   classification:     'Classifying',
   clustering:         'Clustering',
   'contradiction-scan': 'Contradiction scan',
+  signals:            'Entry signals',
 };
 
 function updateStatus({ worker, ollama } = {}) {
