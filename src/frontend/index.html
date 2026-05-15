@@ -60,6 +60,10 @@
           <span class="nav-icon">&#9711;</span>
           <span class="nav-label">Replay</span>
         </button>
+        <button class="nav-item" data-view="agents" title="Agents">
+          <span class="nav-icon">&#10022;</span>
+          <span class="nav-label">Agents</span>
+        </button>
       </nav>
 
       <!-- ── View container ────────────────────────────────────────── -->
@@ -559,6 +563,29 @@
           </div>
 
         </div><!-- /#view-replay -->
+
+        <!-- ── View: Agents ─────────────────────────────────────────────── -->
+        <div id="view-agents" class="view">
+          <div id="agents-toolbar">
+            <span id="agents-title">Agents</span>
+            <span class="agents-subtitle">Local AI agents that work on your corpus</span>
+          </div>
+          <div id="agents-body">
+            <div id="agents-grid">
+              <!-- Agent cards injected by library.js -->
+            </div>
+            <div id="agents-output-panel" style="display:none">
+              <div id="agents-output-header">
+                <span id="agents-output-label"></span>
+                <div class="agents-output-actions">
+                  <span id="agents-running-indicator" class="agents-running-indicator" style="display:none">&#9679; Running&hellip;</span>
+                  <button id="btn-agents-clear" class="btn-sm">Clear</button>
+                </div>
+              </div>
+              <div id="agents-output" class="agents-output-body"></div>
+            </div>
+          </div>
+        </div><!-- /#view-agents -->
 
       </div><!-- /#view-container -->
     </div><!-- /#shell -->

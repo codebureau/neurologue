@@ -1936,6 +1936,7 @@ function activateView(viewId) {
   if (viewId === 'explore')        loadDashboardView();
   if (viewId === 'graph')          loadGraphView();
   if (viewId === 'replay')         loadReplayView();
+  if (viewId === 'agents')         loadAgentsView();
   // Destroy graph renderer when leaving the graph view
   if (viewId !== 'graph')          _destroyGraphIfActive();
 }
@@ -2988,6 +2989,81 @@ replayMonthSelect.addEventListener('change', _loadMonthSnapshot);
 
 // Compare button
 btnReplayCompare.addEventListener('click', _loadComparePeriods);
+
+// ── Agents view controller ─────────────────────────────────────────────────
+
+const agentsGrid          = document.getElementById('agents-grid');
+const agentsOutputPanel   = document.getElementById('agents-output-panel');
+const agentsOutputLabel   = document.getElementById('agents-output-label');
+const agentsRunningInd    = document.getElementById('agents-running-indicator');
+const agentsOutputBody    = document.getElementById('agents-output');
+const btnAgentsClear      = document.getElementById('btn-agents-clear');
+
+let _agentsLoaded = false;
+
+async function loadAgentsView() {
+  if (_agentsLoaded) return;
+  _agentsLoaded = true;
+
+  try {
+    const agents = await window.neurologue.listAgents();
+    agentsGrid.innerHTML = '';
+    agents.forEach((a) => {
+      const card = document.createElement('div');
+      card.className  = 'agent-card';
+      card.dataset.id = a.id;
+      card.innerHTML =
+        `<div class="agent-card-header">` +
+        `  <span class="agent-card-icon">${a.icon}</span>` +
+        `  <span class="agent-card-label">${_escHtml(a.label)}</span>` +
+        `</div>` +
+        `<div class="agent-card-desc">${_escHtml(a.description)}</div>` +
+        `<div class="agent-card-footer"><button class="btn-agent-run">Run</button></div>`;
+
+      card.querySelector('.btn-agent-run').addEventListener('click', () => _runAgent(a.id, a.label));
+      agentsGrid.appendChild(card);
+    });
+  } catch (err) {
+    console.error('[agents] loadAgentsView failed:', err);
+    agentsGrid.innerHTML = '<div style="color:var(--text-dim);font-size:13px">Could not load agents</div>';
+  }
+}
+
+async function _runAgent(agentId, label) {
+  // Mark the card as running
+  document.querySelectorAll('.agent-card').forEach((c) => {
+    c.classList.toggle('running', c.dataset.id === agentId);
+  });
+
+  agentsOutputPanel.style.display  = '';
+  agentsOutputLabel.textContent    = label;
+  agentsRunningInd.style.display   = '';
+  agentsOutputBody.textContent     = '';
+
+  // Scroll output into view
+  agentsOutputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    await window.neurologue.runAgent(agentId);
+  } catch (err) {
+    agentsOutputBody.textContent += `\n\n[Error: ${err.message}]`;
+  } finally {
+    agentsRunningInd.style.display = 'none';
+    document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
+  }
+}
+
+// Stream tokens into the output body
+window.neurologue.onAgentToken(({ token }) => {
+  agentsOutputBody.textContent += token;
+  // Keep the last line visible
+  agentsOutputBody.scrollTop = agentsOutputBody.scrollHeight;
+});
+
+btnAgentsClear.addEventListener('click', () => {
+  agentsOutputBody.textContent = '';
+  agentsOutputPanel.style.display = 'none';
+});
 
 function _escHtml(str) {
   return String(str)

@@ -21,6 +21,7 @@ const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 const { getGraphData } = require('./backend/db/graph');
 const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
+const { listAgents, runAgent } = require('./backend/agents/runner');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -351,6 +352,19 @@ handle('replay:active-months',  async () => listActiveMonths());
 handle('replay:month-snapshot', async (_e, { year, month }) => getMonthSnapshot(year, month));
 handle('replay:compare-periods', async (_e, { from1, to1, from2, to2 }) => comparePeriods(from1, to1, from2, to2));
 handle('replay:abandoned-ideas', async () => getAbandonedIdeas());
+
+// ── Agents IPC ───────────────────────────────────────────────────────────────
+
+handle('agents:list', async () => listAgents());
+
+handle('agents:run', async (event, { agentId }) => {
+  await runAgent(agentId, (token) => {
+    if (!event.sender.isDestroyed()) {
+      event.sender.send('agent:token', { token });
+    }
+  });
+  return { ok: true };
+});
 
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 

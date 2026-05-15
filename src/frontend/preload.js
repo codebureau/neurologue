@@ -63,6 +63,11 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Graph ─────────────────────────────────────────────────────────────────
   getGraphData: () => ipcRenderer.invoke('graph:data'),
 
+  // ── Agents ────────────────────────────────────────────────────────────────
+  listAgents:    ()        => ipcRenderer.invoke('agents:list'),
+  runAgent:      (agentId) => ipcRenderer.invoke('agents:run', { agentId }),
+  onAgentToken:  (cb)      => { ipcRenderer.on('agent:token', (_e, d) => cb(d)); },
+
   // ── Memory Replay ─────────────────────────────────────────────────────────
   listActiveMonths:   ()                          => ipcRenderer.invoke('replay:active-months'),
   getMonthSnapshot:   (year, month)               => ipcRenderer.invoke('replay:month-snapshot',  { year, month }),
