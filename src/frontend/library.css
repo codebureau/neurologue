@@ -2935,6 +2935,22 @@ body.theme-light .graph-tooltip {
   flex-direction: column;
 }
 
+/* Selects inside the replay view */
+#view-replay select {
+  background:        var(--surface2);
+  border:            1px solid var(--border);
+  border-radius:     4px;
+  color:             var(--text);
+  font-size:         13px;
+  font-family:       inherit;
+  padding:           5px 10px;
+  cursor:            pointer;
+  outline:           none;
+}
+#view-replay select:hover  { border-color: var(--cortex-teal); }
+#view-replay select:focus  { border-color: var(--cortex-teal); }
+#view-replay select option { background: var(--surface2); color: var(--text); }
+
 /* Controls row (month select / compare pickers) */
 #replay-month-controls,
 #replay-compare-controls {
