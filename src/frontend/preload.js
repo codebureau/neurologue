@@ -63,6 +63,12 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Graph ─────────────────────────────────────────────────────────────────
   getGraphData: () => ipcRenderer.invoke('graph:data'),
 
+  // ── Memory Replay ─────────────────────────────────────────────────────────
+  listActiveMonths:   ()                          => ipcRenderer.invoke('replay:active-months'),
+  getMonthSnapshot:   (year, month)               => ipcRenderer.invoke('replay:month-snapshot',  { year, month }),
+  comparePeriods:     (from1, to1, from2, to2)    => ipcRenderer.invoke('replay:compare-periods', { from1, to1, from2, to2 }),
+  getAbandonedIdeas:  ()                          => ipcRenderer.invoke('replay:abandoned-ideas'),
+
   // ── Contradictions ───────────────────────────────────────────────────────
   listContradictions:   (opts) => ipcRenderer.invoke('contradictions:list', opts),
   resolveContradiction: (id, notes) => ipcRenderer.invoke('contradictions:resolve', { id, notes }),

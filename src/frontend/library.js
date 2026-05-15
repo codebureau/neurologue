@@ -77,6 +77,26 @@ const graphNodeCount   = document.getElementById('graph-node-count');
 const btnGraphRefresh  = document.getElementById('btn-graph-refresh');
 const btnGraphReset    = document.getElementById('btn-graph-reset');
 
+// ── Replay DOM refs ─────────────────────────────────────────────────────────
+const replayMonthSelect    = document.getElementById('replay-month-select');
+const replayMonthPh        = document.getElementById('replay-month-placeholder');
+const replayMonthContent   = document.getElementById('replay-month-content');
+const replayMonthHeading   = document.getElementById('replay-month-heading');
+const replayMonthCount     = document.getElementById('replay-month-entry-count');
+const replayMonthThemes    = document.getElementById('replay-month-themes');
+const replayMonthEntries   = document.getElementById('replay-month-entries');
+const replayCompareFrom1   = document.getElementById('replay-compare-from1');
+const replayCompareTo1     = document.getElementById('replay-compare-to1');
+const replayCompareFrom2   = document.getElementById('replay-compare-from2');
+const replayCompareTo2     = document.getElementById('replay-compare-to2');
+const btnReplayCompare     = document.getElementById('btn-replay-compare');
+const replayComparePh      = document.getElementById('replay-compare-placeholder');
+const replayCompareContent = document.getElementById('replay-compare-content');
+const replayCompareLost    = document.getElementById('replay-compare-lost');
+const replayCompareCommon  = document.getElementById('replay-compare-common');
+const replayCompareGained  = document.getElementById('replay-compare-gained');
+const replayAbandonedList  = document.getElementById('replay-abandoned-list');
+
 // ── Utilities ──────────────────────────────────────────────────────────────
 
 function formatDate(dateStr) {
@@ -1915,6 +1935,7 @@ function activateView(viewId) {
   if (viewId === 'priorities')     loadPrioritiesView();
   if (viewId === 'explore')        loadDashboardView();
   if (viewId === 'graph')          loadGraphView();
+  if (viewId === 'replay')         loadReplayView();
   // Destroy graph renderer when leaving the graph view
   if (viewId !== 'graph')          _destroyGraphIfActive();
 }
@@ -2740,6 +2761,241 @@ async function loadDashboardView() {
 }
 
 btnDashRefresh.addEventListener('click', loadDashboardView);
+
+// ── Memory Replay view controller ────────────────────────────────────────────
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+let _replayMonths    = [];  // cached list of active months
+let _replayTabActive = 'month';
+let _replayLoaded    = false;
+
+function _monthLabel(year, month) {
+  return `${MONTH_NAMES[month - 1]} ${year}`;
+}
+
+function _monthValue(year, month) {
+  return `${year}-${String(month).padStart(2, '0')}`;
+}
+
+/** Switch between month / compare / abandoned tabs */
+function _activateReplayTab(tabId) {
+  _replayTabActive = tabId;
+  document.querySelectorAll('.replay-tab').forEach((b) => {
+    b.classList.toggle('active', b.dataset.tab === tabId);
+  });
+  document.querySelectorAll('.replay-tab-panel').forEach((p) => {
+    p.style.display = p.id === `replay-tab-${tabId}` ? '' : 'none';
+  });
+
+  if (tabId === 'abandoned' && !replayAbandonedList.childElementCount) {
+    _loadAbandonedIdeas();
+  }
+}
+
+function _populateMonthSelects() {
+  const opts = _replayMonths.map((m) =>
+    `<option value="${_monthValue(m.year, m.month)}">${_monthLabel(m.year, m.month)} (${m.count})</option>`
+  ).join('');
+
+  replayMonthSelect.innerHTML  = opts || '<option value="">— no entries yet —</option>';
+
+  // Populate all four compare selects
+  [replayCompareFrom1, replayCompareTo1, replayCompareFrom2, replayCompareTo2].forEach((sel) => {
+    sel.innerHTML = opts || '<option value="">—</option>';
+  });
+
+  // Default: compare last two months if available
+  if (_replayMonths.length >= 2) {
+    replayCompareFrom1.value = _monthValue(_replayMonths[1].year, _replayMonths[1].month);
+    replayCompareTo1.value   = _monthValue(_replayMonths[1].year, _replayMonths[1].month);
+    replayCompareFrom2.value = _monthValue(_replayMonths[0].year, _replayMonths[0].month);
+    replayCompareTo2.value   = _monthValue(_replayMonths[0].year, _replayMonths[0].month);
+  }
+}
+
+async function _loadMonthSnapshot() {
+  const val = replayMonthSelect.value;
+  if (!val) return;
+  const [year, month] = val.split('-').map(Number);
+  replayMonthPh.style.display    = 'none';
+  replayMonthContent.style.display = '';
+  replayMonthThemes.innerHTML  = '<div class="replay-loading">Loading…</div>';
+  replayMonthEntries.innerHTML = '';
+
+  try {
+    const snap = await window.neurologue.getMonthSnapshot(year, month);
+    replayMonthHeading.textContent = _monthLabel(year, month);
+    replayMonthCount.textContent   = `${snap.entryCount} entr${snap.entryCount === 1 ? 'y' : 'ies'}`;
+
+    // Top themes
+    replayMonthThemes.innerHTML = '';
+    if (snap.topThemes.length === 0) {
+      replayMonthThemes.innerHTML = '<div class="replay-empty">No themes were active this month</div>';
+    } else {
+      snap.topThemes.forEach((t) => {
+        const el = document.createElement('div');
+        el.className = 'replay-theme-chip';
+        el.innerHTML = `<span class="replay-theme-name">${_escHtml(t.display_name)}</span><span class="replay-theme-count">${t.entry_count}</span>`;
+        el.title = `View "${t.display_name}" in Themes`;
+        el.addEventListener('click', () => {
+          activateView('themes');
+          selectThemeView(t.id);
+        });
+        replayMonthThemes.appendChild(el);
+      });
+    }
+
+    // Entries
+    replayMonthEntries.innerHTML = '';
+    if (snap.entries.length === 0) {
+      replayMonthEntries.innerHTML = '<div class="replay-empty">No entries this month</div>';
+    } else {
+      snap.entries.forEach((e) => {
+        const el = document.createElement('div');
+        el.className = 'replay-entry-card';
+        const date = new Date(e.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        el.innerHTML =
+          `<div class="replay-entry-meta"><span class="replay-entry-date">${date}</span>${e.category ? `<span class="replay-entry-cat">${_escHtml(e.category)}</span>` : ''}</div>` +
+          `<div class="replay-entry-text">${_escHtml(_truncate(e.content, 120))}</div>`;
+        el.title = e.content;
+        el.addEventListener('click', () => {
+          activateView('library');
+          selectEntry(e.id);
+        });
+        replayMonthEntries.appendChild(el);
+      });
+    }
+  } catch (err) {
+    console.error('[replay] _loadMonthSnapshot failed:', err);
+    replayMonthThemes.innerHTML = '<div class="replay-empty">Error loading snapshot</div>';
+  }
+}
+
+async function _loadComparePeriods() {
+  const from1 = replayCompareFrom1.value;
+  const to1   = replayCompareTo1.value;
+  const from2 = replayCompareFrom2.value;
+  const to2   = replayCompareTo2.value;
+  if (!from1 || !to1 || !from2 || !to2) return;
+
+  replayComparePh.style.display    = 'none';
+  replayCompareContent.style.display = '';
+  replayCompareLost.innerHTML   = '<div class="replay-loading">Loading…</div>';
+  replayCompareCommon.innerHTML = '';
+  replayCompareGained.innerHTML = '';
+
+  // Periods are month-values (YYYY-MM); build ISO date range [first of month, first of next month)
+  function periodRange(val) {
+    const [y, m] = val.split('-').map(Number);
+    const from = `${y}-${String(m).padStart(2, '0')}-01`;
+    const next = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+    return { from, to: next };
+  }
+
+  const p1 = periodRange(from1 < to1 ? from1 : to1);
+  const p2 = periodRange(from2 > to2 ? from2 : to2);
+  // Extend p1 end to end-of-to1 month, p2 start to start-of-from2 month
+  const p1From = periodRange(from1 < to1 ? from1 : to1).from;
+  const p1To   = periodRange(from1 < to1 ? to1 : from1).to;
+  const p2From = periodRange(from2 < to2 ? from2 : to2).from;
+  const p2To   = periodRange(from2 < to2 ? to2 : from2).to;
+
+  try {
+    const result = await window.neurologue.comparePeriods(p1From, p1To, p2From, p2To);
+
+    function renderThemeList(el, themes) {
+      el.innerHTML = '';
+      if (themes.length === 0) {
+        el.innerHTML = '<div class="replay-empty">—</div>';
+        return;
+      }
+      themes.forEach((t) => {
+        const chip = document.createElement('div');
+        chip.className = 'replay-theme-chip';
+        chip.innerHTML = `<span class="replay-theme-name">${_escHtml(t.display_name)}</span><span class="replay-theme-count">${t.entry_count}</span>`;
+        chip.addEventListener('click', () => {
+          activateView('themes');
+          selectThemeView(t.id);
+        });
+        el.appendChild(chip);
+      });
+    }
+
+    renderThemeList(replayCompareLost,   result.lost);
+    renderThemeList(replayCompareCommon, result.common);
+    renderThemeList(replayCompareGained, result.gained);
+  } catch (err) {
+    console.error('[replay] _loadComparePeriods failed:', err);
+    replayCompareLost.innerHTML = '<div class="replay-empty">Error loading comparison</div>';
+  }
+}
+
+async function _loadAbandonedIdeas() {
+  replayAbandonedList.innerHTML = '<div class="replay-loading">Loading…</div>';
+  try {
+    const ideas = await window.neurologue.getAbandonedIdeas();
+    replayAbandonedList.innerHTML = '';
+    if (ideas.length === 0) {
+      replayAbandonedList.innerHTML = '<div class="replay-empty" style="margin:16px">No abandoned ideas found — great, you\'re keeping up!</div>';
+      return;
+    }
+    ideas.forEach((e) => {
+      const el = document.createElement('div');
+      el.className = 'replay-entry-card replay-abandoned-card';
+      const date = new Date(e.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      el.innerHTML =
+        `<div class="replay-entry-meta"><span class="replay-entry-date">${date}</span>${e.category ? `<span class="replay-entry-cat">${_escHtml(e.category)}</span>` : ''}</div>` +
+        `<div class="replay-entry-text">${_escHtml(_truncate(e.content, 140))}</div>`;
+      el.title = e.content;
+      el.addEventListener('click', () => {
+        activateView('library');
+        selectEntry(e.id);
+      });
+      replayAbandonedList.appendChild(el);
+    });
+  } catch (err) {
+    console.error('[replay] _loadAbandonedIdeas failed:', err);
+    replayAbandonedList.innerHTML = '<div class="replay-empty">Error loading abandoned ideas</div>';
+  }
+}
+
+async function loadReplayView() {
+  // Load months list once per session (re-load each time view activates for freshness)
+  try {
+    _replayMonths = await window.neurologue.listActiveMonths();
+    _populateMonthSelects();
+
+    // Auto-load most recent month
+    if (_replayMonths.length > 0 && replayMonthSelect.value) {
+      await _loadMonthSnapshot();
+    }
+  } catch (err) {
+    console.error('[replay] loadReplayView failed:', err);
+  }
+}
+
+// Tab click handlers
+document.querySelectorAll('.replay-tab').forEach((btn) => {
+  btn.addEventListener('click', () => _activateReplayTab(btn.dataset.tab));
+});
+
+// Month select change
+replayMonthSelect.addEventListener('change', _loadMonthSnapshot);
+
+// Compare button
+btnReplayCompare.addEventListener('click', _loadComparePeriods);
+
+function _escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 // ── Init ────────────────────────────────────────────────────────────
 
