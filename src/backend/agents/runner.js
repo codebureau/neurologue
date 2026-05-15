@@ -157,6 +157,16 @@ function listAgents() {
   }));
 }
 
+// Shared cancellation flag — one agent runs at a time
+let _abortRequested = false;
+
+/**
+ * Signal the currently-running agent to stop after the next token.
+ */
+function abortAgent() {
+  _abortRequested = true;
+}
+
 /**
  * Run an agent, streaming the LLM response token-by-token.
  * @param {string}   agentId
@@ -167,8 +177,13 @@ async function runAgent(agentId, onToken) {
   const agent = AGENTS[agentId];
   if (!agent) throw new Error(`Unknown agent: "${agentId}"`);
 
+  _abortRequested = false;
+
   const prompt = await agent.buildPrompt();
-  await generateStream(prompt, onToken);
+  await generateStream(prompt, (token) => {
+    if (_abortRequested) return; // drop remaining tokens
+    onToken(token);
+  });
 }
 
-module.exports = { listAgents, runAgent };
+module.exports = { listAgents, runAgent, abortAgent };

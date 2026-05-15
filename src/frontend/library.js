@@ -2998,10 +2998,28 @@ const agentsOutputLabel   = document.getElementById('agents-output-label');
 const agentsRunningInd    = document.getElementById('agents-running-indicator');
 const agentsOutputBody    = document.getElementById('agents-output');
 const btnAgentsClear      = document.getElementById('btn-agents-clear');
+const btnAgentsStop       = document.getElementById('btn-agents-stop');
 
 let _agentsLoaded = false;
+let _agentsRunning = false;
+
+function _setAgentsRunning(running) {
+  _agentsRunning = running;
+  agentsRunningInd.style.display = running ? '' : 'none';
+  btnAgentsStop.style.display    = running ? '' : 'none';
+  document.querySelectorAll('.agent-card').forEach((c) => {
+    c.classList.toggle('running', running && c.classList.contains('running'));
+    c.querySelector('.btn-agent-run').disabled = running;
+  });
+}
 
 async function loadAgentsView() {
+  // Always reset indicator state when the view becomes active
+  if (!_agentsRunning) {
+    agentsRunningInd.style.display = 'none';
+    btnAgentsStop.style.display    = 'none';
+  }
+
   if (_agentsLoaded) return;
   _agentsLoaded = true;
 
@@ -3030,17 +3048,18 @@ async function loadAgentsView() {
 }
 
 async function _runAgent(agentId, label) {
-  // Mark the card as running
+  if (_agentsRunning) return;
+
+  // Mark the active card and show running state
   document.querySelectorAll('.agent-card').forEach((c) => {
     c.classList.toggle('running', c.dataset.id === agentId);
   });
 
-  agentsOutputPanel.style.display  = '';
-  agentsOutputLabel.textContent    = label;
-  agentsRunningInd.style.display   = '';
-  agentsOutputBody.textContent     = '';
+  agentsOutputPanel.style.display = '';
+  agentsOutputLabel.textContent   = label;
+  agentsOutputBody.textContent    = '';
+  _setAgentsRunning(true);
 
-  // Scroll output into view
   agentsOutputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   try {
@@ -3048,7 +3067,7 @@ async function _runAgent(agentId, label) {
   } catch (err) {
     agentsOutputBody.textContent += `\n\n[Error: ${err.message}]`;
   } finally {
-    agentsRunningInd.style.display = 'none';
+    _setAgentsRunning(false);
     document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
   }
 }
@@ -3056,8 +3075,20 @@ async function _runAgent(agentId, label) {
 // Stream tokens into the output body
 window.neurologue.onAgentToken(({ token }) => {
   agentsOutputBody.textContent += token;
-  // Keep the last line visible
   agentsOutputBody.scrollTop = agentsOutputBody.scrollHeight;
+});
+
+// Agent done (via push event — more reliable than awaiting runAgent resolve)
+window.neurologue.onAgentDone(() => {
+  _setAgentsRunning(false);
+  document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
+});
+
+btnAgentsStop.addEventListener('click', async () => {
+  await window.neurologue.abortAgent();
+  _setAgentsRunning(false);
+  document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
+  agentsOutputBody.textContent += '\n\n[Stopped]';
 });
 
 btnAgentsClear.addEventListener('click', () => {

@@ -21,7 +21,7 @@ const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 const { getGraphData } = require('./backend/db/graph');
 const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
-const { listAgents, runAgent } = require('./backend/agents/runner');
+const { listAgents, runAgent, abortAgent } = require('./backend/agents/runner');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -363,6 +363,14 @@ handle('agents:run', async (event, { agentId }) => {
       event.sender.send('agent:token', { token });
     }
   });
+  if (!event.sender.isDestroyed()) {
+    event.sender.send('agent:done');
+  }
+  return { ok: true };
+});
+
+handle('agents:abort', async () => {
+  abortAgent();
   return { ok: true };
 });
 

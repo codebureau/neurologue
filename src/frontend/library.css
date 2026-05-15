@@ -3305,6 +3305,16 @@ body.theme-light .graph-tooltip {
   animation: agents-pulse 1.2s ease-in-out infinite;
 }
 
+.btn-agents-stop {
+  border-color: var(--error-color, #e57373);
+  color:        var(--error-color, #e57373);
+}
+
+.btn-agents-stop:hover {
+  background: var(--error-color, #e57373);
+  color:      #fff;
+}
+
 @keyframes agents-pulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
