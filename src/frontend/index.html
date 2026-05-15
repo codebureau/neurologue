@@ -388,11 +388,13 @@
 
         <!-- ── View: Graph ───────────────────────────────────────── -->
         <div id="view-graph" class="view">
-          <div class="view-placeholder">
-            <div class="vp-icon">&#11041;</div>
-            <div class="vp-title">Graph</div>
-            <div class="vp-desc">Knowledge graph and semantic cluster visualisation — coming in 0.6.x</div>
+          <div id="graph-toolbar">
+            <span id="graph-title">Knowledge Graph</span>
+            <span id="graph-node-count" class="graph-toolbar-sub"></span>
+            <button id="btn-graph-refresh" class="btn-sm" title="Reload graph data">↻ Refresh</button>
+            <button id="btn-graph-reset"   class="btn-sm btn-secondary" title="Reset zoom and layout">Reset</button>
           </div>
+          <div id="graph-container"></div>
         </div>
 
         <!-- ── View: Explore (Cognitive Dashboard) ──────────────── -->
@@ -691,6 +693,7 @@
     </div>
   </div>
 
+  <script src="graph.js"></script>
   <script src="library.js"></script>
 </body>
 </html>

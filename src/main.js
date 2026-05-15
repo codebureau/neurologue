@@ -19,6 +19,7 @@ const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setW
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
 const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
+const { getGraphData } = require('./backend/db/graph');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -338,6 +339,10 @@ ipcMain.handle('contradictions:scan', async () => {
 // ── Dashboard IPC ──────────────────────────────────────────────────────────────
 
 handle('dashboard:summary', async () => getDashboardSummary());
+
+// ── Graph IPC ─────────────────────────────────────────────────────────────────
+
+handle('graph:data', async () => getGraphData());
 
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 

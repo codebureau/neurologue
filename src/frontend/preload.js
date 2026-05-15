@@ -60,6 +60,9 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Dashboard ────────────────────────────────────────────────────────────
   getDashboardSummary: () => ipcRenderer.invoke('dashboard:summary'),
 
+  // ── Graph ─────────────────────────────────────────────────────────────────
+  getGraphData: () => ipcRenderer.invoke('graph:data'),
+
   // ── Contradictions ───────────────────────────────────────────────────────
   listContradictions:   (opts) => ipcRenderer.invoke('contradictions:list', opts),
   resolveContradiction: (id, notes) => ipcRenderer.invoke('contradictions:resolve', { id, notes }),
