@@ -56,6 +56,10 @@
           <span class="nav-icon">&#8635;</span>
           <span class="nav-label">Dashboard</span>
         </button>
+        <button class="nav-item" data-view="replay" title="Memory Replay">
+          <span class="nav-icon">&#9711;</span>
+          <span class="nav-label">Replay</span>
+        </button>
       </nav>
 
       <!-- ── View container ────────────────────────────────────────── -->
@@ -462,6 +466,99 @@
 
           </div><!-- /#dash-body -->
         </div>
+
+        <!-- ── View: Memory Replay ──────────────────────────────────── -->
+        <div id="view-replay" class="view">
+
+          <!-- Toolbar with tab switcher -->
+          <div id="replay-toolbar">
+            <span id="replay-title">Memory Replay</span>
+            <div id="replay-tabs">
+              <button class="replay-tab active" data-tab="month">Month view</button>
+              <button class="replay-tab" data-tab="compare">Compare periods</button>
+              <button class="replay-tab" data-tab="abandoned">Abandoned ideas</button>
+            </div>
+          </div>
+
+          <!-- ── Tab: Month view ──────────────────────────── -->
+          <div id="replay-tab-month" class="replay-tab-panel">
+            <div id="replay-month-controls">
+              <label class="replay-ctrl-label" for="replay-month-select">Pick a month</label>
+              <select id="replay-month-select"></select>
+            </div>
+            <div id="replay-month-body">
+              <div id="replay-month-placeholder" class="replay-placeholder">
+                Select a month above to replay your thoughts from that period.
+              </div>
+              <div id="replay-month-content" style="display:none">
+                <div id="replay-month-header">
+                  <span id="replay-month-heading"></span>
+                  <span id="replay-month-entry-count" class="replay-count-badge"></span>
+                </div>
+                <div id="replay-month-two-col">
+                  <div class="replay-col">
+                    <div class="replay-section-title">Top themes</div>
+                    <div id="replay-month-themes"></div>
+                  </div>
+                  <div class="replay-col">
+                    <div class="replay-section-title">Entries from this month</div>
+                    <div id="replay-month-entries"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Tab: Compare periods ─────────────────────── -->
+          <div id="replay-tab-compare" class="replay-tab-panel" style="display:none">
+            <div id="replay-compare-controls">
+              <div class="replay-compare-period">
+                <label class="replay-ctrl-label">Period A</label>
+                <select id="replay-compare-from1"></select>
+                <span class="replay-ctrl-sep">→</span>
+                <select id="replay-compare-to1"></select>
+              </div>
+              <div class="replay-ctrl-vs">vs</div>
+              <div class="replay-compare-period">
+                <label class="replay-ctrl-label">Period B</label>
+                <select id="replay-compare-from2"></select>
+                <span class="replay-ctrl-sep">→</span>
+                <select id="replay-compare-to2"></select>
+              </div>
+              <button id="btn-replay-compare" class="btn-sm">Compare</button>
+            </div>
+            <div id="replay-compare-body">
+              <div id="replay-compare-placeholder" class="replay-placeholder">
+                Choose two periods and click Compare to see what changed.
+              </div>
+              <div id="replay-compare-content" style="display:none">
+                <div id="replay-compare-three-col">
+                  <div class="replay-col">
+                    <div class="replay-section-title replay-section-lost">Faded themes <span class="replay-diff-hint">(in A, not in B)</span></div>
+                    <div id="replay-compare-lost"></div>
+                  </div>
+                  <div class="replay-col">
+                    <div class="replay-section-title">In both periods</div>
+                    <div id="replay-compare-common"></div>
+                  </div>
+                  <div class="replay-col">
+                    <div class="replay-section-title replay-section-gained">New themes <span class="replay-diff-hint">(in B, not in A)</span></div>
+                    <div id="replay-compare-gained"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Tab: Abandoned ideas ─────────────────────── -->
+          <div id="replay-tab-abandoned" class="replay-tab-panel" style="display:none">
+            <div id="replay-abandoned-desc" class="replay-placeholder">
+              Ideas, questions, and decisions you captured more than 30 days ago that haven't been revisited.
+            </div>
+            <div id="replay-abandoned-list"></div>
+          </div>
+
+        </div><!-- /#view-replay -->
 
       </div><!-- /#view-container -->
     </div><!-- /#shell -->

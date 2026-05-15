@@ -20,6 +20,7 @@ const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = 
 const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 const { getGraphData } = require('./backend/db/graph');
+const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
@@ -343,6 +344,13 @@ handle('dashboard:summary', async () => getDashboardSummary());
 // ── Graph IPC ─────────────────────────────────────────────────────────────────
 
 handle('graph:data', async () => getGraphData());
+
+// ── Replay IPC ────────────────────────────────────────────────────────────────
+
+handle('replay:active-months',  async () => listActiveMonths());
+handle('replay:month-snapshot', async (_e, { year, month }) => getMonthSnapshot(year, month));
+handle('replay:compare-periods', async (_e, { from1, to1, from2, to2 }) => comparePeriods(from1, to1, from2, to2));
+handle('replay:abandoned-ideas', async () => getAbandonedIdeas());
 
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 
