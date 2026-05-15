@@ -71,6 +71,12 @@ const heatmapMonths   = document.getElementById('heatmap-months');
 const filterBar    = document.getElementById('filter-bar');
 const categoryList = document.getElementById('category-list');
 
+// ── Graph DOM refs ─────────────────────────────────────────────────────────
+const graphContainer   = document.getElementById('graph-container');
+const graphNodeCount   = document.getElementById('graph-node-count');
+const btnGraphRefresh  = document.getElementById('btn-graph-refresh');
+const btnGraphReset    = document.getElementById('btn-graph-reset');
+
 // ── Utilities ──────────────────────────────────────────────────────────────
 
 function formatDate(dateStr) {
@@ -1908,6 +1914,9 @@ function activateView(viewId) {
   if (viewId === 'contradictions') loadContradictionsView();
   if (viewId === 'priorities')     loadPrioritiesView();
   if (viewId === 'explore')        loadDashboardView();
+  if (viewId === 'graph')          loadGraphView();
+  // Destroy graph renderer when leaving the graph view
+  if (viewId !== 'graph')          _destroyGraphIfActive();
 }
 
 navItems.forEach(btn => {
@@ -2539,6 +2548,56 @@ btnPriRecompute.addEventListener('click', async () => {
     btnPriRecompute.disabled = false;
     btnPriRecompute.textContent = '↻';
   }
+});
+
+// ── Knowledge Graph view controller ─────────────────────────────────────────
+
+let _graphInitialised = false;
+
+function _destroyGraphIfActive() {
+  if (_graphInitialised) {
+    window.graphView.graphDestroy();
+    _graphInitialised = false;
+  }
+}
+
+async function loadGraphView() {
+  // Initialise the renderer once
+  if (!_graphInitialised) {
+    window.graphView.graphInit(graphContainer, (themeId) => {
+      // Navigate to Themes view and select the clicked theme
+      activateView('themes');
+      selectThemeView(themeId);
+    });
+    _graphInitialised = true;
+  }
+
+  graphNodeCount.textContent = 'Loading…';
+  btnGraphRefresh.disabled   = true;
+
+  try {
+    const data = await window.neurologue.getGraphData();
+    window.graphView.graphLoad(data);
+    const n = data.nodes.length;
+    const e = data.edges.length;
+    graphNodeCount.textContent = `${n} theme${n !== 1 ? 's' : ''}, ${e} connection${e !== 1 ? 's' : ''}`;
+  } catch (err) {
+    graphNodeCount.textContent = 'Failed to load graph';
+    console.error('[graph] loadGraphView error:', err);
+  } finally {
+    btnGraphRefresh.disabled = false;
+  }
+}
+
+btnGraphRefresh.addEventListener('click', () => {
+  _destroyGraphIfActive();
+  loadGraphView();
+});
+
+btnGraphReset.addEventListener('click', () => {
+  // Re-run the simulation from new random positions
+  _destroyGraphIfActive();
+  loadGraphView();
 });
 
 // ── Cognitive Dashboard view controller ─────────────────────────────────────
