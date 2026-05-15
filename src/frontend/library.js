@@ -3065,11 +3065,12 @@ async function _runAgent(agentId, label) {
   try {
     await window.neurologue.runAgent(agentId);
   } catch (err) {
+    // IPC error (not an abort) — reset state here since agent:done won't fire
     agentsOutputBody.textContent += `\n\n[Error: ${err.message}]`;
-  } finally {
     _setAgentsRunning(false);
     document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
   }
+  // Normal completion: state reset by onAgentDone
 }
 
 // Stream tokens into the output body
@@ -3085,10 +3086,10 @@ window.neurologue.onAgentDone(() => {
 });
 
 btnAgentsStop.addEventListener('click', async () => {
-  await window.neurologue.abortAgent();
-  _setAgentsRunning(false);
-  document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
+  // Show stopped message immediately, then abort — agent:done will clean up state
   agentsOutputBody.textContent += '\n\n[Stopped]';
+  agentsOutputBody.scrollTop = agentsOutputBody.scrollHeight;
+  window.neurologue.abortAgent(); // fire-and-forget; agent:done arrives shortly after
 });
 
 btnAgentsClear.addEventListener('click', () => {

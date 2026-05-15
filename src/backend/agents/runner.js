@@ -157,18 +157,22 @@ function listAgents() {
   }));
 }
 
-// Shared cancellation flag — one agent runs at a time
-let _abortRequested = false;
+// AbortController for the currently-running HTTP stream
+let _currentController = null;
 
 /**
- * Signal the currently-running agent to stop after the next token.
+ * Abort the currently-running agent stream immediately.
  */
 function abortAgent() {
-  _abortRequested = true;
+  if (_currentController) {
+    _currentController.abort();
+    _currentController = null;
+  }
 }
 
 /**
  * Run an agent, streaming the LLM response token-by-token.
+ * Aborts any in-flight run before starting a new one.
  * @param {string}   agentId
  * @param {function} onToken  Called with each text fragment as it arrives
  * @returns {Promise<void>}
@@ -177,13 +181,18 @@ async function runAgent(agentId, onToken) {
   const agent = AGENTS[agentId];
   if (!agent) throw new Error(`Unknown agent: "${agentId}"`);
 
-  _abortRequested = false;
+  // Cancel any previous stream before starting fresh
+  abortAgent();
 
-  const prompt = await agent.buildPrompt();
-  await generateStream(prompt, (token) => {
-    if (_abortRequested) return; // drop remaining tokens
-    onToken(token);
-  });
+  const controller = new AbortController();
+  _currentController = controller;
+
+  try {
+    const prompt = await agent.buildPrompt();
+    await generateStream(prompt, onToken, 180_000, controller.signal);
+  } finally {
+    if (_currentController === controller) _currentController = null;
+  }
 }
 
 module.exports = { listAgents, runAgent, abortAgent };
