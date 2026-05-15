@@ -178,7 +178,27 @@ Each roadmap item is written to be convertible into GitHub Issues.
   - Suggest focus areas for today
 
 ---
+## 0.10.x — AI Interaction & Integration
 
+### 0.10.1 Free-text chat with corpus
+- Chat input in the Agents view for free-text questions and instructions
+- LLM responses grounded in the user's corpus via semantic/recent-entry context
+- Streamed token-by-token output, same as existing agents
+- Conversation history maintained within the session
+
+### 0.10.2 Agentic note management via chat
+- Use natural language to create, search, and summarise notes
+- Intent detection classifies user message (create / search / summarise / general)
+- Destructive operations require explicit confirmation
+- Changes reflected immediately in the Library view
+
+### 0.10.3 MCP server for external tool integration
+- Local MCP server exposing Neurologue data and AI capabilities
+- Tools: `search_notes`, `list_themes`, `get_theme_entries`, `create_note`, `summarise_topic`, `run_agent`
+- Start/stop and port/token configuration from the Settings view
+- Enables integration with Claude Desktop, Cursor, VS Code, and other MCP-compatible clients
+
+---
 ## Issue Generation Guide (Optional)
 
 <!--

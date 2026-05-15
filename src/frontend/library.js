@@ -1936,6 +1936,7 @@ function activateView(viewId) {
   if (viewId === 'explore')        loadDashboardView();
   if (viewId === 'graph')          loadGraphView();
   if (viewId === 'replay')         loadReplayView();
+  if (viewId === 'agents')         loadAgentsView();
   // Destroy graph renderer when leaving the graph view
   if (viewId !== 'graph')          _destroyGraphIfActive();
 }
@@ -2988,6 +2989,113 @@ replayMonthSelect.addEventListener('change', _loadMonthSnapshot);
 
 // Compare button
 btnReplayCompare.addEventListener('click', _loadComparePeriods);
+
+// ── Agents view controller ─────────────────────────────────────────────────
+
+const agentsGrid          = document.getElementById('agents-grid');
+const agentsOutputPanel   = document.getElementById('agents-output-panel');
+const agentsOutputLabel   = document.getElementById('agents-output-label');
+const agentsRunningInd    = document.getElementById('agents-running-indicator');
+const agentsOutputBody    = document.getElementById('agents-output');
+const btnAgentsClear      = document.getElementById('btn-agents-clear');
+const btnAgentsStop       = document.getElementById('btn-agents-stop');
+
+let _agentsLoaded = false;
+let _agentsRunning = false;
+
+function _setAgentsRunning(running) {
+  _agentsRunning = running;
+  agentsRunningInd.style.display = running ? '' : 'none';
+  btnAgentsStop.style.display    = running ? '' : 'none';
+  document.querySelectorAll('.agent-card').forEach((c) => {
+    c.classList.toggle('running', running && c.classList.contains('running'));
+    c.querySelector('.btn-agent-run').disabled = running;
+  });
+}
+
+async function loadAgentsView() {
+  // Always reset indicator state when the view becomes active
+  if (!_agentsRunning) {
+    agentsRunningInd.style.display = 'none';
+    btnAgentsStop.style.display    = 'none';
+  }
+
+  if (_agentsLoaded) return;
+  _agentsLoaded = true;
+
+  try {
+    const agents = await window.neurologue.listAgents();
+    agentsGrid.innerHTML = '';
+    agents.forEach((a) => {
+      const card = document.createElement('div');
+      card.className  = 'agent-card';
+      card.dataset.id = a.id;
+      card.innerHTML =
+        `<div class="agent-card-header">` +
+        `  <span class="agent-card-icon">${a.icon}</span>` +
+        `  <span class="agent-card-label">${_escHtml(a.label)}</span>` +
+        `</div>` +
+        `<div class="agent-card-desc">${_escHtml(a.description)}</div>` +
+        `<div class="agent-card-footer"><button class="btn-agent-run">Run</button></div>`;
+
+      card.querySelector('.btn-agent-run').addEventListener('click', () => _runAgent(a.id, a.label));
+      agentsGrid.appendChild(card);
+    });
+  } catch (err) {
+    console.error('[agents] loadAgentsView failed:', err);
+    agentsGrid.innerHTML = '<div style="color:var(--text-dim);font-size:13px">Could not load agents</div>';
+  }
+}
+
+async function _runAgent(agentId, label) {
+  if (_agentsRunning) return;
+
+  // Mark the active card and show running state
+  document.querySelectorAll('.agent-card').forEach((c) => {
+    c.classList.toggle('running', c.dataset.id === agentId);
+  });
+
+  agentsOutputPanel.style.display = '';
+  agentsOutputLabel.textContent   = label;
+  agentsOutputBody.textContent    = '';
+  _setAgentsRunning(true);
+
+  agentsOutputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  try {
+    await window.neurologue.runAgent(agentId);
+  } catch (err) {
+    // IPC error (not an abort) — reset state here since agent:done won't fire
+    agentsOutputBody.textContent += `\n\n[Error: ${err.message}]`;
+    _setAgentsRunning(false);
+    document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
+  }
+  // Normal completion: state reset by onAgentDone
+}
+
+// Stream tokens into the output body
+window.neurologue.onAgentToken(({ token }) => {
+  agentsOutputBody.textContent += token;
+  agentsOutputBody.scrollTop = agentsOutputBody.scrollHeight;
+});
+
+// Agent done (via push event — more reliable than awaiting runAgent resolve)
+window.neurologue.onAgentDone(() => {
+  _setAgentsRunning(false);
+  document.querySelectorAll('.agent-card.running').forEach((c) => c.classList.remove('running'));
+});
+
+btnAgentsStop.addEventListener('click', async () => {
+  // Show stopped message immediately, then abort — agent:done will clean up state
+  agentsOutputBody.textContent += '\n\n[Stopped]';
+  agentsOutputBody.scrollTop = agentsOutputBody.scrollHeight;
+  window.neurologue.abortAgent(); // fire-and-forget; agent:done arrives shortly after
+});
+
+btnAgentsClear.addEventListener('click', () => {
+  agentsOutputBody.textContent = '';
+  agentsOutputPanel.style.display = 'none';
+});
 
 function _escHtml(str) {
   return String(str)

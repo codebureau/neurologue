@@ -448,4 +448,87 @@ function clamp(val, min, max) {
   return Math.min(max, Math.max(min, val));
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction, computeEntrySignals };
+/**
+ * Stream a text generation response from Ollama, calling `onToken` for each
+ * token as it arrives.  Uses the configured LLM model.
+ *
+ * @param {string}      prompt
+ * @param {function}    onToken       Called with each text fragment (string)
+ * @param {number}      [timeoutMs=180000]  Hard cap; large models can be slow to load
+ * @param {AbortSignal} [signal]      When aborted, destroys the HTTP request immediately
+ * @returns {Promise<void>}
+ */
+function generateStream(prompt, onToken, timeoutMs = 180_000, signal = null) {
+  return new Promise((resolve, reject) => {
+    if (signal && signal.aborted) return resolve();
+
+    const settings = getSettings();
+    const model    = settings.llmModel || 'phi3:mini';
+    const payload  = JSON.stringify({ model, prompt, stream: true });
+    const url      = new URL(config.ollama.baseUrl);
+
+    const options = {
+      hostname: url.hostname,
+      port:     url.port || 11434,
+      path:     '/api/generate',
+      method:   'POST',
+      headers: {
+        'Content-Type':   'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    };
+
+    let settled = false;
+    function finish() { if (!settled) { settled = true; resolve(); } }
+    function fail(err) { if (!settled) { settled = true; reject(err); } }
+
+    // Wire up abort signal before making the request
+    if (signal) {
+      signal.addEventListener('abort', () => { req.destroy(); finish(); }, { once: true });
+    }
+
+    const req = http.request(options, (res) => {
+      if (res.statusCode >= 400) {
+        res.resume();
+        return fail(new Error(`Ollama generateStream HTTP ${res.statusCode}`));
+      }
+
+      let buf = '';
+      res.on('data', (chunk) => {
+        buf += chunk.toString('utf8');
+        // NDJSON — split on newlines, keep any trailing incomplete fragment
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const obj = JSON.parse(line);
+            if (obj.response) onToken(obj.response);
+            if (obj.done) finish();
+          } catch { /* ignore malformed line */ }
+        }
+      });
+
+      res.on('end', () => {
+        if (buf.trim()) {
+          try {
+            const obj = JSON.parse(buf);
+            if (obj.response) onToken(obj.response);
+          } catch { /* ignore */ }
+        }
+        finish();
+      });
+
+      res.on('error', (err) => { if (!settled) fail(err); });
+    });
+
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error(`generateStream timed out after ${timeoutMs / 1000}s`));
+    });
+    req.on('error', (err) => { if (!settled) fail(err); });
+    req.write(payload);
+    req.end();
+  });
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction, computeEntrySignals, generateStream };
