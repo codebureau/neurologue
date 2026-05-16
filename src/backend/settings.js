@@ -35,6 +35,7 @@ const DEFAULTS = {
     frequency:   'daily',   // 'daily' | 'weekly'
     destDir:     null,      // absolute path chosen by user
     includeDiff: false,
+    adapterIds:  [],        // adapter ids to run after each CCF snapshot
     lastRun:     null,
   },
 };
