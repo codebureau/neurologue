@@ -473,6 +473,17 @@ handle('scheduler:save-config', async (_event, updates) => {
   return getSchedulerStatus();
 });
 
+handle('scheduler:choose-folder', async () => {
+  const { dialog } = require('electron');
+  const win = BrowserWindow.getFocusedWindow();
+  const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+    title: 'Choose scheduled export destination folder',
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
+  return { canceled: false, path: filePaths[0] };
+});
+
 app.whenReady().then(async () => {
   await initialise();
   createMainWindow();

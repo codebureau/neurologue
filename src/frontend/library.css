@@ -1763,6 +1763,7 @@ html, body {
 /* Tab bar */
 .settings-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 2px;
   border-bottom: 1px solid var(--border);
   margin: 12px 0 20px;
@@ -1828,6 +1829,61 @@ html, body {
 }
 .settings-saved          { font-size: 12px; color: var(--cortex-teal); }
 .settings-saved.hidden   { display: none; }
+
+/* ── Scheduled Export settings panel ──────────────────────────────────── */
+.sched-folder-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sched-dest-display {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+}
+.sched-status-line {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.sched-history-panel {
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+}
+.sched-history-row {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.sched-history-row:last-child { border-bottom: none; }
+.sched-ok   { color: var(--cortex-teal); }
+.sched-fail { color: #e05c5c; }
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: normal;
+}
 
 /* ── Settings section headings ──────────────────────────────────────────── */
 .settings-section-heading {

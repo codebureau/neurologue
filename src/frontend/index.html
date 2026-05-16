@@ -668,6 +668,7 @@
         <button class="settings-tab" data-tab="worker"     role="tab" aria-selected="false">Worker</button>
         <button class="settings-tab" data-tab="appearance" role="tab" aria-selected="false">Appearance</button>
         <button class="settings-tab" data-tab="data"       role="tab" aria-selected="false">Data</button>
+        <button class="settings-tab" data-tab="scheduled-export" role="tab" aria-selected="false">Scheduled Export</button>
       </div>
 
       <!-- Models panel -->
@@ -761,6 +762,50 @@
           <label>Reindex all entries</label>
           <button id="btn-reindex-all" class="btn-secondary">Reindex all entries…</button>
           <span class="settings-hint">Clears all stored embeddings and re-processes every entry. Use this after changing the embedding model, or if semantic search feels off. Requires Ollama.</span>
+        </div>
+      </div>
+
+      <!-- Scheduled Export panel -->
+      <div class="settings-panel hidden" id="settings-tab-scheduled-export">
+        <div class="settings-field">
+          <label>Enable scheduled exports</label>
+          <label class="toggle-label">
+            <input type="checkbox" id="sched-enabled" />
+            <span class="settings-hint">Automatically snapshot your corpus on a regular schedule.</span>
+          </label>
+        </div>
+        <div class="settings-field">
+          <label for="sched-frequency">Frequency</label>
+          <select id="sched-frequency">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <label>Destination folder</label>
+          <div class="sched-folder-row">
+            <span id="sched-dest-display" class="sched-dest-display">Not set</span>
+            <button id="btn-sched-choose-folder" class="btn-secondary btn-sm">Choose folder…</button>
+          </div>
+          <span class="settings-hint">Each run creates a timestamped sub-folder here.</span>
+        </div>
+        <div class="settings-field">
+          <label class="toggle-label">
+            <input type="checkbox" id="sched-include-diff" />
+            Include diff.json (changes since last snapshot)
+          </label>
+        </div>
+        <div class="settings-field">
+          <label>Status</label>
+          <div id="sched-status-line" class="sched-status-line">—</div>
+        </div>
+        <div class="settings-field">
+          <label>Run now <button id="btn-sched-run-now" class="btn-secondary btn-sm" style="margin-left:8px">Export now</button></label>
+          <span id="sched-run-feedback" class="settings-hint"></span>
+        </div>
+        <div class="settings-field">
+          <label>Export history <button id="btn-sched-refresh-history" class="btn-secondary btn-sm" style="margin-left:8px">Refresh</button></label>
+          <div id="sched-history-panel" class="sched-history-panel"><span class="worker-log-empty">No exports recorded yet.</span></div>
         </div>
       </div>
 
