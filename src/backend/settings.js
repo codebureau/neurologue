@@ -30,6 +30,13 @@ const DEFAULTS = {
   },
   signalsEnabled: true,   // enable LLM entry signal classification (Pass 3)
   theme: 'dark',          // 'dark' | 'light'
+  scheduledExport: {
+    enabled:     false,
+    frequency:   'daily',   // 'daily' | 'weekly'
+    destDir:     null,      // absolute path chosen by user
+    includeDiff: false,
+    lastRun:     null,
+  },
 };
 
 /**
