@@ -14,6 +14,7 @@ const { listThemes, getThemeById, renameTheme, deleteTheme, getThemeWeeklyActivi
 const { listContradictions, resolveContradiction, dismissContradiction } = require('./backend/db/contradictions');
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
+const { exportCCF }  = require('./backend/export/ccf');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
@@ -422,6 +423,19 @@ ipcMain.handle('export:run', async (_event, { formats } = {}) => {
   }
   const result = await runExport(filePaths[0], { formats });
   return { canceled: false, destDir: filePaths[0], ...result };
+});
+
+// Show native folder picker and run a CCF snapshot export
+handle('export:ccf', async () => {
+  const { dialog } = require('electron');
+  const win = BrowserWindow.getFocusedWindow();
+  const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+    title: 'Choose CCF export folder',
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
+  const result = await exportCCF(filePaths[0]);
+  return { canceled: false, ...result };
 });
 
 app.whenReady().then(async () => {
