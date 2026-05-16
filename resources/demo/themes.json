@@ -1,0 +1,30 @@
+[
+  {
+    "id": "demo_t001",
+    "name": "AI & Machine Learning",
+    "summary": "Notes on embeddings, large language models, prompting techniques, RAG, and the practical application of AI in software systems. A recurring theme is the gap between benchmark performance and real-world utility.",
+    "created_at": "2025-11-30T10:00:00.000Z",
+    "entry_ids": ["demo_e001", "demo_e002", "demo_e003", "demo_e004", "demo_e005"]
+  },
+  {
+    "id": "demo_t002",
+    "name": "Software Craft",
+    "summary": "Principles and practices for writing maintainable, well-tested software. Covers SOLID principles, technical debt management, code review culture, and testing philosophy. The unifying thread: optimise for the next reader, not just the computer.",
+    "created_at": "2025-11-01T10:00:00.000Z",
+    "entry_ids": ["demo_e006", "demo_e007", "demo_e008", "demo_e009", "demo_e010"]
+  },
+  {
+    "id": "demo_t003",
+    "name": "Health & Focus",
+    "summary": "Evidence-based notes on cognitive performance: sleep, exercise, nutrition, and attention management. The central insight across these entries is that physical inputs have outsized effects on mental outputs.",
+    "created_at": "2025-11-01T10:00:00.000Z",
+    "entry_ids": ["demo_e011", "demo_e012", "demo_e013", "demo_e014", "demo_e015"]
+  },
+  {
+    "id": "demo_t004",
+    "name": "Reading & Ideas",
+    "summary": "Notes from books and essays on knowledge management, note-taking, and the philosophy of cognition. These entries cluster around a single conviction: externalising thought improves the quality of thinking itself.",
+    "created_at": "2025-10-01T10:00:00.000Z",
+    "entry_ids": ["demo_e016", "demo_e017", "demo_e018", "demo_e019"]
+  }
+]

@@ -1658,6 +1658,33 @@ document.getElementById('btn-reindex-all').addEventListener('click', async () =>
   console.info(`[library] Reindex started — ${queued} entries queued`);
 });
 
+// Load demo content
+document.getElementById('btn-load-demo').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-load-demo');
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+  try {
+    const result = await window.neurologue.importDemo();
+    if (result.canceled) {
+      // user dismissed the confirmation dialog — nothing to report
+    } else if (result.ok) {
+      const s = result.stats || {};
+      showToast(
+        `Demo loaded — ${s.entriesImported || 0} entries and ${s.themesImported || 0} themes added.`,
+        'success',
+      );
+    } else {
+      const errs = (result.errors || []).join('; ');
+      showToast(`Demo import failed: ${errs}`, 'error');
+    }
+  } catch (err) {
+    showToast(`Demo import error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Load Demo Content…';
+  }
+});
+
 // ── Worker log ───────────────────────────────────────────────────────────────
 
 function _formatWLTime(iso) {

@@ -454,6 +454,34 @@ handle('import:ccf', async () => {
   return { canceled: false, ...result };
 });
 
+// Load the bundled demo corpus (resources/demo) via the CCF import engine.
+// Shows a native confirmation dialog when the corpus already has entries so the
+// user is never surprised by demo content appearing in their data.
+handle('demo:import', async () => {
+  const { dialog } = require('electron');
+  const win = BrowserWindow.getFocusedWindow();
+
+  const db = await (require('./backend/db/connection')).openDb();
+  const { n } = db.prepare('SELECT COUNT(*) as n FROM entries').get();
+
+  if (n > 0) {
+    const { response } = await dialog.showMessageBox(win || undefined, {
+      type: 'question',
+      buttons: ['Load Demo Content', 'Cancel'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'Load Demo Content',
+      message: `Your corpus already contains ${n} ${n === 1 ? 'entry' : 'entries'}.`,
+      detail: 'Demo entries will be added alongside your existing content. Entries with matching IDs will be skipped. This cannot be undone automatically.',
+    });
+    if (response !== 0) return { canceled: true };
+  }
+
+  const demoDir = path.join(__dirname, '..', 'resources', 'demo');
+  const result  = await importCCF(demoDir, { onConflict: 'skip' });
+  return { canceled: false, ...result };
+});
+
 // ── Scheduled Export IPC ─────────────────────────────────────────────────────
 
 handle('scheduler:status', async () => getSchedulerStatus());

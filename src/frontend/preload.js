@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   exportAll: (opts) => ipcRenderer.invoke('export:run', opts),
   exportCCF:  ()    => ipcRenderer.invoke('export:ccf'),
   importCCF:  ()    => ipcRenderer.invoke('import:ccf'),
+  importDemo: ()    => ipcRenderer.invoke('demo:import'),
 
   // ── Adapter exports ───────────────────────────────────────────────────────
   listAdapters:  ()   => ipcRenderer.invoke('adapter:list'),
