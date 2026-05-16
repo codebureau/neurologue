@@ -46,7 +46,8 @@ contextBridge.exposeInMainWorld('neurologue', {
   schedulerStatus:     ()       => ipcRenderer.invoke('scheduler:status'),
   schedulerHistory:    (limit)  => ipcRenderer.invoke('scheduler:history', { limit }),
   schedulerRunNow:     ()       => ipcRenderer.invoke('scheduler:run-now'),
-  schedulerSaveConfig: (config) => ipcRenderer.invoke('scheduler:save-config', config),
+  schedulerSaveConfig:   (config) => ipcRenderer.invoke('scheduler:save-config', config),
+  schedulerChooseFolder: ()       => ipcRenderer.invoke('scheduler:choose-folder'),
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),

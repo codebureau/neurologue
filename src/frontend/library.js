@@ -1667,6 +1667,124 @@ document.querySelectorAll('.settings-tab').forEach((tab) => {
   }
 });
 
+// ── Scheduled Export settings ────────────────────────────────────────────────
+
+let _schedConfig = {};
+
+function _fmtSchedDate(iso) {
+  if (!iso) return 'Never';
+  return new Date(iso).toLocaleString(undefined, {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+async function loadSchedSettings() {
+  const status = await window.neurologue.schedulerStatus();
+  _schedConfig = { ...status };
+
+  document.getElementById('sched-enabled').checked       = status.enabled;
+  document.getElementById('sched-frequency').value       = status.frequency || 'daily';
+  document.getElementById('sched-include-diff').checked  = status.includeDiff;
+  document.getElementById('sched-dest-display').textContent = status.destDir || 'Not set';
+
+  const lastRun = _fmtSchedDate(status.lastRun);
+  const nextRun = status.enabled && status.nextRun ? _fmtSchedDate(status.nextRun) : 'Not scheduled';
+  document.getElementById('sched-status-line').textContent =
+    `Last run: ${lastRun}  ·  Next run: ${nextRun}`;
+
+  await renderSchedHistory();
+}
+
+async function renderSchedHistory() {
+  const panel = document.getElementById('sched-history-panel');
+  const records = await window.neurologue.schedulerHistory(20);
+  panel.innerHTML = '';
+  if (!records || records.length === 0) {
+    const empty = document.createElement('span');
+    empty.className = 'worker-log-empty';
+    empty.textContent = 'No exports recorded yet.';
+    panel.appendChild(empty);
+    return;
+  }
+  [...records].reverse().forEach((r) => {
+    const row = document.createElement('div');
+    row.className = 'sched-history-row';
+
+    const icon = document.createElement('span');
+    icon.className = r.ok ? 'sched-ok' : 'sched-fail';
+    icon.textContent = r.ok ? '✓' : '✗';
+    row.appendChild(icon);
+
+    const ts = document.createElement('span');
+    ts.textContent = _fmtSchedDate(r.runAt);
+    row.appendChild(ts);
+
+    const dir = document.createElement('span');
+    const name = r.snapshotDir ? r.snapshotDir.split(/[\\/]/).pop() : '—';
+    dir.textContent = name;
+    dir.title = r.snapshotDir || '';
+    row.appendChild(dir);
+
+    panel.appendChild(row);
+  });
+}
+
+async function _saveSchedConfig() {
+  const cfg = {
+    enabled:     document.getElementById('sched-enabled').checked,
+    frequency:   document.getElementById('sched-frequency').value,
+    destDir:     _schedConfig.destDir || null,
+    includeDiff: document.getElementById('sched-include-diff').checked,
+    lastRun:     _schedConfig.lastRun || null,
+  };
+  _schedConfig = { ..._schedConfig, ...cfg };
+  await window.neurologue.schedulerSaveConfig(cfg);
+}
+
+document.getElementById('sched-enabled').addEventListener('change', _saveSchedConfig);
+document.getElementById('sched-frequency').addEventListener('change', _saveSchedConfig);
+document.getElementById('sched-include-diff').addEventListener('change', _saveSchedConfig);
+
+document.getElementById('btn-sched-choose-folder').addEventListener('click', async () => {
+  const result = await window.neurologue.schedulerChooseFolder();
+  if (result.canceled) return;
+  _schedConfig.destDir = result.path;
+  document.getElementById('sched-dest-display').textContent = result.path;
+  await _saveSchedConfig();
+});
+
+document.getElementById('btn-sched-run-now').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-sched-run-now');
+  const feedback = document.getElementById('sched-run-feedback');
+  btn.disabled = true;
+  btn.textContent = 'Running…';
+  feedback.textContent = '';
+  try {
+    const result = await window.neurologue.schedulerRunNow();
+    if (result.ok) {
+      feedback.textContent = `✓ Snapshot saved to ${result.snapshotDir.split(/[\\/]/).pop()}`;
+    } else {
+      feedback.textContent = `✗ ${result.error || 'Export failed'}`;
+    }
+    await loadSchedSettings();
+  } catch (err) {
+    feedback.textContent = `✗ ${err.message || 'Unexpected error'}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Export now';
+  }
+});
+
+document.getElementById('btn-sched-refresh-history').addEventListener('click', renderSchedHistory);
+
+// Load scheduled export settings when that tab is activated
+document.querySelectorAll('.settings-tab').forEach((tab) => {
+  if (tab.dataset.tab === 'scheduled-export') {
+    tab.addEventListener('click', loadSchedSettings);
+  }
+});
+
 // ── Tag Management modal ─────────────────────────────────────────────────────
 
 const tagMgmtModal    = document.getElementById('tag-management-modal');
