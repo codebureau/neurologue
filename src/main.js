@@ -16,6 +16,7 @@ const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { exportCCF }  = require('./backend/export/ccf');
 const { importCCF }  = require('./backend/import/ccf-import');
+const { startScheduler, stopScheduler, runScheduledExport, getExportHistory, getSchedulerStatus } = require('./backend/export/scheduler/index');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
@@ -452,12 +453,33 @@ handle('import:ccf', async () => {
   return { canceled: false, ...result };
 });
 
+// ── Scheduled Export IPC ─────────────────────────────────────────────────────
+
+handle('scheduler:status', async () => getSchedulerStatus());
+
+handle('scheduler:history', async (_event, { limit = 20 } = {}) => getExportHistory(limit));
+
+handle('scheduler:run-now', async () => {
+  const result = await runScheduledExport();
+  return result;
+});
+
+handle('scheduler:save-config', async (_event, updates) => {
+  const { saveSettings } = require('./backend/settings');
+  saveSettings({ scheduledExport: updates });
+  // Restart scheduler so new settings take effect immediately
+  stopScheduler();
+  startScheduler();
+  return getSchedulerStatus();
+});
+
 app.whenReady().then(async () => {
   await initialise();
   createMainWindow();
   const { captureHotkey } = getSettings();
   registerCaptureHotkey(captureHotkey);
   startWorker();
+  startScheduler();
   // Wire the worker to push IPC events to the library window once it is ready
   _mainWindow.webContents.on('did-finish-load', () => {
     setMainWindow(_mainWindow.webContents);
