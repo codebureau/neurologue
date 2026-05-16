@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model
+    xmlns="http://www.opengroup.org/xsd/archimate/3.0/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.opengroup.org/xsd/archimate/3.0/ http://www.opengroup.org/xsd/archimate/3.1/archimate3_Diagram.xsd"
+    identifier="id-neurologue-architecture">
+
+  <name xml:lang="en">Neurologue Architecture</name>
+
+  <!-- ========= ELEMENTS ========= -->
+  <elements>
+
+    <!-- Motivation / Drivers -->
+    <element identifier="drv-privacy" xsi:type="Driver">
+      <name xml:lang="en">Privacy and Compliance</name>
+    </element>
+    <element identifier="drv-local-first" xsi:type="Driver">
+      <name xml:lang="en">Local First Knowledge Control</name>
+    </element>
+    <element identifier="drv-cognitive-offload" xsi:type="Driver">
+      <name xml:lang="en">Cognitive Offload</name>
+    </element>
+    <element identifier="drv-interoperability" xsi:type="Driver">
+      <name xml:lang="en">Tool Interoperability</name>
+    </element>
+
+    <!-- Goals -->
+    <element identifier="goal-local-pkm" xsi:type="Goal">
+      <name xml:lang="en">Local First Personal Knowledge Engine</name>
+    </element>
+    <element identifier="goal-canonical-corpus" xsi:type="Goal">
+      <name xml:lang="en">Single Canonical Corpus</name>
+    </element>
+    <element identifier="goal-safe-ai" xsi:type="Goal">
+      <name xml:lang="en">Safe and Transparent AI Usage</name>
+    </element>
+    <element identifier="goal-reduced-fragmentation" xsi:type="Goal">
+      <name xml:lang="en">Reduced Knowledge Fragmentation</name>
+    </element>
+    <element identifier="goal-interoperable-ai-tools" xsi:type="Goal">
+      <name xml:lang="en">Interoperable AI and Local Tools</name>
+    </element>
+
+    <!-- Outcomes (as Goals for simplicity) -->
+    <element identifier="outcome-less-context-switching" xsi:type="Goal">
+      <name xml:lang="en">Less Context Switching Between Tools</name>
+    </element>
+    <element identifier="outcome-better-recall" xsi:type="Goal">
+      <name xml:lang="en">Improved Recall of Past Work</name>
+    </element>
+
+    <!-- Capabilities -->
+    <element identifier="cap-corpus-management" xsi:type="Capability">
+      <name xml:lang="en">Corpus Management</name>
+    </element>
+    <element identifier="cap-retrieval-insight" xsi:type="Capability">
+      <name xml:lang="en">Retrieval and Insight</name>
+    </element>
+    <element identifier="cap-export-interoperability" xsi:type="Capability">
+      <name xml:lang="en">Export and Interoperability</name>
+    </element>
+    <element identifier="cap-agentic-automation" xsi:type="Capability">
+      <name xml:lang="en">Agentic Automation</name>
+    </element>
+    <element identifier="cap-local-ai-orchestration" xsi:type="Capability">
+      <name xml:lang="en">Local AI Orchestration</name>
+    </element>
+
+    <!-- Courses of Action -->
+    <element identifier="coa-ccf-canonical" xsi:type="CourseOfAction">
+      <name xml:lang="en">Adopt CCF as Canonical Format</name>
+    </element>
+    <element identifier="coa-run-ai-locally" xsi:type="CourseOfAction">
+      <name xml:lang="en">Run Language Models Locally</name>
+    </element>
+    <element identifier="coa-expose-mcp" xsi:type="CourseOfAction">
+      <name xml:lang="en">Expose MCP Interface for Tools</name>
+    </element>
+    <element identifier="coa-local-first-storage" xsi:type="CourseOfAction">
+      <name xml:lang="en">Use Local Storage for Corpus</name>
+    </element>
+
+    <!-- Application Components -->
+    <element identifier="app-frontend" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Neurologue Frontend</name>
+    </element>
+    <element identifier="app-backend" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Neurologue Backend</name>
+    </element>
+    <element identifier="app-ccf-export" xsi:type="ApplicationComponent">
+      <name xml:lang="en">CCF Export Engine</name>
+    </element>
+    <element identifier="app-ccf-import" xsi:type="ApplicationComponent">
+      <name xml:lang="en">CCF Import Engine</name>
+    </element>
+    <element identifier="app-ccf-validate" xsi:type="ApplicationComponent">
+      <name xml:lang="en">CCF Validation Component</name>
+    </element>
+    <element identifier="app-ccf-diff" xsi:type="ApplicationComponent">
+      <name xml:lang="en">CCF Diff Engine</name>
+    </element>
+    <element identifier="app-mcp-server" xsi:type="ApplicationComponent">
+      <name xml:lang="en">MCP Server</name>
+    </element>
+    <element identifier="app-embedding-worker" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Embedding Worker</name>
+    </element>
+    <element identifier="app-search-layer" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Search Layer</name>
+    </element>
+    <element identifier="app-agent-runner" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Agent Runner</name>
+    </element>
+    <element identifier="app-settings-manager" xsi:type="ApplicationComponent">
+      <name xml:lang="en">Settings Manager</name>
+    </element>
+
+    <!-- Data Objects -->
+    <element identifier="data-entry" xsi:type="DataObject">
+      <name xml:lang="en">Entry</name>
+    </element>
+    <element identifier="data-theme" xsi:type="DataObject">
+      <name xml:lang="en">Theme</name>
+    </element>
+    <element identifier="data-ccf-snapshot" xsi:type="DataObject">
+      <name xml:lang="en">CCF Snapshot</name>
+    </element>
+    <element identifier="data-ccf-entries" xsi:type="DataObject">
+      <name xml:lang="en">CCF Entries File</name>
+    </element>
+    <element identifier="data-ccf-themes" xsi:type="DataObject">
+      <name xml:lang="en">CCF Themes File</name>
+    </element>
+    <element identifier="data-ccf-metadata" xsi:type="DataObject">
+      <name xml:lang="en">CCF Metadata File</name>
+    </element>
+    <element identifier="data-embeddings" xsi:type="DataObject">
+      <name xml:lang="en">Embeddings</name>
+    </element>
+    <element identifier="data-media-file" xsi:type="DataObject">
+      <name xml:lang="en">Media File</name>
+    </element>
+    <element identifier="data-settings" xsi:type="DataObject">
+      <name xml:lang="en">User Settings</name>
+    </element>
+
+    <!-- Technology / Infrastructure -->
+    <element identifier="node-user-device" xsi:type="Node">
+      <name xml:lang="en">User Device</name>
+    </element>
+    <element identifier="tech-os" xsi:type="SystemSoftware">
+      <name xml:lang="en">Operating System</name>
+    </element>
+    <element identifier="tech-filesystem" xsi:type="SystemSoftware">
+      <name xml:lang="en">Local File System</name>
+    </element>
+    <element identifier="tech-sqlite" xsi:type="SystemSoftware">
+      <name xml:lang="en">SQLite Engine</name>
+    </element>
+    <element identifier="tech-ollama" xsi:type="SystemSoftware">
+      <name xml:lang="en">Ollama Runtime</name>
+    </element>
+    <element identifier="tech-node-runtime" xsi:type="SystemSoftware">
+      <name xml:lang="en">Node Runtime</name>
+    </element>
+    <element identifier="tech-electron-shell" xsi:type="SystemSoftware">
+      <name xml:lang="en">Electron Shell</name>
+    </element>
+
+    <!-- Artifacts (optional but useful) -->
+    <element identifier="artifact-db-file" xsi:type="Artifact">
+      <name xml:lang="en">Neurologue Database File</name>
+    </element>
+    <element identifier="artifact-embeddings-folder" xsi:type="Artifact">
+      <name xml:lang="en">Embeddings Folder</name>
+    </element>
+    <element identifier="artifact-media-folder" xsi:type="Artifact">
+      <name xml:lang="en">Media Folder</name>
+    </element>
+    <element identifier="artifact-ccf-folder" xsi:type="Artifact">
+      <name xml:lang="en">CCF Export Folder</name>
+    </element>
+
+  </elements>
+
+  <!-- ========= RELATIONSHIPS ========= -->
+  <relationships>
+
+    <!-- Drivers influence Goals -->
+    <relationship identifier="rel-drv-privacy-goal-safe-ai" xsi:type="Influence"
+                  source="drv-privacy" target="goal-safe-ai"/>
+    <relationship identifier="rel-drv-local-first-goal-local-pkm" xsi:type="Influence"
+                  source="drv-local-first" target="goal-local-pkm"/>
+    <relationship identifier="rel-drv-cognitive-offload-goal-reduced-fragmentation" xsi:type="Influence"
+                  source="drv-cognitive-offload" target="goal-reduced-fragmentation"/>
+    <relationship identifier="rel-drv-interoperability-goal-interoperable-ai-tools" xsi:type="Influence"
+                  source="drv-interoperability" target="goal-interoperable-ai-tools"/>
+
+    <!-- Goals realized by Capabilities -->
+    <relationship identifier="rel-goal-local-pkm-cap-corpus" xsi:type="Realization"
+                  source="cap-corpus-management" target="goal-local-pkm"/>
+    <relationship identifier="rel-goal-local-pkm-cap-retrieval" xsi:type="Realization"
+                  source="cap-retrieval-insight" target="goal-local-pkm"/>
+    <relationship identifier="rel-goal-canonical-corpus-cap-export" xsi:type="Realization"
+                  source="cap-export-interoperability" target="goal-canonical-corpus"/>
+    <relationship identifier="rel-goal-safe-ai-cap-local-ai" xsi:type="Realization"
+                  source="cap-local-ai-orchestration" target="goal-safe-ai"/>
+    <relationship identifier="rel-goal-interoperable-cap-export" xsi:type="Realization"
+                  source="cap-export-interoperability" target="goal-interoperable-ai-tools"/>
+    <relationship identifier="rel-goal-reduced-fragmentation-cap-corpus" xsi:type="Realization"
+                  source="cap-corpus-management" target="goal-reduced-fragmentation"/>
+
+    <!-- Capabilities realized by Courses of Action -->
+    <relationship identifier="rel-cap-corpus-coa-ccf" xsi:type="Realization"
+                  source="coa-ccf-canonical" target="cap-corpus-management"/>
+    <relationship identifier="rel-cap-export-coa-ccf" xsi:type="Realization"
+                  source="coa-ccf-canonical" target="cap-export-interoperability"/>
+    <relationship identifier="rel-cap-local-ai-coa-run-local" xsi:type="Realization"
+                  source="coa-run-ai-locally" target="cap-local-ai-orchestration"/>
+    <relationship identifier="rel-cap-agentic-coa-mcp" xsi:type="Realization"
+                  source="coa-expose-mcp" target="cap-agentic-automation"/>
+    <relationship identifier="rel-cap-corpus-coa-local-storage" xsi:type="Realization"
+                  source="coa-local-first-storage" target="cap-corpus-management"/>
+
+    <!-- Capabilities assigned to Application Components -->
+    <relationship identifier="rel-cap-corpus-app-backend" xsi:type="Assignment"
+                  source="app-backend" target="cap-corpus-management"/>
+    <relationship identifier="rel-cap-retrieval-app-search" xsi:type="Assignment"
+                  source="app-search-layer" target="cap-retrieval-insight"/>
+    <relationship identifier="rel-cap-export-app-ccf-export" xsi:type="Assignment"
+                  source="app-ccf-export" target="cap-export-interoperability"/>
+    <relationship identifier="rel-cap-export-app-ccf-import" xsi:type="Assignment"
+                  source="app-ccf-import" target="cap-export-interoperability"/>
+    <relationship identifier="rel-cap-export-app-ccf-validate" xsi:type="Assignment"
+                  source="app-ccf-validate" target="cap-export-interoperability"/>
+    <relationship identifier="rel-cap-export-app-ccf-diff" xsi:type="Assignment"
+                  source="app-ccf-diff" target="cap-export-interoperability"/>
+    <relationship identifier="rel-cap-agentic-app-agent-runner" xsi:type="Assignment"
+                  source="app-agent-runner" target="cap-agentic-automation"/>
+    <relationship identifier="rel-cap-local-ai-app-embedding-worker" xsi:type="Assignment"
+                  source="app-embedding-worker" target="cap-local-ai-orchestration"/>
+    <relationship identifier="rel-cap-local-ai-app-mcp" xsi:type="Assignment"
+                  source="app-mcp-server" target="cap-local-ai-orchestration"/>
+
+    <!-- Application structure and serving -->
+    <relationship identifier="rel-app-backend-frontend" xsi:type="Serving"
+                  source="app-backend" target="app-frontend"/>
+    <relationship identifier="rel-app-backend-ccf-export" xsi:type="Composition"
+                  source="app-backend" target="app-ccf-export"/>
+    <relationship identifier="rel-app-backend-ccf-import" xsi:type="Composition"
+                  source="app-backend" target="app-ccf-import"/>
+    <relationship identifier="rel-app-backend-ccf-validate" xsi:type="Composition"
+                  source="app-backend" target="app-ccf-validate"/>
+    <relationship identifier="rel-app-backend-ccf-diff" xsi:type="Composition"
+                  source="app-backend" target="app-ccf-diff"/>
+    <relationship identifier="rel-app-backend-search" xsi:type="Composition"
+                  source="app-backend" target="app-search-layer"/>
+    <relationship identifier="rel-app-backend-agent-runner" xsi:type="Composition"
+                  source="app-backend" target="app-agent-runner"/>
+    <relationship identifier="rel-app-backend-settings" xsi:type="Composition"
+                  source="app-backend" target="app-settings-manager"/>
+    <relationship identifier="rel-app-backend-mcp" xsi:type="Composition"
+                  source="app-backend" target="app-mcp-server"/>
+    <relationship identifier="rel-app-backend-embedding-worker" xsi:type="Serving"
+                  source="app-embedding-worker" target="app-backend"/>
+
+    <!-- Data access -->
+    <relationship identifier="rel-app-backend-data-entry" xsi:type="Access"
+                  source="app-backend" target="data-entry"/>
+    <relationship identifier="rel-app-backend-data-theme" xsi:type="Access"
+                  source="app-backend" target="data-theme"/>
+    <relationship identifier="rel-app-ccf-export-data-ccf" xsi:type="Access"
+                  source="app-ccf-export" target="data-ccf-snapshot"/>
+    <relationship identifier="rel-app-ccf-import-data-ccf" xsi:type="Access"
+                  source="app-ccf-import" target="data-ccf-snapshot"/>
+    <relationship identifier="rel-app-ccf-validate-data-ccf" xsi:type="Access"
+                  source="app-ccf-validate" target="data-ccf-snapshot"/>
+    <relationship identifier="rel-app-ccf-diff-data-ccf" xsi:type="Access"
+                  source="app-ccf-diff" target="data-ccf-snapshot"/>
+    <relationship identifier="rel-app-embedding-worker-data-embeddings" xsi:type="Access"
+                  source="app-embedding-worker" target="data-embeddings"/>
+    <relationship identifier="rel-app-backend-data-settings" xsi:type="Access"
+                  source="app-settings-manager" target="data-settings"/>
+    <relationship identifier="rel-app-backend-data-media" xsi:type="Access"
+                  source="app-backend" target="data-media-file"/>
+
+    <!-- Technology / deployment -->
+    <relationship identifier="rel-node-device-tech-os" xsi:type="Composition"
+                  source="node-user-device" target="tech-os"/>
+    <relationship identifier="rel-node-device-tech-electron" xsi:type="Composition"
+                  source="node-user-device" target="tech-electron-shell"/>
+    <relationship identifier="rel-node-device-tech-node" xsi:type="Composition"
+                  source="node-user-device" target="tech-node-runtime"/>
+    <relationship identifier="rel-node-device-tech-filesystem" xsi:type="Composition"
+                  source="node-user-device" target="tech-filesystem"/>
+    <relationship identifier="rel-node-device-tech-sqlite" xsi:type="Composition"
+                  source="node-user-device" target="tech-sqlite"/>
+    <relationship identifier="rel-node-device-tech-ollama" xsi:type="Composition"
+                  source="node-user-device" target="tech-ollama"/>
+
+    <relationship identifier="rel-node-device-app-frontend" xsi:type="Assignment"
+                  source="node-user-device" target="app-frontend"/>
+    <relationship identifier="rel-node-device-app-backend" xsi:type="Assignment"
+                  source="node-user-device" target="app-backend"/>
+    <relationship identifier="rel-node-device-app-mcp" xsi:type="Assignment"
+                  source="node-user-device" target="app-mcp-server"/>
+    <relationship identifier="rel-node-device-app-embedding-worker" xsi:type="Assignment"
+                  source="node-user-device" target="app-embedding-worker"/>
+
+    <!-- Artifacts realized by technology -->
+    <relationship identifier="rel-artifact-db-tech-sqlite" xsi:type="Realization"
+                  source="tech-sqlite" target="artifact-db-file"/>
+    <relationship identifier="rel-artifact-embeddings-tech-filesystem" xsi:type="Realization"
+                  source="tech-filesystem" target="artifact-embeddings-folder"/>
+    <relationship identifier="rel-artifact-media-tech-filesystem" xsi:type="Realization"
+                  source="tech-filesystem" target="artifact-media-folder"/>
+    <relationship identifier="rel-artifact-ccf-tech-filesystem" xsi:type="Realization"
+                  source="tech-filesystem" target="artifact-ccf-folder"/>
+
+    <!-- Artifacts used by applications -->
+    <relationship identifier="rel-app-backend-artifact-db" xsi:type="Access"
+                  source="app-backend" target="artifact-db-file"/>
+    <relationship identifier="rel-app-embedding-worker-artifact-embeddings" xsi:type="Access"
+                  source="app-embedding-worker" target="artifact-embeddings-folder"/>
+    <relationship identifier="rel-app-backend-artifact-media" xsi:type="Access"
+                  source="app-backend" target="artifact-media-folder"/>
+    <relationship identifier="rel-app-ccf-export-artifact-ccf" xsi:type="Access"
+                  source="app-ccf-export" target="artifact-ccf-folder"/>
+    <relationship identifier="rel-app-ccf-import-artifact-ccf" xsi:type="Access"
+                  source="app-ccf-import" target="artifact-ccf-folder"/>
+
+  </relationships>
+
+  <!-- ========= VIEWS (you can lay these out in Archi) ========= -->
+  <views>
+    <diagrams>
+
+      <view identifier="view-motivation" xsi:type="Diagram">
+        <name xml:lang="en">Neurologue Motivation and Strategy</name>
+      </view>
+
+      <view identifier="view-capabilities" xsi:type="Diagram">
+        <name xml:lang="en">Neurologue Capabilities</name>
+      </view>
+
+      <view identifier="view-app-tech" xsi:type="Diagram">
+        <name xml:lang="en">Neurologue Application and Technology</name>
+      </view>
+
+      <view identifier="view-ccf" xsi:type="Diagram">
+        <name xml:lang="en">CCF Export and Import Architecture</name>
+      </view>
+
+      <view identifier="view-mcp" xsi:type="Diagram">
+        <name xml:lang="en">MCP Integration Architecture</name>
+      </view>
+
+    </diagrams>
+  </views>
+
+</model>

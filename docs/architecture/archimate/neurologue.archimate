@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="Neurologue Architecture" id="id-neurologue-architecture" version="5.0.0">
+  <folder name="Strategy" id="id-a6b7793b96454a0c86208d276857bbc9" type="strategy">
+    <element xsi:type="archimate:Capability" name="Corpus Management" id="cap-corpus-management"/>
+    <element xsi:type="archimate:Capability" name="Retrieval and Insight" id="cap-retrieval-insight"/>
+    <element xsi:type="archimate:Capability" name="Export and Interoperability" id="cap-export-interoperability"/>
+    <element xsi:type="archimate:Capability" name="Agentic Automation" id="cap-agentic-automation"/>
+    <element xsi:type="archimate:Capability" name="Local AI Orchestration" id="cap-local-ai-orchestration"/>
+    <element xsi:type="archimate:CourseOfAction" name="Adopt CCF as Canonical Format" id="coa-ccf-canonical"/>
+    <element xsi:type="archimate:CourseOfAction" name="Run Language Models Locally" id="coa-run-ai-locally"/>
+    <element xsi:type="archimate:CourseOfAction" name="Expose MCP Interface for Tools" id="coa-expose-mcp"/>
+    <element xsi:type="archimate:CourseOfAction" name="Use Local Storage for Corpus" id="coa-local-first-storage"/>
+  </folder>
+  <folder name="Business" id="id-d1b070818d0748dfb20dbf8d455c0e03" type="business"/>
+  <folder name="Application" id="id-6d932de434374673b4a64d49c4d5a97f" type="application">
+    <element xsi:type="archimate:ApplicationComponent" name="Neurologue Frontend" id="app-frontend"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Neurologue Backend" id="app-backend"/>
+    <element xsi:type="archimate:ApplicationComponent" name="CCF Export Engine" id="app-ccf-export"/>
+    <element xsi:type="archimate:ApplicationComponent" name="CCF Import Engine" id="app-ccf-import"/>
+    <element xsi:type="archimate:ApplicationComponent" name="CCF Validation Component" id="app-ccf-validate"/>
+    <element xsi:type="archimate:ApplicationComponent" name="CCF Diff Engine" id="app-ccf-diff"/>
+    <element xsi:type="archimate:ApplicationComponent" name="MCP Server" id="app-mcp-server"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Embedding Worker" id="app-embedding-worker"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Search Layer" id="app-search-layer"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Agent Runner" id="app-agent-runner"/>
+    <element xsi:type="archimate:ApplicationComponent" name="Settings Manager" id="app-settings-manager"/>
+    <element xsi:type="archimate:DataObject" name="Entry" id="data-entry"/>
+    <element xsi:type="archimate:DataObject" name="Theme" id="data-theme"/>
+    <element xsi:type="archimate:DataObject" name="CCF Snapshot" id="data-ccf-snapshot"/>
+    <element xsi:type="archimate:DataObject" name="CCF Entries File" id="data-ccf-entries"/>
+    <element xsi:type="archimate:DataObject" name="CCF Themes File" id="data-ccf-themes"/>
+    <element xsi:type="archimate:DataObject" name="CCF Metadata File" id="data-ccf-metadata"/>
+    <element xsi:type="archimate:DataObject" name="Embeddings" id="data-embeddings"/>
+    <element xsi:type="archimate:DataObject" name="Media File" id="data-media-file"/>
+    <element xsi:type="archimate:DataObject" name="User Settings" id="data-settings"/>
+  </folder>
+  <folder name="Technology &amp; Physical" id="id-ff7deb7dc3dc4755ac523a21715999bd" type="technology">
+    <element xsi:type="archimate:Node" name="User Device" id="node-user-device"/>
+    <element xsi:type="archimate:SystemSoftware" name="Operating System" id="tech-os"/>
+    <element xsi:type="archimate:SystemSoftware" name="Local File System" id="tech-filesystem"/>
+    <element xsi:type="archimate:SystemSoftware" name="SQLite Engine" id="tech-sqlite"/>
+    <element xsi:type="archimate:SystemSoftware" name="Ollama Runtime" id="tech-ollama"/>
+    <element xsi:type="archimate:SystemSoftware" name="Node Runtime" id="tech-node-runtime"/>
+    <element xsi:type="archimate:SystemSoftware" name="Electron Shell" id="tech-electron-shell"/>
+    <element xsi:type="archimate:Artifact" name="Neurologue Database File" id="artifact-db-file"/>
+    <element xsi:type="archimate:Artifact" name="Embeddings Folder" id="artifact-embeddings-folder"/>
+    <element xsi:type="archimate:Artifact" name="Media Folder" id="artifact-media-folder"/>
+    <element xsi:type="archimate:Artifact" name="CCF Export Folder" id="artifact-ccf-folder"/>
+  </folder>
+  <folder name="Motivation" id="id-69bff990857d474c91a7ff545c61a32a" type="motivation">
+    <element xsi:type="archimate:Driver" name="Privacy and Compliance" id="drv-privacy"/>
+    <element xsi:type="archimate:Driver" name="Local First Knowledge Control" id="drv-local-first"/>
+    <element xsi:type="archimate:Driver" name="Cognitive Offload" id="drv-cognitive-offload"/>
+    <element xsi:type="archimate:Driver" name="Tool Interoperability" id="drv-interoperability"/>
+    <element xsi:type="archimate:Goal" name="Local First Personal Knowledge Engine" id="goal-local-pkm"/>
+    <element xsi:type="archimate:Goal" name="Single Canonical Corpus" id="goal-canonical-corpus"/>
+    <element xsi:type="archimate:Goal" name="Safe and Transparent AI Usage" id="goal-safe-ai"/>
+    <element xsi:type="archimate:Goal" name="Reduced Knowledge Fragmentation" id="goal-reduced-fragmentation"/>
+    <element xsi:type="archimate:Goal" name="Interoperable AI and Local Tools" id="goal-interoperable-ai-tools"/>
+    <element xsi:type="archimate:Goal" name="Less Context Switching Between Tools" id="outcome-less-context-switching"/>
+    <element xsi:type="archimate:Goal" name="Improved Recall of Past Work" id="outcome-better-recall"/>
+  </folder>
+  <folder name="Implementation &amp; Migration" id="id-9872f457eee341cf8ae7e9d9280ba237" type="implementation_migration"/>
+  <folder name="Other" id="id-d3f5f721b7a8487698310cfdb4caa911" type="other"/>
+  <folder name="Relations" id="id-7e976c1ae7714ea3a0dbcfc6d56db5b3" type="relations">
+    <element xsi:type="archimate:InfluenceRelationship" id="rel-drv-privacy-goal-safe-ai" source="drv-privacy" target="goal-safe-ai"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="rel-drv-local-first-goal-local-pkm" source="drv-local-first" target="goal-local-pkm"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="rel-drv-cognitive-offload-goal-reduced-fragmentation" source="drv-cognitive-offload" target="goal-reduced-fragmentation"/>
+    <element xsi:type="archimate:InfluenceRelationship" id="rel-drv-interoperability-goal-interoperable-ai-tools" source="drv-interoperability" target="goal-interoperable-ai-tools"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-goal-local-pkm-cap-corpus" source="cap-corpus-management" target="goal-local-pkm"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-goal-local-pkm-cap-retrieval" source="cap-retrieval-insight" target="goal-local-pkm"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-goal-canonical-corpus-cap-export" source="cap-export-interoperability" target="goal-canonical-corpus"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-goal-safe-ai-cap-local-ai" source="cap-local-ai-orchestration" target="goal-safe-ai"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-goal-interoperable-cap-export" source="cap-export-interoperability" target="goal-interoperable-ai-tools"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-goal-reduced-fragmentation-cap-corpus" source="cap-corpus-management" target="goal-reduced-fragmentation"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-cap-corpus-coa-ccf" source="coa-ccf-canonical" target="cap-corpus-management"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-cap-export-coa-ccf" source="coa-ccf-canonical" target="cap-export-interoperability"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-cap-local-ai-coa-run-local" source="coa-run-ai-locally" target="cap-local-ai-orchestration"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-cap-agentic-coa-mcp" source="coa-expose-mcp" target="cap-agentic-automation"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-cap-corpus-coa-local-storage" source="coa-local-first-storage" target="cap-corpus-management"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-corpus-app-backend" source="app-backend" target="cap-corpus-management"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-retrieval-app-search" source="app-search-layer" target="cap-retrieval-insight"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-export-app-ccf-export" source="app-ccf-export" target="cap-export-interoperability"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-export-app-ccf-import" source="app-ccf-import" target="cap-export-interoperability"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-export-app-ccf-validate" source="app-ccf-validate" target="cap-export-interoperability"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-export-app-ccf-diff" source="app-ccf-diff" target="cap-export-interoperability"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-agentic-app-agent-runner" source="app-agent-runner" target="cap-agentic-automation"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-local-ai-app-embedding-worker" source="app-embedding-worker" target="cap-local-ai-orchestration"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-cap-local-ai-app-mcp" source="app-mcp-server" target="cap-local-ai-orchestration"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-app-backend-frontend" source="app-backend" target="app-frontend"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-ccf-export" source="app-backend" target="app-ccf-export"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-ccf-import" source="app-backend" target="app-ccf-import"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-ccf-validate" source="app-backend" target="app-ccf-validate"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-ccf-diff" source="app-backend" target="app-ccf-diff"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-search" source="app-backend" target="app-search-layer"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-agent-runner" source="app-backend" target="app-agent-runner"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-settings" source="app-backend" target="app-settings-manager"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-app-backend-mcp" source="app-backend" target="app-mcp-server"/>
+    <element xsi:type="archimate:ServingRelationship" id="rel-app-backend-embedding-worker" source="app-embedding-worker" target="app-backend"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-backend-data-entry" source="app-backend" target="data-entry"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-backend-data-theme" source="app-backend" target="data-theme"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-ccf-export-data-ccf" source="app-ccf-export" target="data-ccf-snapshot"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-ccf-import-data-ccf" source="app-ccf-import" target="data-ccf-snapshot"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-ccf-validate-data-ccf" source="app-ccf-validate" target="data-ccf-snapshot"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-ccf-diff-data-ccf" source="app-ccf-diff" target="data-ccf-snapshot"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-embedding-worker-data-embeddings" source="app-embedding-worker" target="data-embeddings"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-backend-data-settings" source="app-settings-manager" target="data-settings"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-backend-data-media" source="app-backend" target="data-media-file"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-node-device-tech-os" source="node-user-device" target="tech-os"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-node-device-tech-electron" source="node-user-device" target="tech-electron-shell"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-node-device-tech-node" source="node-user-device" target="tech-node-runtime"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-node-device-tech-filesystem" source="node-user-device" target="tech-filesystem"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-node-device-tech-sqlite" source="node-user-device" target="tech-sqlite"/>
+    <element xsi:type="archimate:CompositionRelationship" id="rel-node-device-tech-ollama" source="node-user-device" target="tech-ollama"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-device-app-frontend" source="node-user-device" target="app-frontend"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-device-app-backend" source="node-user-device" target="app-backend"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-device-app-mcp" source="node-user-device" target="app-mcp-server"/>
+    <element xsi:type="archimate:AssignmentRelationship" id="rel-node-device-app-embedding-worker" source="node-user-device" target="app-embedding-worker"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-artifact-db-tech-sqlite" source="tech-sqlite" target="artifact-db-file"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-artifact-embeddings-tech-filesystem" source="tech-filesystem" target="artifact-embeddings-folder"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-artifact-media-tech-filesystem" source="tech-filesystem" target="artifact-media-folder"/>
+    <element xsi:type="archimate:RealizationRelationship" id="rel-artifact-ccf-tech-filesystem" source="tech-filesystem" target="artifact-ccf-folder"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-backend-artifact-db" source="app-backend" target="artifact-db-file"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-embedding-worker-artifact-embeddings" source="app-embedding-worker" target="artifact-embeddings-folder"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-backend-artifact-media" source="app-backend" target="artifact-media-folder"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-ccf-export-artifact-ccf" source="app-ccf-export" target="artifact-ccf-folder"/>
+    <element xsi:type="archimate:AccessRelationship" id="rel-app-ccf-import-artifact-ccf" source="app-ccf-import" target="artifact-ccf-folder"/>
+  </folder>
+  <folder name="Views" id="id-96614219a73e44a1a622a47bc81e2849" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Neurologue Motivation and Strategy" id="view-motivation">
+      <child xsi:type="archimate:DiagramObject" id="id-7d5a85a988e14270b1a65823de544eb2" archimateElement="drv-privacy">
+        <bounds x="36" y="72" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f3efbb0771e243e48b85f3d7382bd33a" source="id-7d5a85a988e14270b1a65823de544eb2" target="id-e28d07ad3bde42d09bf2fbc7f419b4d8" archimateRelationship="rel-drv-privacy-goal-safe-ai"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-26eeaf3a578244c190908ba699295515" archimateElement="drv-local-first">
+        <bounds x="264" y="72" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-bc7ad7b7bcdf47a6afa5ad322a58c4f9" source="id-26eeaf3a578244c190908ba699295515" target="id-3b48989c4e2147af84bdae866ea2c020" archimateRelationship="rel-drv-local-first-goal-local-pkm"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-efffc413d1a94c6095bd530f6d84ce4f" archimateElement="drv-cognitive-offload">
+        <bounds x="492" y="72" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-012131898e354bee9db7282b3b0ed922" source="id-efffc413d1a94c6095bd530f6d84ce4f" target="id-e3b1cd37332c41eaa02063c58b79c5ec" archimateRelationship="rel-drv-cognitive-offload-goal-reduced-fragmentation"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-46d722b3f84e4a87a5e9f180d9134a8d" archimateElement="drv-interoperability">
+        <bounds x="696" y="72" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-fafba4d238f04b7d845af85fd2bcde57" source="id-46d722b3f84e4a87a5e9f180d9134a8d" target="id-320a146a04ed4df8aa0a573436ca6c86" archimateRelationship="rel-drv-interoperability-goal-interoperable-ai-tools"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-3b48989c4e2147af84bdae866ea2c020" targetConnections="id-bc7ad7b7bcdf47a6afa5ad322a58c4f9 id-0d3918cc593d489ca0f0e279a9bc91d2 id-4672806f89e14a3b800c8a7008455857" archimateElement="goal-local-pkm">
+        <bounds x="264" y="240" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-553bf82d575f44c0838fb8572f73eba4" targetConnections="id-5986011b3eea401983c9ad9f62faf987" archimateElement="goal-canonical-corpus">
+        <bounds x="924" y="240" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-e28d07ad3bde42d09bf2fbc7f419b4d8" targetConnections="id-f3efbb0771e243e48b85f3d7382bd33a id-c69d7bc6996846db91c746ee5408acba" archimateElement="goal-safe-ai">
+        <bounds x="36" y="240" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-e3b1cd37332c41eaa02063c58b79c5ec" targetConnections="id-012131898e354bee9db7282b3b0ed922 id-b15b09e593a3499bbc5a375ce8793121" archimateElement="goal-reduced-fragmentation">
+        <bounds x="492" y="240" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-320a146a04ed4df8aa0a573436ca6c86" targetConnections="id-fafba4d238f04b7d845af85fd2bcde57 id-a44638169aae4ccf9336ff12b5b3d825" archimateElement="goal-interoperable-ai-tools">
+        <bounds x="708" y="240" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-34143f9cc7174440afc3658ab37cb874" archimateElement="outcome-less-context-switching">
+        <bounds x="155" y="348" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-0d6fe66898214c7f939c5d4f48ca2196" archimateElement="outcome-better-recall">
+        <bounds x="600" y="348" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-3b3ac6ddef6d45568c3a591aec391bc5" targetConnections="id-57bfab3f688b4f5783a0e99f3c2d78cf id-555aed1be52840bcaa15d89026728799" archimateElement="cap-corpus-management">
+        <bounds x="397" y="508" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-0d3918cc593d489ca0f0e279a9bc91d2" source="id-3b3ac6ddef6d45568c3a591aec391bc5" target="id-3b48989c4e2147af84bdae866ea2c020" archimateRelationship="rel-goal-local-pkm-cap-corpus"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-b15b09e593a3499bbc5a375ce8793121" source="id-3b3ac6ddef6d45568c3a591aec391bc5" target="id-e3b1cd37332c41eaa02063c58b79c5ec" archimateRelationship="rel-goal-reduced-fragmentation-cap-corpus"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-f9d2ea63c9d1479ba993c55f038fe8e6" archimateElement="cap-retrieval-insight">
+        <bounds x="228" y="508" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-4672806f89e14a3b800c8a7008455857" source="id-f9d2ea63c9d1479ba993c55f038fe8e6" target="id-3b48989c4e2147af84bdae866ea2c020" archimateRelationship="rel-goal-local-pkm-cap-retrieval"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-0f3542505d7646299bf5ff001a37e4b2" targetConnections="id-e3129154e3914cdb9cda5c8adca5125c" archimateElement="cap-export-interoperability">
+        <bounds x="852" y="508" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-a44638169aae4ccf9336ff12b5b3d825" source="id-0f3542505d7646299bf5ff001a37e4b2" target="id-320a146a04ed4df8aa0a573436ca6c86" archimateRelationship="rel-goal-interoperable-cap-export"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-5986011b3eea401983c9ad9f62faf987" source="id-0f3542505d7646299bf5ff001a37e4b2" target="id-553bf82d575f44c0838fb8572f73eba4" archimateRelationship="rel-goal-canonical-corpus-cap-export"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-df19523d5d0445f1afc924f724f1ea0c" targetConnections="id-d06f26bce071466a94411587d970e6ef" archimateElement="cap-agentic-automation">
+        <bounds x="680" y="508" width="120" height="55"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-a06a83371ba24ab3b5aeedec5697a2d7" targetConnections="id-f2a05de12fd441fa88f537fb206f487d" archimateElement="cap-local-ai-orchestration">
+        <bounds x="36" y="508" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-c69d7bc6996846db91c746ee5408acba" source="id-a06a83371ba24ab3b5aeedec5697a2d7" target="id-e28d07ad3bde42d09bf2fbc7f419b4d8" archimateRelationship="rel-goal-safe-ai-cap-local-ai"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-2dd18bb2dea044389f8da1487538112d" archimateElement="coa-ccf-canonical">
+        <bounds x="528" y="720" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-57bfab3f688b4f5783a0e99f3c2d78cf" source="id-2dd18bb2dea044389f8da1487538112d" target="id-3b3ac6ddef6d45568c3a591aec391bc5" archimateRelationship="rel-cap-corpus-coa-ccf"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-e3129154e3914cdb9cda5c8adca5125c" source="id-2dd18bb2dea044389f8da1487538112d" target="id-0f3542505d7646299bf5ff001a37e4b2" archimateRelationship="rel-cap-export-coa-ccf"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-1c59cb110dae499ea19874b2d177a73f" archimateElement="coa-run-ai-locally">
+        <bounds x="60" y="734" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-f2a05de12fd441fa88f537fb206f487d" source="id-1c59cb110dae499ea19874b2d177a73f" target="id-a06a83371ba24ab3b5aeedec5697a2d7" archimateRelationship="rel-cap-local-ai-coa-run-local"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-cf3bada6291f4f9c96f708dfe403139a" archimateElement="coa-expose-mcp">
+        <bounds x="696" y="734" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-d06f26bce071466a94411587d970e6ef" source="id-cf3bada6291f4f9c96f708dfe403139a" target="id-df19523d5d0445f1afc924f724f1ea0c" archimateRelationship="rel-cap-agentic-coa-mcp"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-ea68016db7884a6ab6eab3ca853ff833" archimateElement="coa-local-first-storage">
+        <bounds x="324" y="734" width="120" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-555aed1be52840bcaa15d89026728799" source="id-ea68016db7884a6ab6eab3ca853ff833" target="id-3b3ac6ddef6d45568c3a591aec391bc5" archimateRelationship="rel-cap-corpus-coa-local-storage"/>
+      </child>
+    </element>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Neurologue Capabilities" id="view-capabilities"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Neurologue Application and Technology" id="view-app-tech"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="CCF Export and Import Architecture" id="view-ccf"/>
+    <element xsi:type="archimate:ArchimateDiagramModel" name="MCP Integration Architecture" id="view-mcp"/>
+  </folder>
+</archimate:model>
