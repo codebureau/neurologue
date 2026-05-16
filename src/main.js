@@ -454,6 +454,60 @@ handle('import:ccf', async () => {
   return { canceled: false, ...result };
 });
 
+// Reset the entire database — wipe all rows, keep schema.
+// Offers an optional CCF backup before clearing.
+handle('db:reset', async () => {
+  const { dialog } = require('electron');
+  const { resetDb } = require('./backend/db/reset');
+  const win = BrowserWindow.getFocusedWindow();
+
+  const db  = await (require('./backend/db/connection')).openDb();
+  const { n } = db.prepare('SELECT COUNT(*) as n FROM entries').get();
+
+  let backedUpTo = null;
+
+  if (n > 0) {
+    // Ask whether to back up first, or clear directly, or cancel
+    const { response } = await dialog.showMessageBox(win || undefined, {
+      type:      'warning',
+      buttons:   ['Export Backup & Clear', 'Clear Without Backup', 'Cancel'],
+      defaultId: 0,
+      cancelId:  2,
+      title:     'Start Fresh',
+      message:   `Delete all ${n} ${n === 1 ? 'entry' : 'entries'} and start fresh?`,
+      detail:    'This will permanently delete all entries, themes, embeddings, and derived data. This cannot be undone.',
+    });
+
+    if (response === 2) return { canceled: true };
+
+    if (response === 0) {
+      // Export a CCF backup first
+      const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+        title:      'Choose folder for CCF backup',
+        properties: ['openDirectory', 'createDirectory'],
+      });
+      if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
+      await exportCCF(filePaths[0]);
+      backedUpTo = filePaths[0];
+    }
+  } else {
+    // Corpus is already empty — still confirm to avoid accidental triggers
+    const { response } = await dialog.showMessageBox(win || undefined, {
+      type:      'question',
+      buttons:   ['Reset', 'Cancel'],
+      defaultId: 0,
+      cancelId:  1,
+      title:     'Start Fresh',
+      message:   'Your corpus is already empty.',
+      detail:    'Reset all tables to a clean state?',
+    });
+    if (response !== 0) return { canceled: true };
+  }
+
+  const stats = await resetDb();
+  return { canceled: false, backedUpTo, ...stats };
+});
+
 // Load the bundled demo corpus (resources/demo) via the CCF import engine.
 // Shows a native confirmation dialog when the corpus already has entries so the
 // user is never surprised by demo content appearing in their data.

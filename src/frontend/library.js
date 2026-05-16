@@ -1685,6 +1685,58 @@ document.getElementById('btn-load-demo').addEventListener('click', async () => {
   }
 });
 
+// Import CCF snapshot
+document.getElementById('btn-import-ccf').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-import-ccf');
+  btn.disabled = true;
+  btn.textContent = 'Importing…';
+  try {
+    const result = await window.neurologue.importCCF();
+    if (!result || result.canceled) {
+      // user cancelled folder picker
+    } else if (result.ok) {
+      const s = result.stats || {};
+      showToast(
+        `Imported — ${s.entriesImported || 0} entries, ${s.themesImported || 0} themes (${s.entriesSkipped || 0} skipped).`,
+        'success',
+      );
+    } else {
+      const errs = (result.errors || []).join('; ');
+      showToast(`CCF import failed: ${errs}`, 'error');
+    }
+  } catch (err) {
+    showToast(`CCF import error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Import CCF…';
+  }
+});
+
+// Start fresh — clear all data, optional CCF backup first
+document.getElementById('btn-start-fresh').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-start-fresh');
+  btn.disabled = true;
+  btn.textContent = 'Working…';
+  try {
+    const result = await window.neurologue.resetDb();
+    if (!result || result.canceled) {
+      // user cancelled
+    } else {
+      const msg = result.backedUpTo
+        ? `Corpus cleared. Backup saved to: ${result.backedUpTo}`
+        : 'Corpus cleared. Ready to start fresh.';
+      showToast(msg, 'success');
+      // Refresh the entry list so the now-empty corpus is shown immediately
+      await loadEntries();
+    }
+  } catch (err) {
+    showToast(`Reset error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Start Fresh…';
+  }
+});
+
 // ── Worker log ───────────────────────────────────────────────────────────────
 
 function _formatWLTime(iso) {
