@@ -1726,8 +1726,9 @@ document.getElementById('btn-start-fresh').addEventListener('click', async () =>
         ? `Corpus cleared. Backup saved to: ${result.backedUpTo}`
         : 'Corpus cleared. Ready to start fresh.';
       showToast(msg, 'success');
-      // Refresh the entry list so the now-empty corpus is shown immediately
-      await loadEntries();
+      // Full UI refresh — entries, sidebar tags, themes view, heatmap
+      await Promise.all([loadEntries(), loadTags(), renderHeatmap()]);
+      loadThemesView();
     }
   } catch (err) {
     showToast(`Reset error: ${err.message}`, 'error');

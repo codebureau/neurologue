@@ -466,19 +466,25 @@ handle('db:reset', async () => {
 
   let backedUpTo = null;
 
+  let keepTags = false;
+
   if (n > 0) {
-    // Ask whether to back up first, or clear directly, or cancel
-    const { response } = await dialog.showMessageBox(win || undefined, {
-      type:      'warning',
-      buttons:   ['Export Backup & Clear', 'Clear Without Backup', 'Cancel'],
-      defaultId: 0,
-      cancelId:  2,
-      title:     'Start Fresh',
-      message:   `Delete all ${n} ${n === 1 ? 'entry' : 'entries'} and start fresh?`,
-      detail:    'This will permanently delete all entries, themes, embeddings, and derived data. This cannot be undone.',
+    // Ask whether to back up first, or clear directly, or cancel.
+    // The checkbox lets the user preserve their tag taxonomy.
+    const { response, checkboxChecked } = await dialog.showMessageBox(win || undefined, {
+      type:           'warning',
+      buttons:        ['Export Backup & Clear', 'Clear Without Backup', 'Cancel'],
+      defaultId:      0,
+      cancelId:       2,
+      title:          'Start Fresh',
+      message:        `Delete all ${n} ${n === 1 ? 'entry' : 'entries'} and start fresh?`,
+      detail:         'This will permanently delete all entries, themes, embeddings, and derived data. This cannot be undone.',
+      checkboxLabel:  'Keep my tag names',
+      checkboxChecked: true,
     });
 
     if (response === 2) return { canceled: true };
+    keepTags = !!checkboxChecked;
 
     if (response === 0) {
       // Export a CCF backup first
@@ -504,8 +510,8 @@ handle('db:reset', async () => {
     if (response !== 0) return { canceled: true };
   }
 
-  const stats = await resetDb();
-  return { canceled: false, backedUpTo, ...stats };
+  const stats = await resetDb({ keepTags });
+  return { canceled: false, backedUpTo, keepTags, ...stats };
 });
 
 // Load the bundled demo corpus (resources/demo) via the CCF import engine.

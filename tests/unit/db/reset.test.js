@@ -108,7 +108,7 @@ describe('resetDb — after importing demo content', () => {
     expect(await countRows(db, 'tags')).toBe(0);
   });
 
-  test('rowsRemaining is 0 after reset', async () => {
+  test('rowsRemaining is 0 after default reset', async () => {
     const { resetDb } = require('../../../src/backend/db/reset');
     const result = await resetDb();
     expect(result.rowsRemaining).toBe(0);
@@ -162,8 +162,68 @@ describe('resetDb — after importing demo content', () => {
   });
 });
 
-describe('resetDb — CLEAR_ORDER export', () => {
-  test('CLEAR_ORDER contains all known data tables', () => {
+describe('resetDb — keepTags option', () => {
+  beforeEach(async () => {
+    const { importCCF } = require('../../../src/backend/import/ccf-import');
+    await importCCF(DEMO_DIR);
+  });
+
+  test('keepTags:false (default) clears the tags table', async () => {
+    const { resetDb } = require('../../../src/backend/db/reset');
+    const { openDb }  = require('../../../src/backend/db/connection');
+    await resetDb({ keepTags: false });
+    const db = await openDb();
+    expect(await countRows(db, 'tags')).toBe(0);
+  });
+
+  test('keepTags:true preserves tag names', async () => {
+    const { resetDb } = require('../../../src/backend/db/reset');
+    const { openDb }  = require('../../../src/backend/db/connection');
+    const db = await openDb();
+    const tagsBefore = await countRows(db, 'tags');
+    expect(tagsBefore).toBeGreaterThan(0);
+
+    await resetDb({ keepTags: true });
+    const tagsAfter = await countRows(db, 'tags');
+    expect(tagsAfter).toBe(tagsBefore);
+  });
+
+  test('keepTags:true still clears entry_tags', async () => {
+    const { resetDb } = require('../../../src/backend/db/reset');
+    const { openDb }  = require('../../../src/backend/db/connection');
+    await resetDb({ keepTags: true });
+    const db = await openDb();
+    expect(await countRows(db, 'entry_tags')).toBe(0);
+  });
+
+  test('keepTags:true still clears all entries', async () => {
+    const { resetDb } = require('../../../src/backend/db/reset');
+    const { openDb }  = require('../../../src/backend/db/connection');
+    await resetDb({ keepTags: true });
+    const db = await openDb();
+    expect(await countRows(db, 'entries')).toBe(0);
+  });
+
+  test('keepTags:true still clears themes', async () => {
+    const { resetDb } = require('../../../src/backend/db/reset');
+    const { openDb }  = require('../../../src/backend/db/connection');
+    await resetDb({ keepTags: true });
+    const db = await openDb();
+    expect(await countRows(db, 'themes')).toBe(0);
+  });
+
+  test('tags are re-linkable to new entries after keepTags reset', async () => {
+    const { resetDb } = require('../../../src/backend/db/reset');
+    const { importCCF } = require('../../../src/backend/import/ccf-import');
+    await resetDb({ keepTags: true });
+    // Re-importing should work; tags that already exist will be reused
+    const result = await importCCF(DEMO_DIR);
+    expect(result.ok).toBe(true);
+    expect(result.stats.entriesImported).toBe(21);
+  });
+});
+
+describe('resetDb — CLEAR_ORDER export', () => {  test('CLEAR_ORDER contains all known data tables', () => {
     const { CLEAR_ORDER } = require('../../../src/backend/db/reset');
     const required = ['entries', 'themes', 'theme_entries', 'entry_tags', 'tags', 'embeddings', 'entry_revisions'];
     for (const t of required) {

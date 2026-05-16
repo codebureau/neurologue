@@ -20,13 +20,21 @@ const CLEAR_ORDER = [
 
 /**
  * Wipe every data row from the database while keeping the schema intact.
- * Returns `{ tablesCleared, rowsDeleted }`.
+ *
+ * @param {{ keepTags?: boolean }} [options]
+ *   keepTags — when true, the `tags` table is preserved so the user's tag
+ *   taxonomy survives a Start Fresh. `entry_tags` (the join table) is always
+ *   cleared because those rows reference entries that no longer exist.
+ *
+ * Returns `{ tablesCleared, rowsRemaining }`.
  */
-async function resetDb() {
+async function resetDb({ keepTags = false } = {}) {
   const db = await openDb();
-  let rowsDeleted = 0;
+
+  const skip = new Set(keepTags ? ['tags'] : []);
 
   for (const table of CLEAR_ORDER) {
+    if (skip.has(table)) continue;
     // Skip tables that may not exist yet (e.g. on an older migration level)
     const exists = db
       .prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?")
@@ -34,8 +42,6 @@ async function resetDb() {
     if (!exists) continue;
 
     db.prepare(`DELETE FROM ${table}`).run();
-    // sql.js does not expose changes() on run(); count via a cheap query instead
-    // (we only need this for the returned summary, not for correctness)
   }
 
   // Count total remaining rows as a sanity figure for callers
