@@ -15,6 +15,7 @@ const { listContradictions, resolveContradiction, dismissContradiction } = requi
 const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { exportCCF }  = require('./backend/export/ccf');
+const { importCCF }  = require('./backend/import/ccf-import');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
@@ -435,6 +436,19 @@ handle('export:ccf', async () => {
   });
   if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
   const result = await exportCCF(filePaths[0]);
+  return { canceled: false, ...result };
+});
+
+// Show native folder picker and import a CCF snapshot
+handle('import:ccf', async () => {
+  const { dialog } = require('electron');
+  const win = BrowserWindow.getFocusedWindow();
+  const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+    title: 'Choose CCF snapshot folder to import',
+    properties: ['openDirectory'],
+  });
+  if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
+  const result = await importCCF(filePaths[0]);
   return { canceled: false, ...result };
 });
 

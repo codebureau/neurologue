@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Export ───────────────────────────────────────────────────────────────
   exportAll: (opts) => ipcRenderer.invoke('export:run', opts),
   exportCCF:  ()    => ipcRenderer.invoke('export:ccf'),
+  importCCF:  ()    => ipcRenderer.invoke('import:ccf'),
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
