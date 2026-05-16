@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   bulkDeleteEntries: (ids) => ipcRenderer.invoke('library:bulk-delete-entries', { ids }),
   // ── Export ───────────────────────────────────────────────────────────────
   exportAll: (opts) => ipcRenderer.invoke('export:run', opts),
+  exportCCF:  ()    => ipcRenderer.invoke('export:ccf'),
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
