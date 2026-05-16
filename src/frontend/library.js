@@ -1150,6 +1150,59 @@ exportConfirmBtn.addEventListener('click', async () => {
   }
 });
 
+// ── Adapter exports ─────────────────────────────────────────────────────────
+
+async function loadAdapterList() {
+  const container = document.getElementById('adapter-list');
+  if (!container) return;
+  try {
+    const adapters = await window.neurologue.listAdapters();
+    if (!adapters || adapters.length === 0) {
+      container.innerHTML = '<p style="color:var(--text-muted);font-size:13px">No adapters registered.</p>';
+      return;
+    }
+    container.innerHTML = adapters.map((a) => `
+      <div class="export-format-row export-adapter-row" data-adapter-id="${a.id}">
+        <div>
+          <span class="export-fmt-label">${a.name}</span>
+          <span class="export-fmt-desc">${a.description}</span>
+        </div>
+        <button class="btn-secondary btn-adapter-export" data-adapter-id="${a.id}" style="margin-left:auto;white-space:nowrap">
+          Export…
+        </button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.btn-adapter-export').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.dataset.adapterId;
+        btn.disabled = true;
+        btn.textContent = 'Exporting…';
+        try {
+          const result = await window.neurologue.exportAdapter(id);
+          if (result.canceled) {
+            // user dismissed the folder picker — no toast needed
+          } else if (result.ok) {
+            showToast(`${id} export complete — ${result.entryCount} entries → ${result.destDir}`, 'success');
+          } else {
+            showToast(`${id} export failed: ${result.error}`, 'error');
+          }
+        } catch (err) {
+          showToast(`${id} export failed: ${err.message}`, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'Export…';
+        }
+      });
+    });
+  } catch (err) {
+    container.innerHTML = `<p style="color:var(--error)">Could not load adapters: ${err.message}</p>`;
+  }
+}
+
+// Load adapter list when the export modal opens
+exportBtn.addEventListener('click', loadAdapterList);
+
 helpBtn.addEventListener('click', () => {
   window.neurologue.openHelp();
 });
@@ -1693,6 +1746,24 @@ async function loadSchedSettings() {
   document.getElementById('sched-status-line').textContent =
     `Last run: ${lastRun}  ·  Next run: ${nextRun}`;
 
+  // Populate adapter checkboxes
+  const checksContainer = document.getElementById('sched-adapter-checks');
+  if (checksContainer) {
+    try {
+      const adapters = await window.neurologue.listAdapters();
+      const activeIds = status.adapterIds || [];
+      checksContainer.innerHTML = adapters.map((a) => `
+        <label class="toggle-label" style="margin-right:16px">
+          <input type="checkbox" class="sched-adapter-check" value="${a.id}" ${activeIds.includes(a.id) ? 'checked' : ''} />
+          ${a.name}
+        </label>
+      `).join('');
+      checksContainer.querySelectorAll('.sched-adapter-check').forEach((cb) => {
+        cb.addEventListener('change', _saveSchedConfig);
+      });
+    } catch { /* adapters not critical */ }
+  }
+
   await renderSchedHistory();
 }
 
@@ -1731,11 +1802,14 @@ async function renderSchedHistory() {
 }
 
 async function _saveSchedConfig() {
+  const adapterIds = [...document.querySelectorAll('.sched-adapter-check')]
+    .filter((cb) => cb.checked).map((cb) => cb.value);
   const cfg = {
     enabled:     document.getElementById('sched-enabled').checked,
     frequency:   document.getElementById('sched-frequency').value,
     destDir:     _schedConfig.destDir || null,
     includeDiff: document.getElementById('sched-include-diff').checked,
+    adapterIds,
     lastRun:     _schedConfig.lastRun || null,
   };
   _schedConfig = { ..._schedConfig, ...cfg };

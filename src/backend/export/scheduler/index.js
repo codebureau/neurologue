@@ -27,6 +27,7 @@ const path = require('path');
 const { exportCCF }  = require('../ccf');
 const { diffCCF }    = require('../../ccf/diff');
 const { getSettings, saveSettings } = require('../../settings');
+const { getAdapter } = require('../adapters/registry');
 const config = require('../../../config');
 
 // ── constants ─────────────────────────────────────────────────────────────────
@@ -93,10 +94,11 @@ function _snapshotFolderName(now = new Date()) {
  * @param {boolean} opts.includeDiff Whether to write diff.json.
  * @returns {Promise<{ ok: boolean, snapshotDir: string, diffWritten: boolean, error?: string }>}
  */
-async function runScheduledExport({ destDir, includeDiff } = {}) {
+async function runScheduledExport({ destDir, includeDiff, adapterIds } = {}) {
   const settings = getSettings();
   const resolvedDestDir   = destDir     ?? settings.scheduledExport?.destDir;
   const resolvedDiff      = includeDiff ?? settings.scheduledExport?.includeDiff ?? false;
+  const resolvedAdapterIds = adapterIds ?? settings.scheduledExport?.adapterIds ?? [];
 
   if (!resolvedDestDir) {
     return { ok: false, snapshotDir: null, diffWritten: false, error: 'No destination folder configured' };
@@ -124,16 +126,31 @@ async function runScheduledExport({ destDir, includeDiff } = {}) {
       }
     }
 
-    // ── 3. Record history ─────────────────────────────────────────────────
+    // ── 3. Run adapter transforms (if any configured) ─────────────────────────
+    const adapterResults = {};
+    for (const adapterId of resolvedAdapterIds) {
+      const adapter = getAdapter(adapterId);
+      if (!adapter) continue;
+      try {
+        const adapterDest = path.join(snapshotDir, adapterId);
+        const result = adapter.export(snapshotDir, adapterDest);
+        adapterResults[adapterId] = { ok: true, fileCount: result.files.length };
+      } catch (adapterErr) {
+        adapterResults[adapterId] = { ok: false, error: adapterErr.message || String(adapterErr) };
+      }
+    }
+
+    // ── 4. Record history ─────────────────────────────────────────────────────
     const record = {
-      runAt:       new Date().toISOString(),
+      runAt:          new Date().toISOString(),
       snapshotDir,
       diffWritten,
+      adapterResults,
       ok: true,
     };
     _appendHistory(record);
 
-    // ── 4. Persist lastRun in settings ────────────────────────────────────
+    // ── 5. Persist lastRun in settings ───────────────────────────────────────────
     saveSettings({
       scheduledExport: {
         ...(settings.scheduledExport || {}),
@@ -141,11 +158,11 @@ async function runScheduledExport({ destDir, includeDiff } = {}) {
       },
     });
 
-    return { ok: true, snapshotDir, diffWritten };
+    return { ok: true, snapshotDir, diffWritten, adapterResults };
   } catch (err) {
     const error = err && err.message ? err.message : String(err);
-    _appendHistory({ runAt: new Date().toISOString(), snapshotDir, diffWritten: false, ok: false, error });
-    return { ok: false, snapshotDir, diffWritten: false, error };
+    _appendHistory({ runAt: new Date().toISOString(), snapshotDir, diffWritten: false, adapterResults: {}, ok: false, error });
+    return { ok: false, snapshotDir, diffWritten: false, adapterResults: {}, error };
   }
 }
 
@@ -207,6 +224,7 @@ function getSchedulerStatus() {
     frequency:   cfg.frequency   ?? 'daily',
     destDir:     cfg.destDir     ?? null,
     includeDiff: cfg.includeDiff ?? false,
+    adapterIds:  cfg.adapterIds  ?? [],
     lastRun,
     nextRun,
   };

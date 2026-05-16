@@ -16,6 +16,7 @@ const { runClustering } = require('./backend/clustering/themes');
 const { runExport } = require('./backend/export/runner');
 const { exportCCF }  = require('./backend/export/ccf');
 const { importCCF }  = require('./backend/import/ccf-import');
+const { listAdapters, getAdapter } = require('./backend/export/adapters/registry');
 const { startScheduler, stopScheduler, runScheduledExport, getExportHistory, getSchedulerStatus } = require('./backend/export/scheduler/index');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
@@ -482,6 +483,41 @@ handle('scheduler:choose-folder', async () => {
   });
   if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
   return { canceled: false, path: filePaths[0] };
+});
+
+// ── Adapter IPC ─────────────────────────────────────────────────────────────────
+
+// Return id/name/description for all registered adapters
+handle('adapter:list', async () =>
+  listAdapters().map(({ id, name, description }) => ({ id, name, description }))
+);
+
+// Run a single adapter: snapshot CCF to a temp sub-folder, transform, return result
+handle('export:adapter', async (_event, { id } = {}) => {
+  const { dialog } = require('electron');
+  const os   = require('os');
+  const win  = BrowserWindow.getFocusedWindow();
+
+  const adapter = getAdapter(id);
+  if (!adapter) return { canceled: false, ok: false, error: `Unknown adapter: ${id}` };
+
+  const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+    title: `Choose output folder for ${adapter.name} export`,
+    properties: ['openDirectory', 'createDirectory'],
+  });
+  if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
+
+  const destDir     = filePaths[0];
+  const tmpSnapshot = require('path').join(os.tmpdir(), `neurologue-ccf-${Date.now()}`);
+
+  try {
+    await exportCCF(tmpSnapshot);
+    const result = adapter.export(tmpSnapshot, destDir);
+    return { canceled: false, ok: true, destDir, ...result };
+  } finally {
+    // Clean up the temporary CCF snapshot
+    try { require('fs').rmSync(tmpSnapshot, { recursive: true, force: true }); } catch { /* ignore */ }
+  }
 });
 
 app.whenReady().then(async () => {

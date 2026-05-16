@@ -796,6 +796,13 @@
           </label>
         </div>
         <div class="settings-field">
+          <label>Also transform to…</label>
+          <div id="sched-adapter-checks" class="sched-adapter-checks">
+            <!-- populated dynamically by library.js -->
+          </div>
+          <span class="settings-hint">Selected adapters run automatically after each scheduled snapshot.</span>
+        </div>
+        <div class="settings-field">
           <label>Status</label>
           <div id="sched-status-line" class="sched-status-line">—</div>
         </div>
@@ -859,6 +866,14 @@
       <div class="export-modal-actions">
         <button id="btn-export-cancel" class="btn-secondary">Cancel</button>
         <button id="btn-export-confirm" class="btn-primary">Choose folder…</button>
+      </div>
+
+      <hr style="margin:20px 0;border-color:var(--border)" />
+
+      <h3 class="modal-section-title">Export to third-party format</h3>
+      <p class="export-modal-desc">Select a format and choose an output folder. Neurologue will snapshot your corpus and transform it automatically.</p>
+      <div id="adapter-list" class="export-format-list">
+        <!-- populated dynamically by library.js -->
       </div>
     </div>
   </div>
