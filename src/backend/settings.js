@@ -30,6 +30,7 @@ const DEFAULTS = {
   },
   signalsEnabled: true,   // enable LLM entry signal classification (Pass 3)
   contradictionScope: 'themes', // 'themes' | 'tags' | 'global'
+  contradictionScheduledCap: 15, // max pairs checked per scheduled scan run
   theme: 'dark',          // 'dark' | 'light'
   scheduledExport: {
     enabled:     false,

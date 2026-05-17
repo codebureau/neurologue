@@ -92,10 +92,12 @@ contextBridge.exposeInMainWorld('neurologue', {
   getAbandonedIdeas:  ()                          => ipcRenderer.invoke('replay:abandoned-ideas'),
 
   // ── Contradictions ───────────────────────────────────────────────────────
-  listContradictions:   (opts) => ipcRenderer.invoke('contradictions:list', opts),
-  resolveContradiction: (id, notes) => ipcRenderer.invoke('contradictions:resolve', { id, notes }),
-  dismissContradiction: (id) => ipcRenderer.invoke('contradictions:dismiss', { id }),
-  scanContradictions:   () => ipcRenderer.invoke('contradictions:scan'),
+  listContradictions:         (opts) => ipcRenderer.invoke('contradictions:list', opts),
+  resolveContradiction:       (id, notes) => ipcRenderer.invoke('contradictions:resolve', { id, notes }),
+  dismissContradiction:       (id) => ipcRenderer.invoke('contradictions:dismiss', { id }),
+  scanContradictions:         () => ipcRenderer.invoke('contradictions:scan'),
+  cancelContradictionScan:    () => ipcRenderer.invoke('contradictions:scan-cancel'),
+  onContradictionProgress:    (cb) => { ipcRenderer.on('worker:contradiction-progress', (_e, d) => cb(d)); },
 
   // ── Priorities ───────────────────────────────────────────────────────────
   listPriorityMetrics:     ()         => ipcRenderer.invoke('priorities:list-metrics'),

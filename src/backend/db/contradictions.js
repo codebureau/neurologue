@@ -76,7 +76,8 @@ async function dismissContradiction(id) {
 }
 
 /**
- * Check whether a pair is already in the contradictions table (any status).
+ * Check whether a pair has already been examined — either a contradiction was
+ * found (contradictions table) or it was checked and found clean (checked_pairs).
  * Uses canonical ordering.
  * @param {string} aId
  * @param {string} bId
@@ -85,10 +86,29 @@ async function dismissContradiction(id) {
 async function pairExists(aId, bId) {
   const [a, b] = _canonical(aId, bId);
   const db = await openDb();
-  const row = db
+  const inContradictions = db
     .prepare('SELECT id FROM contradictions WHERE entry_a_id = ? AND entry_b_id = ?')
     .get(a, b);
-  return !!row;
+  if (inContradictions) return true;
+  const inChecked = db
+    .prepare('SELECT 1 FROM checked_pairs WHERE entry_a_id = ? AND entry_b_id = ?')
+    .get(a, b);
+  return !!inChecked;
+}
+
+/**
+ * Record that a pair was examined and found NOT to be a contradiction.
+ * Subsequent scans (and the reverse-order check in the same scan) will skip it.
+ * @param {string} aId
+ * @param {string} bId
+ */
+async function recordCheckedPair(aId, bId) {
+  const [a, b] = _canonical(aId, bId);
+  const db = await openDb();
+  db.prepare(`
+    INSERT OR IGNORE INTO checked_pairs (entry_a_id, entry_b_id)
+    VALUES (?, ?)
+  `).run(a, b);
 }
 
 module.exports = {
@@ -97,4 +117,5 @@ module.exports = {
   resolveContradiction,
   dismissContradiction,
   pairExists,
+  recordCheckedPair,
 };

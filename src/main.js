@@ -19,7 +19,7 @@ const { importCCF }  = require('./backend/import/ccf-import');
 const { listAdapters, getAdapter } = require('./backend/export/adapters/registry');
 const { startScheduler, stopScheduler, runScheduledExport, getExportHistory, getSchedulerStatus } = require('./backend/export/scheduler/index');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, resetContradictionCursor, recomputeMetrics } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, cancelContradictionScan, resetContradictionCursor, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
 const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
@@ -340,6 +340,11 @@ ipcMain.handle('contradictions:dismiss', async (_e, { id }) => {
 
 ipcMain.handle('contradictions:scan', async () => {
   return scanContradictions({ force: true });
+});
+
+ipcMain.handle('contradictions:scan-cancel', () => {
+  cancelContradictionScan();
+  return { ok: true };
 });
 
 // ── Dashboard IPC ──────────────────────────────────────────────────────────────

@@ -15,7 +15,7 @@ const { getEntryById, updateEntryCategory, listEntriesWithoutCategory } = requir
 const { upsertVector, deleteVector, clearAllVectors } = require('../backend/vector/store');
 const { generateEmbedding, isOllamaAvailable, getOllamaStatus, classifyEntry, detectContradiction, computeEntrySignals } = require('./ollama');
 const { runClustering } = require('../backend/clustering/themes');
-const { createContradiction, pairExists } = require('../backend/db/contradictions');
+const { createContradiction, pairExists, recordCheckedPair } = require('../backend/db/contradictions');
 const { upsertEntrySignals, listEntriesWithoutSignals } = require('../backend/db/entry_signals');
 const { upsertThemeMetrics, recomputeAllThemeMetrics } = require('../backend/db/theme_metrics');
 const { getSettings } = require('../backend/settings');
@@ -34,6 +34,7 @@ const LOG_MAX = 100;
 let _timer = null;
 let _running = false;
 let _paused = false;
+let _scanAborted = false; // set by cancelContradictionScan() to abort a running scan
 let _embeddedSinceCluster = 0;
 let _queueLength = 0;          // entries pending embedding
 let _classifyQueueLength = 0;  // entries pending classification
@@ -479,7 +480,11 @@ async function scanContradictions({ force = false } = {}) {
   const { getSettings } = require('../backend/settings');
   const db = await openDb();
 
-  const scope = (getSettings().contradictionScope || 'themes');
+  const settings = getSettings();
+  const scope = settings.contradictionScope || 'themes';
+  // Scheduled scan cap — from settings, falls back to the compile-time constant.
+  // Manual (force) scans are uncapped.
+  const scheduledCap = settings.contradictionScheduledCap ?? CONTRADICTION_MAX_PAIRS;
   const groups = _buildScanGroups(db, scope);
 
   // Self-log so manual "Scan now" also appears in the activity log
@@ -490,29 +495,41 @@ async function scanContradictions({ force = false } = {}) {
     return { checked: 0, found: 0 };
   }
 
+  // Pre-count total candidate pairs so the UI can show a denominator
+  const totalPairs = groups.reduce((sum, { entries }) => {
+    const n = entries.length;
+    return sum + n * (n - 1); // directional; halved in practice by pairExists
+  }, 0);
+
+  _scanAborted = false;
   let checked = 0;
   let found = 0;
 
   for (const { entries, themeId } of groups) {
+    if (_scanAborted) break;
     // force = manual Scan Now: no cap, check every unchecked pair
     // scheduled: cap per run to avoid hammering the LLM on every tick
-    if (!force && checked >= CONTRADICTION_MAX_PAIRS) break;
+    if (!force && checked >= scheduledCap) break;
 
     const candidates = force
       ? entries
       : entries.slice(0, Math.min(10, entries.length));
 
     for (const candidateEntry of candidates) {
-      if (!force && checked >= CONTRADICTION_MAX_PAIRS) break;
+      if (_scanAborted) break;
+      if (!force && checked >= scheduledCap) break;
 
       for (const otherEntry of entries) {
-        if (!force && checked >= CONTRADICTION_MAX_PAIRS) break;
+        if (_scanAborted) break;
+        if (!force && checked >= scheduledCap) break;
         if (otherEntry.id === candidateEntry.id) continue;
 
         const alreadyKnown = await pairExists(candidateEntry.id, otherEntry.id);
         if (alreadyKnown) continue;
 
         checked++;
+        // Push live progress so the UI can update the scan button
+        _push('worker:contradiction-progress', { checked, total: totalPairs, found });
         try {
           const contradicts = await detectContradiction(candidateEntry.content, otherEntry.content);
           if (contradicts) {
@@ -523,6 +540,9 @@ async function scanContradictions({ force = false } = {}) {
             });
             found++;
             console.log(`[worker] Contradiction found: ${candidateEntry.id.slice(0, 8)}… ↔ ${otherEntry.id.slice(0, 8)}…`);
+          } else {
+            // Record clean pairs so we never re-check them in future scans
+            await recordCheckedPair(candidateEntry.id, otherEntry.id);
           }
         } catch (err) {
           console.warn(`[worker] detectContradiction failed: ${err.message}`);
@@ -531,9 +551,19 @@ async function scanContradictions({ force = false } = {}) {
     }
   }
 
-  _logEnd(logEntry, 'success', `${found} new, ${checked} checked`);
+  const aborted = _scanAborted;
+  _scanAborted = false;
+  const summary = aborted
+    ? `${found} new, ${checked} checked (cancelled)`
+    : `${found} new, ${checked} checked`;
+  _logEnd(logEntry, 'success', summary);
   if (found > 0) _push('worker:contradictions-updated', {});
-  return { checked, found };
+  _push('worker:contradiction-progress', null); // null = scan finished
+  return { checked, found, aborted };
+}
+
+function cancelContradictionScan() {
+  _scanAborted = true;
 }
 
 async function recomputeMetrics() {
@@ -544,4 +574,4 @@ function resetContradictionCursor() {
   _lastContradictionScan = null;
 }
 
-module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions, resetContradictionCursor, recomputeMetrics };
+module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions, cancelContradictionScan, resetContradictionCursor, recomputeMetrics };

@@ -1606,6 +1606,9 @@ btnSettings.addEventListener('click', async () => {
   if (inputClust)  inputClust.value  = wi.clustering    ?? 300;
   if (inputContra) inputContra.value = wi.contradiction ?? 900;
 
+  const capInput = document.getElementById('input-contradiction-scheduled-cap');
+  if (capInput) capInput.value = settings.contradictionScheduledCap ?? 15;
+
   // Populate contradiction scope selector
   const scope = settings.contradictionScope || 'themes';
   document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
@@ -1657,6 +1660,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
       contradiction: parseInt(document.getElementById('input-interval-contradiction').value, 10) || 900,
     },
     contradictionScope: document.querySelector('#contradiction-scope-group .theme-toggle-btn.active')?.dataset.scopeValue || 'themes',
+    contradictionScheduledCap: parseInt(document.getElementById('input-contradiction-scheduled-cap')?.value, 10) || 15,
   });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
@@ -2670,23 +2674,48 @@ btnDismiss.addEventListener('click', async () => {
   }
 });
 
+const btnCancelScan        = document.getElementById('btn-cancel-scan');
+const scanProgressEl       = document.getElementById('contradictions-scan-progress');
+
+// Live progress updates from the worker during a manual scan
+window.neurologue.onContradictionProgress((data) => {
+  if (data === null) {
+    // Scan finished — clear progress text
+    scanProgressEl.textContent = '';
+    return;
+  }
+  scanProgressEl.textContent = `${data.checked} checked`;
+});
+
 btnScan.addEventListener('click', async () => {
   btnScan.disabled = true;
   btnScan.textContent = 'Scanning…';
+  btnCancelScan.classList.remove('hidden');
+  scanProgressEl.textContent = '';
   try {
     const result = await window.neurologue.scanContradictions();
-    btnScan.textContent = result.found > 0
-      ? `Found ${result.found} new`
-      : 'No new conflicts';
+    btnScan.textContent = result.aborted
+      ? 'Cancelled'
+      : result.found > 0
+        ? `Found ${result.found} new`
+        : 'No new conflicts';
     if (result.found > 0) await loadContradictionsView();
   } catch {
     btnScan.textContent = 'Scan failed';
   } finally {
+    btnCancelScan.classList.add('hidden');
+    scanProgressEl.textContent = '';
     setTimeout(() => {
       btnScan.disabled = false;
       btnScan.textContent = 'Scan now';
     }, 2500);
   }
+});
+
+btnCancelScan.addEventListener('click', () => {
+  window.neurologue.cancelContradictionScan();
+  btnCancelScan.disabled = true;
+  btnCancelScan.textContent = 'Cancelling…';
 });
 
 // ── Priorities view controller ───────────────────────────────────────────────

@@ -267,6 +267,8 @@
             <div id="contradictions-list"></div>
             <div id="contradictions-scan-row">
               <button id="btn-scan-contradictions" class="btn-sm">Scan now</button>
+              <button id="btn-cancel-scan" class="btn-sm btn-secondary hidden">Cancel</button>
+              <span id="contradictions-scan-progress" class="settings-hint" style="margin-left:8px"></span>
             </div>
           </div>
           <!-- Right column: conflict detail + resolve workflow -->
@@ -737,6 +739,11 @@
           <label for="input-interval-contradiction">Contradiction scan interval (seconds)</label>
           <input type="number" id="input-interval-contradiction" class="settings-number-input" min="60" max="86400" step="60" value="900" />
           <span class="settings-hint">How often to check for contradicting entries across themes. Default: 900 s (15 min).</span>
+        </div>
+        <div class="settings-field">
+          <label for="input-contradiction-scheduled-cap">Scheduled scan pair limit</label>
+          <input type="number" id="input-contradiction-scheduled-cap" class="settings-number-input" min="5" max="500" step="5" value="15" />
+          <span class="settings-hint">Max pairs the <em>scheduled</em> scan checks per run. Manual “Scan now” is always uncapped. Default: 15.</span>
         </div>
         <div class="settings-field">
           <label>Contradiction scan scope</label>
