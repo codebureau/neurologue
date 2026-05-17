@@ -32,6 +32,7 @@ const DEFAULTS = {
   contradictionScope: 'themes', // 'themes' | 'tags' | 'global'
   contradictionScheduledCap: 15, // max pairs checked per scheduled scan run
   theme: 'dark',          // 'dark' | 'light'
+  homeView: 'library',    // view id to show on launch
   scheduledExport: {
     enabled:     false,
     frequency:   'daily',   // 'daily' | 'weekly'
