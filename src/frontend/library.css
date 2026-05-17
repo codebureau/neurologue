@@ -1453,6 +1453,7 @@ html, body {
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+#btn-cancel-scan.hidden { display: none; }
 
 /* Right column: conflict detail */
 #contradictions-detail-col {

@@ -2704,6 +2704,8 @@ btnScan.addEventListener('click', async () => {
     btnScan.textContent = 'Scan failed';
   } finally {
     btnCancelScan.classList.add('hidden');
+    btnCancelScan.disabled = false;
+    btnCancelScan.textContent = 'Cancel';
     scanProgressEl.textContent = '';
     setTimeout(() => {
       btnScan.disabled = false;
