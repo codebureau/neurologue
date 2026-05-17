@@ -25,6 +25,7 @@
       <button id="btn-new-note" class="mode-btn btn-new-note" title="New note (Ctrl+Shift+Space)">+ New note</button>
       <button id="btn-maintenance" class="mode-btn toolbar-library-only" title="Tag management">Maintenance</button>
       <button id="btn-help" class="mode-btn">Help</button>
+      <button id="portfolio-badge" class="portfolio-badge feature-portfolios" title="Active portfolio — click to switch"></button>
     </div>
 
     <!-- ── Shell: nav rail + view container ───────────────────────── -->
@@ -63,6 +64,10 @@
         <button class="nav-item" data-view="agents" title="Agents">
           <span class="nav-icon">&#10022;</span>
           <span class="nav-label">Agents</span>
+        </button>
+        <button class="nav-item feature-portfolios" data-view="portfolios" title="Portfolios">
+          <span class="nav-icon">&#128193;</span>
+          <span class="nav-label">Portfolios</span>
         </button>
         <button class="nav-item nav-item--settings" data-view="settings" title="Settings">
           <span class="nav-icon">&#9881;</span>
@@ -608,6 +613,7 @@
             <button class="settings-subnav-item" data-section="appearance">Appearance</button>
             <button class="settings-subnav-item" data-section="data">Data</button>
             <button class="settings-subnav-item" data-section="scheduled-export">Scheduled Export</button>
+            <button class="settings-subnav-item" data-section="features">Features</button>
           </nav>
           <div id="settings-content">
 
@@ -799,6 +805,21 @@
               </div>
             </div>
 
+            <!-- Features panel -->
+            <div class="settings-panel hidden" id="settings-tab-features">
+              <p class="settings-panel-desc">Optional features. Disabled features leave no trace in the UI.</p>
+              <div class="settings-field">
+                <div class="settings-field-label-row">
+                  <label for="chk-portfolios-enabled">Portfolios</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="chk-portfolios-enabled" />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <span class="settings-hint">Organise your notes into separate named workspaces — e.g. Personal and Work. Each portfolio has its own entries, themes, and AI context.</span>
+              </div>
+            </div>
+
             <div class="settings-actions">
               <button class="btn-setup-primary" id="btn-save-settings">Save settings</button>
               <span class="settings-saved hidden" id="settings-saved-msg">&#x2713; Saved</span>
@@ -807,7 +828,36 @@
           </div><!-- /#settings-content -->
         </div><!-- /#view-settings -->
 
-      </div><!-- /#view-container -->
+        <!-- ── View: Portfolios (feature-gated) ──────────────────── -->
+        <div id="view-portfolios" class="view feature-portfolios">
+          <div id="portfolios-header">
+            <h2 class="portfolios-title">Portfolios</h2>
+            <button id="btn-new-portfolio" class="btn-primary">+ New portfolio</button>
+          </div>
+          <p class="portfolios-desc">Each portfolio is an independent corpus with its own entries, themes, and AI context. Switch between them at any time.</p>
+          <div id="portfolios-grid">
+            <!-- populated by library.js -->
+          </div>
+          <!-- New portfolio form -->
+          <div id="portfolio-create-form" class="hidden">
+            <input id="portfolio-new-name" type="text" placeholder="Portfolio name" maxlength="40" />
+            <div class="portfolio-color-row">
+              <label>Colour</label>
+              <div id="portfolio-color-swatches">
+                <button class="color-swatch active" data-color="#2AA6A1" style="background:#2AA6A1" title="Teal"></button>
+                <button class="color-swatch" data-color="#6B7A8D" style="background:#6B7A8D" title="Slate"></button>
+                <button class="color-swatch" data-color="#E07B54" style="background:#E07B54" title="Amber"></button>
+                <button class="color-swatch" data-color="#7C5CBF" style="background:#7C5CBF" title="Violet"></button>
+                <button class="color-swatch" data-color="#4A9E6B" style="background:#4A9E6B" title="Green"></button>
+                <button class="color-swatch" data-color="#D64F4F" style="background:#D64F4F" title="Red"></button>
+              </div>
+            </div>
+            <div class="portfolio-form-actions">
+              <button id="btn-create-portfolio-confirm" class="btn-primary">Create</button>
+              <button id="btn-create-portfolio-cancel" class="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div><!-- /#view-portfolios -->
     </div><!-- /#shell -->
 
     <!-- ── Worker log popup ──────────────────────────────────────── -->

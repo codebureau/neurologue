@@ -26,9 +26,18 @@ const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signa
 const { getGraphData } = require('./backend/db/graph');
 const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
 const { listAgents, runAgent, abortAgent } = require('./backend/agents/runner');
+const { listProfiles, getActiveProfile, createProfile, renameProfile, deleteProfile, setActiveProfile } = require('./backend/portfolios');
+const { getProfileStats } = require('./backend/db/profile-stats');
+const { setDbPath, switchDb } = require('./backend/db/connection');
+const { setStorePath, switchVectorStore } = require('./backend/vector/store');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
+  // Respect the active portfolio profile paths so switching portfolios is
+  // reflected immediately on restart without extra migration work.
+  const profile = getActiveProfile();
+  setDbPath(profile.dbPath);
+  setStorePath(profile.vectorStorePath);
   await runMigrations();
   await initVectorStore();
 }
@@ -729,6 +738,45 @@ ipcMain.handle('hotkey:pause',  () => { pauseCaptureHotkey(); });
 ipcMain.handle('hotkey:resume', () => { resumeCaptureHotkey(); });
 
 ipcMain.handle('capture:open',  () => { openCaptureWindow(); });
+
+// ── Portfolio IPC ───────────────────────────────────────────────────────────────────
+
+ipcMain.handle('portfolio:list', () => listProfiles());
+
+ipcMain.handle('portfolio:create', (_e, { name, color }) => createProfile(name, color));
+
+ipcMain.handle('portfolio:rename', (_e, { id, name }) => renameProfile(id, name));
+
+ipcMain.handle('portfolio:delete', (_e, { id }) => deleteProfile(id));
+
+handle('portfolio:stats', async (_e, { id }) => {
+  const manifest = listProfiles();
+  const profile  = manifest.profiles.find((p) => p.id === id);
+  if (!profile) return { ok: false, error: 'Profile not found' };
+  const stats = await getProfileStats(profile.dbPath);
+  return { ok: true, ...stats };
+});
+
+handle('portfolio:switch', async (_e, { id }) => {
+  const profile = setActiveProfile(id);
+
+  // Pause background services while the DB is swapped
+  stopWorker();
+  stopScheduler();
+
+  await switchDb(profile.dbPath);
+  await switchVectorStore(profile.vectorStorePath);
+  await runMigrations(); // ensure schema is up-to-date for this corpus
+
+  startWorker();
+  startScheduler();
+
+  // Notify renderer to reload its data
+  if (_mainWindow && !_mainWindow.isDestroyed()) {
+    _mainWindow.webContents.send('portfolio:switched', { profile });
+  }
+  return { ok: true, profile };
+});
 
 // ── Ollama setup IPC ───────────────────────────────────────────────────────
 

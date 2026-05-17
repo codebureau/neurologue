@@ -1649,6 +1649,10 @@ async function loadSettingsView(section = 'models') {
   activateSettingsSection(section);
   if (section === 'scheduled-export') await loadSchedSettings();
   if (section === 'worker') await renderWorkerLog();
+
+  // Features panel
+  const chkPortfolios = document.getElementById('chk-portfolios-enabled');
+  if (chkPortfolios) chkPortfolios.checked = settings.portfoliosEnabled || false;
 }
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
@@ -1680,6 +1684,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     tagSimilarityThreshold,
     theme: selectedTheme,
     homeView: document.getElementById('select-home-view')?.value || 'library',
+    portfoliosEnabled: document.getElementById('chk-portfolios-enabled')?.checked || false,
     workerIntervals: {
       embedding:     parseInt(document.getElementById('input-interval-embedding').value, 10)    || 60,
       clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
@@ -1691,6 +1696,10 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
   setTimeout(() => msg.classList.add('hidden'), 2000);
+
+  // Apply portfolio feature gate immediately after save
+  const portfoliosEnabled = document.getElementById('chk-portfolios-enabled')?.checked || false;
+  applyPortfolioFeature(portfoliosEnabled);
 });
 
 // Reindex all entries — clear all embeddings and re-queue everything
@@ -2321,6 +2330,7 @@ function activateView(viewId) {
   if (viewId === 'graph')          loadGraphView();
   if (viewId === 'replay')         loadReplayView();
   if (viewId === 'agents')         loadAgentsView();
+  if (viewId === 'portfolios')      loadPortfoliosView();
   // Destroy graph renderer when leaving the graph view
   if (viewId !== 'graph')          _destroyGraphIfActive();
 }
@@ -3543,11 +3553,152 @@ function _escHtml(str) {
 
 // ── Init ────────────────────────────────────────────────────────────
 
+// ── Portfolio feature gate ─────────────────────────────────────────────────
+
+function applyPortfolioFeature(enabled) {
+  document.documentElement.dataset.portfolios = enabled ? 'true' : 'false';
+  if (enabled) refreshPortfolioBadge();
+}
+
+async function refreshPortfolioBadge() {
+  try {
+    const manifest = await window.neurologue.listPortfolios();
+    const active   = manifest.profiles.find((p) => p.id === manifest.activeId);
+    const badge    = document.getElementById('portfolio-badge');
+    if (badge && active) {
+      badge.textContent   = active.name;
+      badge.style.borderColor = active.color;
+    }
+  } catch (_e) { /* silent — portfolios may not be configured yet */ }
+}
+
+async function loadPortfoliosView() {
+  const grid = document.getElementById('portfolios-grid');
+  if (!grid) return;
+  grid.innerHTML = '<p class="loading">Loading\u2026</p>';
+
+  let manifest;
+  try {
+    manifest = await window.neurologue.listPortfolios();
+  } catch (err) {
+    grid.innerHTML = `<p class="error-msg">Could not load portfolios: ${err.message}</p>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+
+  for (const profile of manifest.profiles) {
+    let stats = {};
+    try {
+      const res = await window.neurologue.portfolioStats(profile.id);
+      if (res.ok) stats = res;
+    } catch (_e) { /* non-fatal */ }
+
+    const isActive = profile.id === manifest.activeId;
+    const card = document.createElement('div');
+    card.className = `portfolio-card${isActive ? ' portfolio-card--active' : ''}`;
+    card.dataset.id = profile.id;
+
+    const topThemesHtml = (stats.topThemes || []).length
+      ? `<div class="portfolio-card-themes">${(stats.topThemes || []).map((t) => `<span class="portfolio-theme-chip">${t}</span>`).join('')}</div>`
+      : '';
+    const previewHtml = (stats.recentEntries || []).length
+      ? `<p class="portfolio-card-preview">${stats.recentEntries[0].content || ''}</p>`
+      : '';
+
+    card.innerHTML = `
+      <div class="portfolio-card-header" style="border-left:4px solid ${profile.color}">
+        <span class="portfolio-card-name">${profile.name}</span>
+        ${isActive ? '<span class="portfolio-card-active-badge">Active</span>' : ''}
+      </div>
+      <div class="portfolio-card-stats">
+        <span>${stats.entryCount ?? 0} entries</span>
+        <span>${stats.themeCount ?? 0} themes</span>
+        <span>${stats.tagCount ?? 0} tags</span>
+      </div>
+      ${topThemesHtml}
+      ${previewHtml}
+      <div class="portfolio-card-actions">
+        ${!isActive ? `<button class="btn-primary btn-portfolio-switch" data-id="${profile.id}">Switch to</button>` : ''}
+        <button class="btn-secondary btn-portfolio-rename" data-id="${profile.id}">Rename</button>
+        ${!isActive ? `<button class="btn-danger btn-portfolio-delete" data-id="${profile.id}">Delete</button>` : ''}
+      </div>`;
+    grid.appendChild(card);
+  }
+
+  // Wire action buttons
+  grid.querySelectorAll('.btn-portfolio-switch').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      btn.textContent = 'Switching\u2026';
+      await window.neurologue.switchPortfolio(btn.dataset.id);
+      // renderer reloads via onPortfolioSwitched
+    });
+  });
+
+  grid.querySelectorAll('.btn-portfolio-rename').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const current = grid.querySelector(`.portfolio-card[data-id="${btn.dataset.id}"] .portfolio-card-name`)?.textContent || '';
+      const next    = prompt('Rename portfolio:', current);
+      if (next && next.trim() && next.trim() !== current) {
+        await window.neurologue.renamePortfolio(btn.dataset.id, next.trim());
+        loadPortfoliosView();
+      }
+    });
+  });
+
+  grid.querySelectorAll('.btn-portfolio-delete').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const name = grid.querySelector(`.portfolio-card[data-id="${btn.dataset.id}"] .portfolio-card-name`)?.textContent || '';
+      if (!confirm(`Delete portfolio \u201c${name}\u201d? This cannot be undone.`)) return;
+      await window.neurologue.deletePortfolio(btn.dataset.id);
+      loadPortfoliosView();
+    });
+  });
+
+  // New portfolio form
+  const btnNew    = document.getElementById('btn-new-portfolio');
+  const form      = document.getElementById('portfolio-create-form');
+  const btnCreate = document.getElementById('btn-create-portfolio-confirm');
+  const btnCancel = document.getElementById('btn-create-portfolio-cancel');
+  const nameInput = document.getElementById('portfolio-new-name');
+  let _selectedColor = '#2AA6A1';
+
+  document.querySelectorAll('#portfolio-color-swatches .color-swatch').forEach((sw) => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('#portfolio-color-swatches .color-swatch').forEach((s) => s.classList.remove('active'));
+      sw.classList.add('active');
+      _selectedColor = sw.dataset.color;
+    });
+  });
+
+  if (btnNew && form) {
+    btnNew.addEventListener('click', () => { form.classList.remove('hidden'); nameInput.focus(); });
+    btnCancel?.addEventListener('click', () => { form.classList.add('hidden'); nameInput.value = ''; });
+    btnCreate?.addEventListener('click', async () => {
+      const n = nameInput.value.trim();
+      if (!n) return;
+      await window.neurologue.createPortfolio(n, _selectedColor);
+      form.classList.add('hidden');
+      nameInput.value = '';
+      loadPortfoliosView();
+    });
+  }
+}
+
+// Reload renderer when the active portfolio switches (called from main)
+if (window.neurologue?.onPortfolioSwitched) {
+  window.neurologue.onPortfolioSwitched(() => { window.location.reload(); });
+}
+
 (async () => {
   // Apply persisted theme before first paint
   const initSettings = await window.neurologue.getSettings();
   applyTheme(initSettings.theme || 'dark');
   _navHistoryLimit = initSettings.navHistoryLimit ?? 10;
+
+  // Apply portfolio feature gate
+  applyPortfolioFeature(initSettings.portfoliosEnabled || false);
 
   // Navigate to the user's chosen home view
   const homeView = initSettings.homeView || 'library';

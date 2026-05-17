@@ -111,7 +111,14 @@ contextBridge.exposeInMainWorld('neurologue', {
   setHotkey:    (accelerator) => ipcRenderer.invoke('hotkey:set', { accelerator }),
   pauseHotkey:  ()            => ipcRenderer.invoke('hotkey:pause'),
   resumeHotkey: ()            => ipcRenderer.invoke('hotkey:resume'),
-
+  // ── Portfolios ────────────────────────────────────────────────────────────
+  listPortfolios:   ()              => ipcRenderer.invoke('portfolio:list'),
+  createPortfolio:  (name, color)   => ipcRenderer.invoke('portfolio:create', { name, color }),
+  renamePortfolio:  (id, name)      => ipcRenderer.invoke('portfolio:rename', { id, name }),
+  deletePortfolio:  (id)            => ipcRenderer.invoke('portfolio:delete', { id }),
+  switchPortfolio:  (id)            => ipcRenderer.invoke('portfolio:switch', { id }),
+  portfolioStats:   (id)            => ipcRenderer.invoke('portfolio:stats', { id }),
+  onPortfolioSwitched: (cb) => { ipcRenderer.on('portfolio:switched', (_e, d) => cb(d)); },
   // ── Capture ───────────────────────────────────────────────────────────────
   openCapture: () => ipcRenderer.invoke('capture:open'),
 
