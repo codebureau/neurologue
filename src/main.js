@@ -19,7 +19,7 @@ const { importCCF }  = require('./backend/import/ccf-import');
 const { listAdapters, getAdapter } = require('./backend/export/adapters/registry');
 const { startScheduler, stopScheduler, runScheduledExport, getExportHistory, getSchedulerStatus } = require('./backend/export/scheduler/index');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, resetContradictionCursor, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
 const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
@@ -666,9 +666,18 @@ ipcMain.handle('worker:reindex-entry', async (_e, { id }) => {
 
 ipcMain.handle('settings:get', () => getSettings());
 ipcMain.handle('settings:save', (_e, updates) => {
+  const prev = getSettings();
   const result = saveSettings(updates);
   // Propagate interval changes to running worker immediately
   if (updates.workerIntervals) setWorkerIntervals(updates.workerIntervals);
+  // If the contradiction scope changed, reset the cursor and kick off a full rescan
+  // so the new scope is applied immediately rather than waiting for the next tick.
+  if (updates.contradictionScope && updates.contradictionScope !== prev.contradictionScope) {
+    resetContradictionCursor();
+    scanContradictions({ force: true }).catch((e) =>
+      console.warn('[settings] post-scope-change scan failed:', e.message)
+    );
+  }
   return result;
 });
 

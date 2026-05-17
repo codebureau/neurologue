@@ -267,16 +267,12 @@ async function processBatch() {
   _ticksUntilContradiction--;
   if (_ticksUntilContradiction <= 0) {
     _ticksUntilContradiction = Math.round(_intervals.contradiction / _intervals.embedding);
-      const contLog = _logStart('contradiction-scan');
-      try {
-        const cResult = await scanContradictions();
-        console.log(`[worker] Contradiction scan: ${cResult.found} new, ${cResult.checked} checked`);
-        _logEnd(contLog, 'success', `${cResult.found} new, ${cResult.checked} checked`);
-        if (cResult.found > 0) _push('worker:contradictions-updated', {});
-      } catch (err) {
-        console.error('[worker] Contradiction scan error:', err.message);
-        _logEnd(contLog, 'error', err.message);
-      }
+    try {
+      const cResult = await scanContradictions();
+      console.log(`[worker] Contradiction scan: ${cResult.found} new, ${cResult.checked} checked`);
+    } catch (err) {
+      console.error('[worker] Contradiction scan error:', err.message);
+    }
   }
 
   _push('worker:status', await _buildStatus(true));
@@ -481,57 +477,54 @@ function _buildScanGroups(db, scope) {
 async function scanContradictions({ force = false } = {}) {
   const { openDb } = require('../backend/db/connection');
   const { getSettings } = require('../backend/settings');
-  const { listContradictions } = require('../backend/db/contradictions');
   const db = await openDb();
-
-  // force=true resets the incremental cursor so all existing pairs are re-examined.
-  // Used by the manual "Scan now" button.
-  // Also force a full scan if no contradictions exist yet — ensures a freshly
-  // imported corpus (with entries dated in the past) gets scanned on first run.
-  if (force) {
-    _lastContradictionScan = null;
-  } else if (_lastContradictionScan !== null) {
-    const existing = await listContradictions({ status: 'all' });
-    if (existing.length === 0) _lastContradictionScan = null;
-  }
 
   const scope = (getSettings().contradictionScope || 'themes');
   const groups = _buildScanGroups(db, scope);
-  if (groups.length === 0) return { checked: 0, found: 0 };
+
+  // Self-log so manual "Scan now" also appears in the activity log
+  const logEntry = _logStart('contradiction-scan');
+
+  if (groups.length === 0) {
+    _logEnd(logEntry, 'success', '0 new, 0 checked');
+    return { checked: 0, found: 0 };
+  }
 
   let checked = 0;
   let found = 0;
-  const scanStart = new Date().toISOString();
 
   for (const { entries, themeId } of groups) {
     if (checked >= CONTRADICTION_MAX_PAIRS) break;
 
-    // Identify entries that are new since the last scan (or a sample if first scan)
-    const newEntries = _lastContradictionScan
-      ? entries.filter((e) => e.created_at > _lastContradictionScan)
-      : entries.slice(0, Math.min(5, entries.length)); // cold start: check up to 5 newest
+    // On force (manual Scan Now): check all pairs that haven't been seen yet.
+    // On scheduled scan: prioritise entries updated/created more recently, but
+    // still rely on pairExists() — not timestamps — to skip already-checked pairs.
+    // This means imported entries with old created_at are still checked correctly.
+    const candidates = force
+      ? entries
+      : entries.slice(0, Math.min(10, entries.length));
 
-    for (const newEntry of newEntries) {
+    for (const candidateEntry of candidates) {
       if (checked >= CONTRADICTION_MAX_PAIRS) break;
 
       for (const otherEntry of entries) {
         if (checked >= CONTRADICTION_MAX_PAIRS) break;
-        if (otherEntry.id === newEntry.id) continue;
+        if (otherEntry.id === candidateEntry.id) continue;
 
-        const alreadyKnown = await pairExists(newEntry.id, otherEntry.id);
+        const alreadyKnown = await pairExists(candidateEntry.id, otherEntry.id);
         if (alreadyKnown) continue;
 
         checked++;
         try {
-          const contradicts = await detectContradiction(newEntry.content, otherEntry.content);
+          const contradicts = await detectContradiction(candidateEntry.content, otherEntry.content);
           if (contradicts) {
             await createContradiction({
-              entry_a_id: newEntry.id,
+              entry_a_id: candidateEntry.id,
               entry_b_id: otherEntry.id,
               theme_id: themeId,
             });
             found++;
-            console.log(`[worker] Contradiction found: ${newEntry.id.slice(0, 8)}… ↔ ${otherEntry.id.slice(0, 8)}…`);
+            console.log(`[worker] Contradiction found: ${candidateEntry.id.slice(0, 8)}… ↔ ${otherEntry.id.slice(0, 8)}…`);
           }
         } catch (err) {
           console.warn(`[worker] detectContradiction failed: ${err.message}`);
@@ -540,7 +533,8 @@ async function scanContradictions({ force = false } = {}) {
     }
   }
 
-  _lastContradictionScan = scanStart;
+  _logEnd(logEntry, 'success', `${found} new, ${checked} checked`);
+  if (found > 0) _push('worker:contradictions-updated', {});
   return { checked, found };
 }
 
@@ -548,4 +542,8 @@ async function recomputeMetrics() {
   return recomputeAllThemeMetrics();
 }
 
-module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions, recomputeMetrics };
+function resetContradictionCursor() {
+  _lastContradictionScan = null;
+}
+
+module.exports = { startWorker, stopWorker, pauseWorker, resumeWorker, workerStatus, getWorkerLog, clearWorkerLog, setWorkerIntervals, setMainWindow, getOllamaStatus, reindexAll, reindexEntry, scanContradictions, resetContradictionCursor, recomputeMetrics };
