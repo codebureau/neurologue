@@ -1613,6 +1613,7 @@ async function loadSettingsView(section = 'models') {
   });
 
   activateSettingsSection(section);
+  if (section === 'scheduled-export') await loadSchedSettings();
 }
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
@@ -1945,10 +1946,10 @@ document.getElementById('btn-sched-run-now').addEventListener('click', async () 
 
 document.getElementById('btn-sched-refresh-history').addEventListener('click', renderSchedHistory);
 
-// Load scheduled export settings when that tab is activated
-document.querySelectorAll('.settings-tab').forEach((tab) => {
-  if (tab.dataset.tab === 'scheduled-export') {
-    tab.addEventListener('click', loadSchedSettings);
+// Load scheduled export settings when that section is activated
+document.querySelectorAll('.settings-subnav-item').forEach((item) => {
+  if (item.dataset.section === 'scheduled-export') {
+    item.addEventListener('click', loadSchedSettings);
   }
 });
 
