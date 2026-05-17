@@ -254,6 +254,8 @@ function updateCount(total) {
 async function renderHeatmap() {
   heatmapGrid.innerHTML = '';
   heatmapMonths.innerHTML = '';
+  const heatmapYears = document.getElementById('heatmap-years');
+  heatmapYears.innerHTML = '';
 
   const data = await window.neurologue.getActivity();
   const countMap = {};
@@ -307,13 +309,42 @@ async function renderHeatmap() {
     heatmapGrid.appendChild(weekEl);
   }
 
-  // Render month labels using absolute positioning
-  heatmapMonths.style.position = 'relative';
+  // Render year labels: one per year, at the column of the first visible month of that year
+  const yearLabels = [];
+  let lastYear = -1;
   monthLabels.forEach(({ col, label }) => {
+    // find the cellDate for this column's first day to get the year
+    const cellDate = new Date(startDate);
+    cellDate.setDate(startDate.getDate() + col * 7);
+    const yr = cellDate.getFullYear();
+    if (yr !== lastYear) {
+      yearLabels.push({ col, label: String(yr) });
+      lastYear = yr;
+    }
+  });
+
+  heatmapYears.style.position = 'relative';
+  yearLabels.forEach(({ col, label }) => {
     const span = document.createElement('span');
     span.textContent = label;
     span.style.position = 'absolute';
     span.style.left = `${col * WEEK_PX}px`;
+    heatmapYears.appendChild(span);
+  });
+
+  // Render month labels using absolute positioning.
+  // Skip a label if it would be within 28px of the previous one (prevents overlap
+  // when a month boundary falls close to the start of the 52-week window).
+  heatmapMonths.style.position = 'relative';
+  let lastLabelX = -Infinity;
+  monthLabels.forEach(({ col, label }) => {
+    const x = col * WEEK_PX;
+    if (x - lastLabelX < 28) return;
+    lastLabelX = x;
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.position = 'absolute';
+    span.style.left = `${x}px`;
     heatmapMonths.appendChild(span);
   });
 }
@@ -1284,11 +1315,10 @@ window.neurologue.onWorkerTaskCompleted(({ task, status, message }) => {
   }
 });
 
-// Clicking the error badge opens Settings → Worker tab
-statusErrorBadge.addEventListener('click', () => {
-  settingsModal.classList.remove('hidden');
-  window.neurologue.pauseHotkey();
-  activateSettingsTab('worker');
+// Clicking the error badge opens Settings → Worker section
+statusErrorBadge.addEventListener('click', async () => {
+  activateView('settings');
+  await loadSettingsView('worker');
   renderWorkerLog();
 });
 
@@ -1347,8 +1377,6 @@ window.neurologue.onContradictionsUpdated(() => loadContradictionsView());
 // ── Setup + settings modals ────────────────────────────────────────
 
 const setupModal    = document.getElementById('setup-modal');
-const settingsModal = document.getElementById('settings-modal');
-const btnSettings   = document.getElementById('btn-settings');
 
 function showSetupStep(stepId) {
   document.querySelectorAll('.setup-step').forEach((el) => el.classList.add('hidden'));
@@ -1463,22 +1491,20 @@ document.getElementById('btn-recheck-running').addEventListener('click', async (
 
 document.getElementById('btn-pull-all').addEventListener('click', pullAllMissing);
 
-// ── Settings modal ─────────────────────────────────────────────────
+// ── Settings view ──────────────────────────────────────────────────
 
-// Tab switching
-function activateSettingsTab(name) {
-  document.querySelectorAll('.settings-tab').forEach((t) => {
-    const active = t.dataset.tab === name;
-    t.classList.toggle('active', active);
-    t.setAttribute('aria-selected', String(active));
+// Section switching
+function activateSettingsSection(name) {
+  document.querySelectorAll('.settings-subnav-item').forEach((t) => {
+    t.classList.toggle('active', t.dataset.section === name);
   });
   document.querySelectorAll('.settings-panel').forEach((p) => {
     p.classList.toggle('hidden', p.id !== `settings-tab-${name}`);
   });
 }
 
-document.querySelectorAll('.settings-tab').forEach((tab) => {
-  tab.addEventListener('click', () => activateSettingsTab(tab.dataset.tab));
+document.querySelectorAll('.settings-subnav-item').forEach((item) => {
+  item.addEventListener('click', () => activateSettingsSection(item.dataset.section));
 });
 
 // ── Hotkey recorder ─────────────────────────────────────────────────────────
@@ -1528,6 +1554,7 @@ function onHotkeyKeydown(e) {
 
 function startHotkeyRecording() {
   _recordingHotkey = true;
+  window.neurologue.pauseHotkey();
   hotkeyDisplay.textContent = 'Press keys…';
   hotkeyDisplay.classList.add('recording');
   btnRecord.textContent = 'Cancel';
@@ -1538,6 +1565,7 @@ function startHotkeyRecording() {
 
 function stopHotkeyRecording(restore) {
   _recordingHotkey = false;
+  window.neurologue.resumeHotkey();
   document.removeEventListener('keydown', onHotkeyKeydown, { capture: true });
   hotkeyDisplay.classList.remove('recording');
   btnRecord.textContent = 'Change';
@@ -1555,7 +1583,7 @@ btnRecord.addEventListener('click', () => {
 });
 // ────────────────────────────────────────────────────────────────────────────
 
-btnSettings.addEventListener('click', async () => {
+async function loadSettingsView(section = 'models') {
   _pendingHotkey = null;
   hotkeyConflict.classList.add('hidden');
   const [settings, status] = await Promise.all([
@@ -1615,16 +1643,9 @@ btnSettings.addEventListener('click', async () => {
     btn.classList.toggle('active', btn.dataset.scopeValue === scope);
   });
 
-  activateSettingsTab('models');
-  settingsModal.classList.remove('hidden');
-  window.neurologue.pauseHotkey();
-});
-
-document.getElementById('settings-close').addEventListener('click', () => {
-  if (_recordingHotkey) stopHotkeyRecording(true);
-  settingsModal.classList.add('hidden');
-  window.neurologue.resumeHotkey();
-});
+  activateSettingsSection(section);
+  if (section === 'scheduled-export') await loadSchedSettings();
+}
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
   const embedModel = document.getElementById('select-embed-model').value;
@@ -1675,9 +1696,6 @@ document.getElementById('btn-reindex-all').addEventListener('click', async () =>
   );
   if (!confirmed) return;
   const { queued } = await window.neurologue.reindexAll();
-  const settingsModal = document.getElementById('settings-modal');
-  settingsModal.classList.add('hidden');
-  window.neurologue.resumeHotkey();
   console.info(`[library] Reindex started — ${queued} entries queued`);
 });
 
@@ -1959,10 +1977,10 @@ document.getElementById('btn-sched-run-now').addEventListener('click', async () 
 
 document.getElementById('btn-sched-refresh-history').addEventListener('click', renderSchedHistory);
 
-// Load scheduled export settings when that tab is activated
-document.querySelectorAll('.settings-tab').forEach((tab) => {
-  if (tab.dataset.tab === 'scheduled-export') {
-    tab.addEventListener('click', loadSchedSettings);
+// Load scheduled export settings when that section is activated
+document.querySelectorAll('.settings-subnav-item').forEach((item) => {
+  if (item.dataset.section === 'scheduled-export') {
+    item.addEventListener('click', loadSchedSettings);
   }
 });
 
@@ -2241,7 +2259,10 @@ function activateView(viewId) {
 }
 
 navItems.forEach(btn => {
-  btn.addEventListener('click', () => activateView(btn.dataset.view));
+  btn.addEventListener('click', async () => {
+    activateView(btn.dataset.view);
+    if (btn.dataset.view === 'settings') await loadSettingsView();
+  });
 });
 
 // ── Themes view controller ───────────────────────────────────────────────────
