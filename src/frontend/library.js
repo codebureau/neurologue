@@ -2336,6 +2336,10 @@ async function loadThemesView() {
     themesListEl.innerHTML = '';
 
     if (themes.length === 0) {
+      // Clear any previously-selected theme so the detail panel doesn't linger
+      _themesActiveId = null;
+      themesDetailCont.classList.add('hidden');
+      themesDetailPh.classList.remove('hidden');
       const empty = document.createElement('div');
       empty.style.cssText = 'padding:16px 14px;font-size:13px;color:var(--text-dim)';
       empty.textContent = 'No themes yet — clustering runs automatically as you add entries.';
