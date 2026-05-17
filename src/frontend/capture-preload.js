@@ -18,4 +18,9 @@ contextBridge.exposeInMainWorld('capture', {
 
   /** Read persisted settings. */
   getSettings: () => ipcRenderer.invoke('settings:get'),
+
+  /** Draft persistence — survives accidental blur/dismiss. */
+  saveDraft:  (data) => ipcRenderer.invoke('capture:save-draft', data),
+  loadDraft:  ()     => ipcRenderer.invoke('capture:load-draft'),
+  clearDraft: ()     => ipcRenderer.invoke('capture:clear-draft'),
 });

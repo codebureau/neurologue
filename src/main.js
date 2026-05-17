@@ -18,7 +18,7 @@ const { exportCCF }  = require('./backend/export/ccf');
 const { importCCF }  = require('./backend/import/ccf-import');
 const { listAdapters, getAdapter } = require('./backend/export/adapters/registry');
 const { startScheduler, stopScheduler, runScheduledExport, getExportHistory, getSchedulerStatus } = require('./backend/export/scheduler/index');
-const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
+const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow, saveDraft, loadDraft, clearDraft } = require('./capture/hotkey');
 const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, cancelContradictionScan, resetContradictionCursor, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
 const { getDashboardSummary } = require('./backend/db/dashboard');
@@ -85,6 +85,11 @@ ipcMain.on('capture:close', (event) => {
   const win = BrowserWindow.fromWebContents(event.sender);
   if (win) win.close();
 });
+
+// IPC: capture draft persistence
+ipcMain.handle('capture:save-draft', (_event, data) => { saveDraft(data); return { ok: true }; });
+ipcMain.handle('capture:load-draft', ()           => loadDraft());
+ipcMain.handle('capture:clear-draft', ()          => { clearDraft(); return { ok: true }; });
 
 // ── Library IPC ──────────────────────────────────────────────────────────────
 
