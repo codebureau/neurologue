@@ -26,14 +26,14 @@ const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signa
 const { getGraphData } = require('./backend/db/graph');
 const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
 const { listAgents, runAgent, abortAgent } = require('./backend/agents/runner');
-const { listProfiles, getActiveProfile, createProfile, renameProfile, deleteProfile, setActiveProfile } = require('./backend/portfolios');
+const { listProfiles, getActiveProfile, createProfile, renameProfile, recolorProfile, deleteProfile, setActiveProfile } = require('./backend/portfolio');
 const { getProfileStats } = require('./backend/db/profile-stats');
 const { setDbPath, switchDb } = require('./backend/db/connection');
 const { setStorePath, switchVectorStore } = require('./backend/vector/store');
 // getOllamaStatus and getSettings imported above
 
 async function initialise() {
-  // Respect the active portfolio profile paths so switching portfolios is
+  // Respect the active profile paths so switching profiles is
   // reflected immediately on restart without extra migration work.
   const profile = getActiveProfile();
   setDbPath(profile.dbPath);
@@ -746,6 +746,8 @@ ipcMain.handle('portfolio:list', () => listProfiles());
 ipcMain.handle('portfolio:create', (_e, { name, color }) => createProfile(name, color));
 
 ipcMain.handle('portfolio:rename', (_e, { id, name }) => renameProfile(id, name));
+
+ipcMain.handle('portfolio:recolor', (_e, { id, color }) => recolorProfile(id, color));
 
 ipcMain.handle('portfolio:delete', (_e, { id }) => deleteProfile(id));
 

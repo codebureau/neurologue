@@ -1649,11 +1649,11 @@ async function loadSettingsView(section = 'models') {
   activateSettingsSection(section);
   if (section === 'scheduled-export') await loadSchedSettings();
   if (section === 'worker') await renderWorkerLog();
-  if (section === 'portfolios') loadProfilesPanel();
+  if (section === 'portfolio') loadProfilesPanel();
 
   // Features panel
-  const chkPortfolios = document.getElementById('chk-portfolios-enabled');
-  if (chkPortfolios) chkPortfolios.checked = settings.portfoliosEnabled || false;
+  const chkPortfolio = document.getElementById('chk-portfolio-enabled');
+  if (chkPortfolio) chkPortfolio.checked = settings.portfolioEnabled || false;
 }
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
@@ -1685,7 +1685,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     tagSimilarityThreshold,
     theme: selectedTheme,
     homeView: document.getElementById('select-home-view')?.value || 'library',
-    portfoliosEnabled: document.getElementById('chk-portfolios-enabled')?.checked || false,
+    portfolioEnabled: document.getElementById('chk-portfolio-enabled')?.checked || false,
     workerIntervals: {
       embedding:     parseInt(document.getElementById('input-interval-embedding').value, 10)    || 60,
       clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
@@ -1699,8 +1699,8 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   setTimeout(() => msg.classList.add('hidden'), 2000);
 
   // Apply portfolio feature gate immediately after save
-  const portfoliosEnabled = document.getElementById('chk-portfolios-enabled')?.checked || false;
-  applyPortfolioFeature(portfoliosEnabled);
+  const portfolioEnabled = document.getElementById('chk-portfolio-enabled')?.checked || false;
+  applyPortfolioFeature(portfolioEnabled);
 });
 
 // Reindex all entries — clear all embeddings and re-queue everything
@@ -3556,20 +3556,20 @@ function _escHtml(str) {
 // ── Portfolio feature gate ─────────────────────────────────────────────────
 
 function applyPortfolioFeature(enabled) {
-  document.documentElement.dataset.portfolios = enabled ? 'true' : 'false';
+  document.documentElement.dataset.portfolio = enabled ? 'true' : 'false';
   if (enabled) refreshPortfolioBadge();
 }
 
 async function refreshPortfolioBadge() {
   try {
-    const manifest = await window.neurologue.listPortfolios();
+    const manifest = await window.neurologue.getPortfolioManifest();
     const active   = manifest.profiles.find((p) => p.id === manifest.activeId);
     const badge    = document.getElementById('portfolio-badge');
     if (badge && active) {
       badge.textContent   = active.name;
       badge.style.borderColor = active.color;
     }
-  } catch (_e) { /* silent — portfolios may not be configured yet */ }
+  } catch (_e) { /* silent — Portfolio feature may not be configured yet */ }
 }
 
 async function loadProfilesPanel() {
@@ -3579,7 +3579,7 @@ async function loadProfilesPanel() {
 
   let manifest;
   try {
-    manifest = await window.neurologue.listPortfolios();
+    manifest = await window.neurologue.getPortfolioManifest();
   } catch (err) {
     list.innerHTML = `<p class="error-msg">Could not load profiles: ${err.message}</p>`;
     return;
@@ -3680,7 +3680,7 @@ async function loadProfilesPanel() {
         const n = nameInput.value.trim();
         if (!n) return;
         row.querySelector('.btn-inline-save').disabled = true;
-        const manifest2 = await window.neurologue.listPortfolios();
+        const manifest2 = await window.neurologue.getPortfolioManifest();
         const p = manifest2.profiles.find((x) => x.id === btn.dataset.id);
         if (p && p.name !== n)        await window.neurologue.renamePortfolio(btn.dataset.id, n);
         if (p && p.color !== _editColor) await window.neurologue.recolorPortfolio(btn.dataset.id, _editColor);
@@ -3742,7 +3742,7 @@ async function loadProfilesPanel() {
   }
 }
 
-// Reload renderer when the active portfolio switches (called from main)
+// Reload renderer when the active profile switches (called from main)
 if (window.neurologue?.onPortfolioSwitched) {
   window.neurologue.onPortfolioSwitched(() => { window.location.reload(); });
 }
@@ -3754,7 +3754,7 @@ if (window.neurologue?.onPortfolioSwitched) {
   _navHistoryLimit = initSettings.navHistoryLimit ?? 10;
 
   // Apply portfolio feature gate
-  applyPortfolioFeature(initSettings.portfoliosEnabled || false);
+  applyPortfolioFeature(initSettings.portfolioEnabled || false);
 
   // Navigate to the user's chosen home view
   const homeView = initSettings.homeView || 'library';

@@ -610,7 +610,7 @@
             <button class="settings-subnav-item" data-section="data">Data</button>
             <button class="settings-subnav-item" data-section="scheduled-export">Scheduled Export</button>
             <button class="settings-subnav-item" data-section="features">Features</button>
-            <button class="settings-subnav-item feature-portfolios" data-section="portfolios">Portfolios</button>
+            <button class="settings-subnav-item feature-portfolio" data-section="portfolio">Portfolio</button>
           </nav>
           <div id="settings-content">
 
@@ -807,18 +807,18 @@
               <p class="settings-panel-desc">Optional features. Disabled features leave no trace in the UI.</p>
               <div class="settings-field">
                 <div class="settings-field-label-row">
-                  <label for="chk-portfolios-enabled">Portfolios</label>
+                  <label for="chk-portfolio-enabled">Portfolio</label>
                   <label class="toggle-switch">
-                    <input type="checkbox" id="chk-portfolios-enabled" />
+                    <input type="checkbox" id="chk-portfolio-enabled" />
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                <span class="settings-hint">Organise your notes into separate named profiles &#8212; e.g. Personal and Work. Each profile has its own entries, themes, and AI context. Once enabled, manage profiles in the Portfolios settings tab.</span>
+                <span class="settings-hint">Organise your notes into separate named profiles &#8212; e.g. Personal and Work. Each profile has its own entries, themes, and AI context. Once enabled, manage profiles in the Portfolio settings tab.</span>
               </div>
             </div>
 
-            <!-- Portfolios panel (visible only when feature enabled) -->
-            <div class="settings-panel hidden" id="settings-tab-portfolios">
+            <!-- Portfolio panel (visible only when feature enabled) -->
+            <div class="settings-panel hidden" id="settings-tab-portfolio">
               <p class="settings-panel-desc">Manage your corpus profiles. Each profile has its own entries, themes, tags, and AI context.</p>
               <div id="profiles-list">
                 <!-- populated by loadProfilesPanel() in library.js -->

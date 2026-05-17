@@ -5,13 +5,13 @@
  *
  * A portfolio is a self-contained Neurologue corpus: its own SQLite DB,
  * its own LanceDB vector store, and its own CCF snapshots.  Users switch
- * between portfolios at the app-shell level; the rest of the stack is
- * unaware of which portfolio is active.
+ * between profiles at the app-shell level; the rest of the stack is
+ * unaware of which profile is active.
  *
  * The manifest lives at {userData}/profiles.json and is the single source
  * of truth for the list of profiles and the currently active one.
  *
- * The portfolios feature is opt-in (portfoliosEnabled: false in settings).
+ * The Portfolio feature is opt-in (portfolioEnabled: false in settings).
  * This module is always loaded but the IPC surface is only exposed through
  * the feature-gated UI.
  */
@@ -136,6 +136,21 @@ function renameProfile(id, name) {
 }
 
 /**
+ * Update the colour of a profile.
+ * @param {string} id
+ * @param {string} color  CSS colour string
+ */
+function recolorProfile(id, color) {
+  if (!color) throw new Error('Color is required');
+  const manifest = _loadManifest();
+  const profile  = manifest.profiles.find((p) => p.id === id);
+  if (!profile) throw new Error(`Profile ${id} not found`);
+  profile.color = color;
+  _saveManifest(manifest);
+  return profile;
+}
+
+/**
  * Delete a profile.  Cannot delete the active profile or the last remaining one.
  * @param {string} id
  */
@@ -166,6 +181,7 @@ module.exports = {
   getActiveProfile,
   createProfile,
   renameProfile,
+  recolorProfile,
   deleteProfile,
   setActiveProfile,
 };

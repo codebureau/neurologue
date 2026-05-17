@@ -3504,13 +3504,13 @@ body.theme-light .graph-tooltip {
 
 
 /* --------------------------------------------------------------------------
-   PORTFOLIOS  (opt-in feature, gated by [data-portfolios="true"] on <html>)
+   PORTFOLIO  (opt-in feature, gated by [data-portfolio="true"] on <html>)
    -------------------------------------------------------------------------- */
 
 /* Feature gate — hide everything by default */
-.feature-portfolios                               { display: none !important; }
-[data-portfolios="true"] button.portfolio-badge         { display: inline-flex !important; }
-[data-portfolios="true"] .settings-subnav-item.feature-portfolios { display: inline-block !important; }
+.feature-portfolio                               { display: none !important; }
+[data-portfolio="true"] button.portfolio-badge         { display: inline-flex !important; }
+[data-portfolio="true"] .settings-subnav-item.feature-portfolio { display: inline-block !important; }
 
 /* Portfolio badge in toolbar */
 .portfolio-badge {
@@ -3525,29 +3525,7 @@ body.theme-light .graph-tooltip {
   align-items: center;
 }
 
-/* Portfolio view --------------------------------------------------------- */
-#view-portfolios {
-  flex-direction: column;
-  padding: 32px 40px;
-  overflow-y: auto;
-  gap: 24px;
-}
-
-#portfolios-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.portfolios-title { font-size: 22px; font-weight: 700; margin: 0; }
-.portfolios-desc  { color: var(--text-dim); font-size: 13px; margin: 0; }
-
-#portfolios-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-
+/* Portfolio card styles (used in profile panels) ----------------------------------------- */
 .portfolio-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -3605,28 +3583,6 @@ body.theme-light .graph-tooltip {
   flex-wrap: wrap;
 }
 
-/* New portfolio form */
-#portfolio-create-form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-width: 400px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) * 2);
-  padding: 20px;
-}
-
-#portfolio-new-name {
-  padding: 8px 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text);
-  font-size: 14px;
-  width: 100%;
-}
-
 .portfolio-color-row {
   display: flex;
   align-items: center;
@@ -3634,8 +3590,6 @@ body.theme-light .graph-tooltip {
   font-size: 13px;
   color: var(--text-muted);
 }
-
-#portfolio-color-swatches { display: flex; gap: 8px; }
 
 .color-swatch {
   width: 22px;
@@ -3737,7 +3691,7 @@ body.theme-light .graph-tooltip {
 .portfolio-card-inline-edit--hidden { display: none; }
 .portfolio-card-actions--hidden { display: none; }
 
-/* Profile rows in Settings > Portfolios panel ------------------------------------------- */
+/* Profile rows in Settings > Portfolio panel ------------------------------------------- */
 .profile-row {
   display: flex;
   align-items: flex-start;
