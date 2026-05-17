@@ -1624,6 +1624,10 @@ async function loadSettingsView(section = 'models') {
   // Populate appearance toggle
   applyTheme(settings.theme || 'dark');
 
+  // Populate home view selector
+  const homeViewSelect = document.getElementById('select-home-view');
+  if (homeViewSelect) homeViewSelect.value = settings.homeView || 'library';
+
   // Populate worker interval inputs
   const wi = settings.workerIntervals || {};
   const inputEmbed  = document.getElementById('input-interval-embedding');
@@ -1675,6 +1679,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     tagSuggestionFormat: tagFmt,
     tagSimilarityThreshold,
     theme: selectedTheme,
+    homeView: document.getElementById('select-home-view')?.value || 'library',
     workerIntervals: {
       embedding:     parseInt(document.getElementById('input-interval-embedding').value, 10)    || 60,
       clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
@@ -3506,6 +3511,11 @@ function _escHtml(str) {
   // Apply persisted theme before first paint
   const initSettings = await window.neurologue.getSettings();
   applyTheme(initSettings.theme || 'dark');
+
+  // Navigate to the user's chosen home view
+  const homeView = initSettings.homeView || 'library';
+  activateView(homeView);
+  if (homeView === 'settings') await loadSettingsView();
 
   await loadTags();
   await loadCategories();
