@@ -258,9 +258,15 @@ async function processBatch() {
     }
 
     // Contradiction scan after clustering (themes are fresh), also on its own interval
-    _ticksUntilContradiction--;
-    if (clusteringRan || _ticksUntilContradiction <= 0) {
+    if (clusteringRan) {
       _ticksUntilContradiction = Math.round(_intervals.contradiction / _intervals.embedding);
+    }
+  }
+
+  // Contradiction scan runs on its own interval, independent of clustering
+  _ticksUntilContradiction--;
+  if (_ticksUntilContradiction <= 0) {
+    _ticksUntilContradiction = Math.round(_intervals.contradiction / _intervals.embedding);
       const contLog = _logStart('contradiction-scan');
       try {
         const cResult = await scanContradictions();
@@ -271,7 +277,6 @@ async function processBatch() {
         console.error('[worker] Contradiction scan error:', err.message);
         _logEnd(contLog, 'error', err.message);
       }
-    }
   }
 
   _push('worker:status', await _buildStatus(true));
@@ -476,11 +481,19 @@ function _buildScanGroups(db, scope) {
 async function scanContradictions({ force = false } = {}) {
   const { openDb } = require('../backend/db/connection');
   const { getSettings } = require('../backend/settings');
+  const { listContradictions } = require('../backend/db/contradictions');
   const db = await openDb();
 
   // force=true resets the incremental cursor so all existing pairs are re-examined.
   // Used by the manual "Scan now" button.
-  if (force) _lastContradictionScan = null;
+  // Also force a full scan if no contradictions exist yet — ensures a freshly
+  // imported corpus (with entries dated in the past) gets scanned on first run.
+  if (force) {
+    _lastContradictionScan = null;
+  } else if (_lastContradictionScan !== null) {
+    const existing = await listContradictions({ status: 'all' });
+    if (existing.length === 0) _lastContradictionScan = null;
+  }
 
   const scope = (getSettings().contradictionScope || 'themes');
   const groups = _buildScanGroups(db, scope);

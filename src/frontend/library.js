@@ -1309,7 +1309,19 @@ function applyTheme(theme) {
 }
 
 document.querySelectorAll('.theme-toggle-btn').forEach((btn) => {
-  btn.addEventListener('click', () => applyTheme(btn.dataset.themeValue));
+  // Only wire colour-scheme switching for buttons that carry data-theme-value.
+  // Scope-selector buttons share the same CSS class but must not trigger applyTheme.
+  if (btn.dataset.themeValue) {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.themeValue));
+  }
+});
+
+// Contradiction scope toggle (module-level so listeners are attached exactly once)
+document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
 });
 
 window.neurologue.onEntriesUpdated(async () => {
@@ -1599,12 +1611,6 @@ btnSettings.addEventListener('click', async () => {
   document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
     btn.classList.toggle('active', btn.dataset.scopeValue === scope);
   });
-  document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((b) => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-  });
 
   activateSettingsTab('models');
   settingsModal.classList.remove('hidden');
@@ -1636,7 +1642,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
-  const selectedTheme = document.querySelector('.theme-toggle-btn.active')?.dataset.themeValue || 'dark';
+  const selectedTheme = document.querySelector('#theme-toggle-group .theme-toggle-btn.active')?.dataset.themeValue || 'dark';
   applyTheme(selectedTheme);
 
   await window.neurologue.saveSettings({
