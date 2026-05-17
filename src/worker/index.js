@@ -526,7 +526,7 @@ async function scanContradictions({ force = false } = {}) {
         if (!force && checked >= scheduledCap) break;
         if (otherEntry.id === candidateEntry.id) continue;
 
-        const alreadyKnown = await pairExists(candidateEntry.id, otherEntry.id);
+        const alreadyKnown = await pairExists(candidateEntry.id, otherEntry.id, { forceRescan: force });
         if (alreadyKnown) continue;
 
         checked++;
