@@ -451,6 +451,12 @@ handle('import:ccf', async () => {
   });
   if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
   const result = await importCCF(filePaths[0]);
+
+  // Background contradiction scan after a successful import
+  if (result.ok && result.stats && result.stats.entriesImported > 0) {
+    scanContradictions().catch((e) => console.warn('[import:ccf] contradiction scan failed:', e.message));
+  }
+
   return { canceled: false, ...result };
 });
 
@@ -539,6 +545,14 @@ handle('demo:import', async () => {
 
   const demoDir = path.join(__dirname, '..', 'resources', 'demo');
   const result  = await importCCF(demoDir, { onConflict: 'skip' });
+
+  // Kick off a contradiction scan in the background so the Contradictions
+  // view populates without the user needing to trigger it manually.
+  // Fire-and-forget — don't block the IPC response.
+  if (result.ok && result.stats && result.stats.entriesImported > 0) {
+    scanContradictions().catch((e) => console.warn('[demo:import] contradiction scan failed:', e.message));
+  }
+
   return { canceled: false, ...result };
 });
 
