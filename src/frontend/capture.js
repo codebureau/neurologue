@@ -20,6 +20,16 @@ let _mdMode       = false;
 let _previewMode  = false;
 let _pastePlain   = false;
 let _suggestTimer = null;
+let _draftTimer   = null;
+
+// ── Draft helpers ─────────────────────────────────────────────────────────
+
+function _scheduleDraftSave() {
+  clearTimeout(_draftTimer);
+  _draftTimer = setTimeout(() => {
+    window.capture.saveDraft({ content: contentEl.value, tags: tagsEl.value });
+  }, 800);
+}
 
 // ── Tag suggestions ───────────────────────────────────────────────────────
 
@@ -81,7 +91,11 @@ contentEl.addEventListener('input', () => {
   // Debounce tag suggestions — fire 900ms after user stops typing
   clearTimeout(_suggestTimer);
   _suggestTimer = setTimeout(_fetchSuggestions, 900);
+  // Auto-save draft
+  _scheduleDraftSave();
 });
+
+tagsEl.addEventListener('input', _scheduleDraftSave);
 
 // ── Markdown toggle ───────────────────────────────────────────────────────
 
@@ -254,6 +268,7 @@ document.getElementById('tb-link')  .addEventListener('click', () => wrapSelecti
 
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    window.capture.clearDraft(); // explicit discard — don't restore next time
     window.capture.close();
     return;
   }
@@ -319,6 +334,7 @@ async function save() {
   try {
     const result = await window.capture.save({ content, tags });
     if (result.ok) {
+      window.capture.clearDraft(); // saved successfully — no need to restore
       window.capture.close();
     } else {
       showError('Failed to save. Please try again.');
@@ -344,7 +360,21 @@ function hideError() {
 
 contentEl.focus();
 
-// Apply persisted theme
+// Apply persisted theme + restore any unsaved draft
 window.capture.getSettings().then((s) => {
   document.documentElement.setAttribute('data-theme', (s && s.theme) || 'dark');
+});
+
+window.capture.loadDraft().then((draft) => {
+  if (draft && draft.content && draft.content.trim()) {
+    contentEl.value = draft.content;
+    tagsEl.value    = draft.tags || '';
+    saveBtn.disabled = false;
+    // Brief visual cue that a draft was restored
+    const hint = document.querySelector('.titlebar__hint');
+    if (hint) {
+      hint.textContent = 'Draft restored — Esc to discard';
+      hint.style.color = 'var(--cortex-teal, #2AA6A1)';
+    }
+  }
 });

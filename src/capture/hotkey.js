@@ -86,7 +86,8 @@ function openCaptureWindow() {
   });
 
   _captureWin.on('blur', () => {
-    // Close the popup if it loses focus (user clicked away)
+    // Close the popup if it loses focus (user clicked away).
+    // Draft is auto-saved by the renderer on input, so content is preserved.
     if (_captureWin && !_captureWin.isDestroyed()) {
       _captureWin.close();
     }
@@ -164,4 +165,58 @@ function resumeCaptureHotkey() {
   if (_currentHotkey) globalShortcut.register(_currentHotkey, openCaptureWindow);
 }
 
-module.exports = { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow, closeCaptureWindow, DEFAULT_HOTKEY };
+// ── Draft persistence ─────────────────────────────────────────────────────
+
+function _draftFile() {
+  try {
+    return path.join(app.getPath('userData'), 'capture-draft.json');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Persist a capture draft to disk. Clears the draft if content is empty.
+ * @param {{ content: string, tags: string }} data
+ */
+function saveDraft({ content, tags }) {
+  try {
+    const file = _draftFile();
+    if (!file) return;
+    if (!content || !content.trim()) {
+      clearDraft();
+      return;
+    }
+    fs.writeFileSync(file, JSON.stringify({ content, tags: tags || '' }), 'utf8');
+  } catch {
+    // non-fatal
+  }
+}
+
+/**
+ * Load a previously saved draft, or return null if none exists.
+ * @returns {{ content: string, tags: string } | null}
+ */
+function loadDraft() {
+  try {
+    const file = _draftFile();
+    if (!file || !fs.existsSync(file)) return null;
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Delete the draft file, if present.
+ */
+function clearDraft() {
+  try {
+    const file = _draftFile();
+    if (file && fs.existsSync(file)) fs.unlinkSync(file);
+  } catch {
+    // non-fatal
+  }
+}
+
+module.exports = { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow, closeCaptureWindow, DEFAULT_HOTKEY, saveDraft, loadDraft, clearDraft };
