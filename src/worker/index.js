@@ -473,10 +473,14 @@ function _buildScanGroups(db, scope) {
   return groups;
 }
 
-async function scanContradictions() {
+async function scanContradictions({ force = false } = {}) {
   const { openDb } = require('../backend/db/connection');
   const { getSettings } = require('../backend/settings');
   const db = await openDb();
+
+  // force=true resets the incremental cursor so all existing pairs are re-examined.
+  // Used by the manual "Scan now" button.
+  if (force) _lastContradictionScan = null;
 
   const scope = (getSettings().contradictionScope || 'themes');
   const groups = _buildScanGroups(db, scope);

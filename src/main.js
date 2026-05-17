@@ -339,7 +339,7 @@ ipcMain.handle('contradictions:dismiss', async (_e, { id }) => {
 });
 
 ipcMain.handle('contradictions:scan', async () => {
-  return scanContradictions();
+  return scanContradictions({ force: true });
 });
 
 // ── Dashboard IPC ──────────────────────────────────────────────────────────────
