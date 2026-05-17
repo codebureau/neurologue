@@ -307,13 +307,19 @@ async function renderHeatmap() {
     heatmapGrid.appendChild(weekEl);
   }
 
-  // Render month labels using absolute positioning
+  // Render month labels using absolute positioning.
+  // Skip a label if it would be within 28px of the previous one (prevents overlap
+  // when a month boundary falls close to the start of the 52-week window).
   heatmapMonths.style.position = 'relative';
+  let lastLabelX = -Infinity;
   monthLabels.forEach(({ col, label }) => {
+    const x = col * WEEK_PX;
+    if (x - lastLabelX < 28) return;
+    lastLabelX = x;
     const span = document.createElement('span');
     span.textContent = label;
     span.style.position = 'absolute';
-    span.style.left = `${col * WEEK_PX}px`;
+    span.style.left = `${x}px`;
     heatmapMonths.appendChild(span);
   });
 }
