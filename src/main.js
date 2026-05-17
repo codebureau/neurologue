@@ -19,7 +19,7 @@ const { importCCF }  = require('./backend/import/ccf-import');
 const { listAdapters, getAdapter } = require('./backend/export/adapters/registry');
 const { startScheduler, stopScheduler, runScheduledExport, getExportHistory, getSchedulerStatus } = require('./backend/export/scheduler/index');
 const { registerCaptureHotkey, reRegisterCaptureHotkey, pauseCaptureHotkey, resumeCaptureHotkey, openCaptureWindow } = require('./capture/hotkey');
-const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, recomputeMetrics } = require('./worker/index');
+const { startWorker, stopWorker, setMainWindow, workerStatus, getWorkerLog, setWorkerIntervals, reindexAll, reindexEntry, scanContradictions, cancelContradictionScan, resetContradictionCursor, recomputeMetrics } = require('./worker/index');
 const { listLatestThemeMetrics, getThemeMetricsHistory, listThemesWithDrift } = require('./backend/db/theme_metrics');
 const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
@@ -339,7 +339,12 @@ ipcMain.handle('contradictions:dismiss', async (_e, { id }) => {
 });
 
 ipcMain.handle('contradictions:scan', async () => {
-  return scanContradictions();
+  return scanContradictions({ force: true });
+});
+
+ipcMain.handle('contradictions:scan-cancel', () => {
+  cancelContradictionScan();
+  return { ok: true };
 });
 
 // ── Dashboard IPC ──────────────────────────────────────────────────────────────
@@ -451,6 +456,108 @@ handle('import:ccf', async () => {
   });
   if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
   const result = await importCCF(filePaths[0]);
+
+  // Background contradiction scan after a successful import
+  if (result.ok && result.stats && result.stats.entriesImported > 0) {
+    scanContradictions().catch((e) => console.warn('[import:ccf] contradiction scan failed:', e.message));
+  }
+
+  return { canceled: false, ...result };
+});
+
+// Reset the entire database — wipe all rows, keep schema.
+// Offers an optional CCF backup before clearing.
+handle('db:reset', async () => {
+  const { dialog } = require('electron');
+  const { resetDb } = require('./backend/db/reset');
+  const win = BrowserWindow.getFocusedWindow();
+
+  const db  = await (require('./backend/db/connection')).openDb();
+  const { n } = db.prepare('SELECT COUNT(*) as n FROM entries').get();
+
+  let backedUpTo = null;
+
+  let keepTags = false;
+
+  if (n > 0) {
+    // Ask whether to back up first, or clear directly, or cancel.
+    // The checkbox lets the user preserve their tag taxonomy.
+    const { response, checkboxChecked } = await dialog.showMessageBox(win || undefined, {
+      type:           'warning',
+      buttons:        ['Export Backup & Clear', 'Clear Without Backup', 'Cancel'],
+      defaultId:      0,
+      cancelId:       2,
+      title:          'Start Fresh',
+      message:        `Delete all ${n} ${n === 1 ? 'entry' : 'entries'} and start fresh?`,
+      detail:         'This will permanently delete all entries, themes, embeddings, and derived data. This cannot be undone.',
+      checkboxLabel:  'Keep my tag names',
+      checkboxChecked: true,
+    });
+
+    if (response === 2) return { canceled: true };
+    keepTags = !!checkboxChecked;
+
+    if (response === 0) {
+      // Export a CCF backup first
+      const { canceled, filePaths } = await dialog.showOpenDialog(win || undefined, {
+        title:      'Choose folder for CCF backup',
+        properties: ['openDirectory', 'createDirectory'],
+      });
+      if (canceled || !filePaths || filePaths.length === 0) return { canceled: true };
+      await exportCCF(filePaths[0]);
+      backedUpTo = filePaths[0];
+    }
+  } else {
+    // Corpus is already empty — still confirm to avoid accidental triggers
+    const { response } = await dialog.showMessageBox(win || undefined, {
+      type:      'question',
+      buttons:   ['Reset', 'Cancel'],
+      defaultId: 0,
+      cancelId:  1,
+      title:     'Start Fresh',
+      message:   'Your corpus is already empty.',
+      detail:    'Reset all tables to a clean state?',
+    });
+    if (response !== 0) return { canceled: true };
+  }
+
+  const stats = await resetDb({ keepTags });
+  return { canceled: false, backedUpTo, keepTags, ...stats };
+});
+
+// Load the bundled demo corpus (resources/demo) via the CCF import engine.
+// Shows a native confirmation dialog when the corpus already has entries so the
+// user is never surprised by demo content appearing in their data.
+handle('demo:import', async () => {
+  const { dialog } = require('electron');
+  const win = BrowserWindow.getFocusedWindow();
+
+  const db = await (require('./backend/db/connection')).openDb();
+  const { n } = db.prepare('SELECT COUNT(*) as n FROM entries').get();
+
+  if (n > 0) {
+    const { response } = await dialog.showMessageBox(win || undefined, {
+      type: 'question',
+      buttons: ['Load Demo Content', 'Cancel'],
+      defaultId: 0,
+      cancelId: 1,
+      title: 'Load Demo Content',
+      message: `Your corpus already contains ${n} ${n === 1 ? 'entry' : 'entries'}.`,
+      detail: 'Demo entries will be added alongside your existing content. Entries with matching IDs will be skipped. This cannot be undone automatically.',
+    });
+    if (response !== 0) return { canceled: true };
+  }
+
+  const demoDir = path.join(__dirname, '..', 'resources', 'demo');
+  const result  = await importCCF(demoDir, { onConflict: 'skip' });
+
+  // Kick off a contradiction scan in the background so the Contradictions
+  // view populates without the user needing to trigger it manually.
+  // Fire-and-forget — don't block the IPC response.
+  if (result.ok && result.stats && result.stats.entriesImported > 0) {
+    scanContradictions().catch((e) => console.warn('[demo:import] contradiction scan failed:', e.message));
+  }
+
   return { canceled: false, ...result };
 });
 
@@ -564,9 +671,18 @@ ipcMain.handle('worker:reindex-entry', async (_e, { id }) => {
 
 ipcMain.handle('settings:get', () => getSettings());
 ipcMain.handle('settings:save', (_e, updates) => {
+  const prev = getSettings();
   const result = saveSettings(updates);
   // Propagate interval changes to running worker immediately
   if (updates.workerIntervals) setWorkerIntervals(updates.workerIntervals);
+  // If the contradiction scope changed, reset the cursor and kick off a full rescan
+  // so the new scope is applied immediately rather than waiting for the next tick.
+  if (updates.contradictionScope && updates.contradictionScope !== prev.contradictionScope) {
+    resetContradictionCursor();
+    scanContradictions({ force: true }).catch((e) =>
+      console.warn('[settings] post-scope-change scan failed:', e.message)
+    );
+  }
   return result;
 });
 

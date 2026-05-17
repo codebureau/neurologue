@@ -357,11 +357,12 @@ async function detectContradiction(textA, textB) {
   }
 
   const prompt =
-    'You are a careful analyst. Determine whether the two statements below directly ' +
-    'contradict each other. A contradiction means they cannot both be true at the same time.\n\n' +
+    'You are a fact-checking assistant. Read the two statements below and decide if they ' +
+    'directly oppose each other \u2014 i.e. one asserts something the other explicitly denies, or ' +
+    'they recommend mutually exclusive approaches to the same problem.\n\n' +
     `Statement A: "${textA.slice(0, 400)}"\n` +
     `Statement B: "${textB.slice(0, 400)}"\n\n` +
-    'Reply with exactly one word: YES or NO.';
+    'Reply with exactly one word: YES if they contradict each other, NO if they do not.';
 
   const response = await ollamaRequest('/api/generate', {
     model,

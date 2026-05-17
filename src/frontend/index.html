@@ -267,6 +267,11 @@
             <div id="contradictions-list"></div>
             <div id="contradictions-scan-row">
               <button id="btn-scan-contradictions" class="btn-sm">Scan now</button>
+              <button id="btn-cancel-scan" class="btn-sm btn-secondary hidden">Cancel</button>
+              <span id="contradictions-scan-progress" class="settings-hint" style="margin-left:8px"></span>
+              <div id="contradictions-scan-bar-wrap" class="hidden">
+                <div id="contradictions-scan-bar"></div>
+              </div>
             </div>
           </div>
           <!-- Right column: conflict detail + resolve workflow -->
@@ -739,6 +744,20 @@
           <span class="settings-hint">How often to check for contradicting entries across themes. Default: 900 s (15 min).</span>
         </div>
         <div class="settings-field">
+          <label for="input-contradiction-scheduled-cap">Scheduled scan pair limit</label>
+          <input type="number" id="input-contradiction-scheduled-cap" class="settings-number-input" min="5" max="500" step="5" value="15" />
+          <span class="settings-hint">Max pairs the <em>scheduled</em> scan checks per run. Manual “Scan now” is always uncapped. Default: 15.</span>
+        </div>
+        <div class="settings-field">
+          <label>Contradiction scan scope</label>
+          <div class="theme-toggle-group" id="contradiction-scope-group">
+            <button class="theme-toggle-btn active" data-scope-value="themes">Theme only</button>
+            <button class="theme-toggle-btn" data-scope-value="tags">Tags also</button>
+            <button class="theme-toggle-btn" data-scope-value="global">Global ⚠</button>
+          </div>
+          <span class="settings-hint">Theme only: pairs within the same theme. Tags also: also compare entries sharing a tag. Global: all-pairs scan — expensive on large corpora.</span>
+        </div>
+        <div class="settings-field">
           <label>Activity log <button id="btn-refresh-worker-log" class="btn-secondary btn-sm" style="margin-left:8px">Refresh</button></label>
           <div id="worker-log-panel" class="worker-log-panel"><span class="worker-log-empty">No tasks recorded yet.</span></div>
         </div>
@@ -758,6 +777,21 @@
 
       <!-- Data panel -->
       <div class="settings-panel hidden" id="settings-tab-data">
+        <div class="settings-field">
+          <label>Load demo content</label>
+          <button id="btn-load-demo" class="btn-secondary">Load Demo Content…</button>
+          <span class="settings-hint">Imports 21 sample entries across 4 themes so you can explore Neurologue before adding your own notes. Existing entries are never overwritten.</span>
+        </div>
+        <div class="settings-field">
+          <label>Import from CCF snapshot</label>
+          <button id="btn-import-ccf" class="btn-secondary">Import CCF…</button>
+          <span class="settings-hint">Load entries and themes from a previously exported CCF folder. Entries with matching IDs are skipped.</span>
+        </div>
+        <div class="settings-field">
+          <label>Start fresh</label>
+          <button id="btn-start-fresh" class="btn-danger">Start Fresh…</button>
+          <span class="settings-hint">Permanently delete all entries, themes, and embeddings. You will be offered a CCF backup before anything is deleted.</span>
+        </div>
         <div class="settings-field">
           <label>Reindex all entries</label>
           <button id="btn-reindex-all" class="btn-secondary">Reindex all entries…</button>

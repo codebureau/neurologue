@@ -1,0 +1,13 @@
+{
+  "format_version": "1.0",
+  "exported_at": "2025-12-10T12:00:00.000Z",
+  "app": {
+    "name": "neurologue",
+    "version": "0.5.0"
+  },
+  "notes": {
+    "entry_count": 23,
+    "theme_count": 4,
+    "description": "Neurologue demo corpus — 23 sample entries across 4 themes (AI & Machine Learning, Software Craft, Health & Focus, Reading & Ideas) plus 2 unthemed entries. Use this to explore features before adding your own content."
+  }
+}

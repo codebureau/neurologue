@@ -1309,7 +1309,19 @@ function applyTheme(theme) {
 }
 
 document.querySelectorAll('.theme-toggle-btn').forEach((btn) => {
-  btn.addEventListener('click', () => applyTheme(btn.dataset.themeValue));
+  // Only wire colour-scheme switching for buttons that carry data-theme-value.
+  // Scope-selector buttons share the same CSS class but must not trigger applyTheme.
+  if (btn.dataset.themeValue) {
+    btn.addEventListener('click', () => applyTheme(btn.dataset.themeValue));
+  }
+});
+
+// Contradiction scope toggle (module-level so listeners are attached exactly once)
+document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
 });
 
 window.neurologue.onEntriesUpdated(async () => {
@@ -1594,6 +1606,15 @@ btnSettings.addEventListener('click', async () => {
   if (inputClust)  inputClust.value  = wi.clustering    ?? 300;
   if (inputContra) inputContra.value = wi.contradiction ?? 900;
 
+  const capInput = document.getElementById('input-contradiction-scheduled-cap');
+  if (capInput) capInput.value = settings.contradictionScheduledCap ?? 15;
+
+  // Populate contradiction scope selector
+  const scope = settings.contradictionScope || 'themes';
+  document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.scopeValue === scope);
+  });
+
   activateSettingsTab('models');
   settingsModal.classList.remove('hidden');
   window.neurologue.pauseHotkey();
@@ -1624,7 +1645,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     _pendingHotkey = null;
   }
 
-  const selectedTheme = document.querySelector('.theme-toggle-btn.active')?.dataset.themeValue || 'dark';
+  const selectedTheme = document.querySelector('#theme-toggle-group .theme-toggle-btn.active')?.dataset.themeValue || 'dark';
   applyTheme(selectedTheme);
 
   await window.neurologue.saveSettings({
@@ -1638,6 +1659,8 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
       clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
       contradiction: parseInt(document.getElementById('input-interval-contradiction').value, 10) || 900,
     },
+    contradictionScope: document.querySelector('#contradiction-scope-group .theme-toggle-btn.active')?.dataset.scopeValue || 'themes',
+    contradictionScheduledCap: parseInt(document.getElementById('input-contradiction-scheduled-cap')?.value, 10) || 15,
   });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
@@ -1656,6 +1679,90 @@ document.getElementById('btn-reindex-all').addEventListener('click', async () =>
   settingsModal.classList.add('hidden');
   window.neurologue.resumeHotkey();
   console.info(`[library] Reindex started — ${queued} entries queued`);
+});
+
+// Load demo content
+document.getElementById('btn-load-demo').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-load-demo');
+  btn.disabled = true;
+  btn.textContent = 'Loading…';
+  try {
+    const result = await window.neurologue.importDemo();
+    if (result.canceled) {
+      // user dismissed the confirmation dialog — nothing to report
+    } else if (result.ok) {
+      const s = result.stats || {};
+      showToast(
+        `Demo loaded — ${s.entriesImported || 0} entries and ${s.themesImported || 0} themes added.`,
+        'success',
+      );
+      await Promise.all([loadEntries(), loadTags(), renderHeatmap()]);
+      loadThemesView();
+    } else {
+      const errs = (result.errors || []).join('; ');
+      showToast(`Demo import failed: ${errs}`, 'error');
+    }
+  } catch (err) {
+    showToast(`Demo import error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Load Demo Content…';
+  }
+});
+
+// Import CCF snapshot
+document.getElementById('btn-import-ccf').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-import-ccf');
+  btn.disabled = true;
+  btn.textContent = 'Importing…';
+  try {
+    const result = await window.neurologue.importCCF();
+    if (!result || result.canceled) {
+      // user cancelled folder picker
+    } else if (result.ok) {
+      const s = result.stats || {};
+      showToast(
+        `Imported — ${s.entriesImported || 0} entries, ${s.themesImported || 0} themes (${s.entriesSkipped || 0} skipped).`,
+        'success',
+      );
+      await Promise.all([loadEntries(), loadTags(), renderHeatmap()]);
+      loadThemesView();
+    } else {
+      const errs = (result.errors || []).join('; ');
+      showToast(`CCF import failed: ${errs}`, 'error');
+    }
+  } catch (err) {
+    showToast(`CCF import error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Import CCF…';
+  }
+});
+
+// Start fresh — clear all data, optional CCF backup first
+document.getElementById('btn-start-fresh').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-start-fresh');
+  btn.disabled = true;
+  btn.textContent = 'Working…';
+  try {
+    const result = await window.neurologue.resetDb();
+    if (!result || result.canceled) {
+      // user cancelled
+    } else {
+      const msg = result.backedUpTo
+        ? `Corpus cleared. Backup saved to: ${result.backedUpTo}`
+        : 'Corpus cleared. Ready to start fresh.';
+      showToast(msg, 'success');
+      // Full UI refresh — entries, sidebar tags, themes view, heatmap
+      await Promise.all([loadEntries(), loadTags(), renderHeatmap()]);
+      loadThemesView();
+    }
+  } catch (err) {
+    showToast(`Reset error: ${err.message}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Start Fresh…';
+  }
 });
 
 // ── Worker log ───────────────────────────────────────────────────────────────
@@ -2252,6 +2359,10 @@ async function loadThemesView() {
     themesListEl.innerHTML = '';
 
     if (themes.length === 0) {
+      // Clear any previously-selected theme so the detail panel doesn't linger
+      _themesActiveId = null;
+      themesDetailCont.classList.add('hidden');
+      themesDetailPh.classList.remove('hidden');
       const empty = document.createElement('div');
       empty.style.cssText = 'padding:16px 14px;font-size:13px;color:var(--text-dim)';
       empty.textContent = 'No themes yet — clustering runs automatically as you add entries.';
@@ -2563,23 +2674,59 @@ btnDismiss.addEventListener('click', async () => {
   }
 });
 
+const btnCancelScan        = document.getElementById('btn-cancel-scan');
+const scanProgressEl       = document.getElementById('contradictions-scan-progress');
+const scanBarWrap          = document.getElementById('contradictions-scan-bar-wrap');
+const scanBar              = document.getElementById('contradictions-scan-bar');
+
+// Live progress updates from the worker during a manual scan
+window.neurologue.onContradictionProgress((data) => {
+  if (data === null) {
+    // Scan finished — clear progress
+    scanProgressEl.textContent = '';
+    scanBarWrap.classList.add('hidden');
+    scanBar.style.width = '0%';
+    return;
+  }
+  const pct = data.total > 0 ? Math.min(100, Math.round((data.checked / data.total) * 100)) : 0;
+  scanProgressEl.textContent = `${data.checked} / ${data.total} pairs`;
+  scanBarWrap.classList.remove('hidden');
+  scanBar.style.width = `${pct}%`;
+});
+
 btnScan.addEventListener('click', async () => {
   btnScan.disabled = true;
   btnScan.textContent = 'Scanning…';
+  btnCancelScan.classList.remove('hidden');
+  scanProgressEl.textContent = '';
   try {
     const result = await window.neurologue.scanContradictions();
-    btnScan.textContent = result.found > 0
-      ? `Found ${result.found} new`
-      : 'No new conflicts';
+    btnScan.textContent = result.aborted
+      ? 'Cancelled'
+      : result.found > 0
+        ? `Found ${result.found} new`
+        : 'No new conflicts';
     if (result.found > 0) await loadContradictionsView();
   } catch {
     btnScan.textContent = 'Scan failed';
   } finally {
+    btnCancelScan.classList.add('hidden');
+    btnCancelScan.disabled = false;
+    btnCancelScan.textContent = 'Cancel';
+    scanProgressEl.textContent = '';
+    scanBarWrap.classList.add('hidden');
+    scanBar.style.width = '0%';
     setTimeout(() => {
       btnScan.disabled = false;
       btnScan.textContent = 'Scan now';
     }, 2500);
   }
+});
+
+btnCancelScan.addEventListener('click', () => {
+  window.neurologue.cancelContradictionScan();
+  btnCancelScan.disabled = true;
+  btnCancelScan.textContent = 'Cancelling…';
 });
 
 // ── Priorities view controller ───────────────────────────────────────────────

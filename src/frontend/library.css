@@ -1453,6 +1453,22 @@ html, body {
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+#btn-cancel-scan.hidden { display: none; }
+#contradictions-scan-bar-wrap {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+#contradictions-scan-bar-wrap.hidden { display: none; }
+#contradictions-scan-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--cortex-teal);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
 
 /* Right column: conflict detail */
 #contradictions-detail-col {
