@@ -408,21 +408,59 @@ async function reindexEntry(entryId) {
  * Caps at CONTRADICTION_MAX_PAIRS per run to avoid LLM overload.
  * @returns {Promise<{ checked: number, found: number }>}
  */
-async function scanContradictions() {
-  const { openDb } = require('../backend/db/connection');
-  const db = await openDb();
+/**
+ * Build the list of candidate entry groups for contradiction scanning.
+ * Returns an array of { entries[], themeId } where themeId may be null
+ * (for tag-grouped or global pairs).
+ *
+ * scope = 'themes'  — one group per theme (existing behaviour)
+ * scope = 'tags'    — one group per tag (entries sharing that tag)
+ * scope = 'global'  — single group containing all entries
+ *
+ * @param {object} db
+ * @param {string} scope
+ * @returns {{ entries: object[], themeId: string|null }[]}
+ */
+function _buildScanGroups(db, scope) {
+  if (scope === 'global') {
+    const entries = db.prepare(
+      'SELECT id, content, created_at FROM entries ORDER BY created_at DESC'
+    ).all();
+    return entries.length >= 2 ? [{ entries, themeId: null }] : [];
+  }
 
-  // Fetch all themes and their entries (id + content + created_at)
+  if (scope === 'tags') {
+    const tags = db.prepare('SELECT id FROM tags').all();
+    const groups = [];
+    for (const { id: tagId } of tags) {
+      const entries = db.prepare(`
+        SELECT e.id, e.content, e.created_at
+        FROM entries e
+        INNER JOIN entry_tags et ON et.entry_id = e.id
+        WHERE et.tag_id = ?
+        ORDER BY e.created_at DESC
+      `).all(tagId);
+      if (entries.length >= 2) groups.push({ entries, themeId: null });
+    }
+    // Also include theme groups so themed entries aren't skipped when tags are sparse
+    const themes = db.prepare('SELECT id FROM themes').all();
+    for (const { id: themeId } of themes) {
+      const entries = db.prepare(`
+        SELECT e.id, e.content, e.created_at
+        FROM entries e
+        INNER JOIN theme_entries te ON te.entry_id = e.id
+        WHERE te.theme_id = ?
+        ORDER BY e.created_at DESC
+      `).all(themeId);
+      if (entries.length >= 2) groups.push({ entries, themeId });
+    }
+    return groups;
+  }
+
+  // Default: 'themes'
   const themes = db.prepare('SELECT id FROM themes').all();
-  if (themes.length === 0) return { checked: 0, found: 0 };
-
-  let checked = 0;
-  let found = 0;
-  const scanStart = new Date().toISOString();
-
+  const groups = [];
   for (const { id: themeId } of themes) {
-    if (checked >= CONTRADICTION_MAX_PAIRS) break;
-
     const entries = db.prepare(`
       SELECT e.id, e.content, e.created_at
       FROM entries e
@@ -430,10 +468,28 @@ async function scanContradictions() {
       WHERE te.theme_id = ?
       ORDER BY e.created_at DESC
     `).all(themeId);
+    if (entries.length >= 2) groups.push({ entries, themeId });
+  }
+  return groups;
+}
 
-    if (entries.length < 2) continue;
+async function scanContradictions() {
+  const { openDb } = require('../backend/db/connection');
+  const { getSettings } = require('../backend/settings');
+  const db = await openDb();
 
-    // Identify entries that are new since the last scan (or all if first scan)
+  const scope = (getSettings().contradictionScope || 'themes');
+  const groups = _buildScanGroups(db, scope);
+  if (groups.length === 0) return { checked: 0, found: 0 };
+
+  let checked = 0;
+  let found = 0;
+  const scanStart = new Date().toISOString();
+
+  for (const { entries, themeId } of groups) {
+    if (checked >= CONTRADICTION_MAX_PAIRS) break;
+
+    // Identify entries that are new since the last scan (or a sample if first scan)
     const newEntries = _lastContradictionScan
       ? entries.filter((e) => e.created_at > _lastContradictionScan)
       : entries.slice(0, Math.min(5, entries.length)); // cold start: check up to 5 newest

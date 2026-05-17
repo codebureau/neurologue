@@ -29,6 +29,7 @@ const DEFAULTS = {
     contradiction: 900,  // seconds between contradiction scan runs
   },
   signalsEnabled: true,   // enable LLM entry signal classification (Pass 3)
+  contradictionScope: 'themes', // 'themes' | 'tags' | 'global'
   theme: 'dark',          // 'dark' | 'light'
   scheduledExport: {
     enabled:     false,

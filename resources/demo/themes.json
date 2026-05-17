@@ -4,7 +4,7 @@
     "name": "AI & Machine Learning",
     "summary": "Notes on embeddings, large language models, prompting techniques, RAG, and the practical application of AI in software systems. A recurring theme is the gap between benchmark performance and real-world utility.",
     "created_at": "2025-11-30T10:00:00.000Z",
-    "entry_ids": ["demo_e001", "demo_e002", "demo_e003", "demo_e004", "demo_e005"]
+    "entry_ids": ["demo_e001", "demo_e002", "demo_e003", "demo_e004", "demo_e005", "demo_e022", "demo_e023"]
   },
   {
     "id": "demo_t002",

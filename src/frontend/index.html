@@ -739,6 +739,15 @@
           <span class="settings-hint">How often to check for contradicting entries across themes. Default: 900 s (15 min).</span>
         </div>
         <div class="settings-field">
+          <label>Contradiction scan scope</label>
+          <div class="theme-toggle-group" id="contradiction-scope-group">
+            <button class="theme-toggle-btn active" data-scope-value="themes">Theme only</button>
+            <button class="theme-toggle-btn" data-scope-value="tags">Tags also</button>
+            <button class="theme-toggle-btn" data-scope-value="global">Global ⚠</button>
+          </div>
+          <span class="settings-hint">Theme only: pairs within the same theme. Tags also: also compare entries sharing a tag. Global: all-pairs scan — expensive on large corpora.</span>
+        </div>
+        <div class="settings-field">
           <label>Activity log <button id="btn-refresh-worker-log" class="btn-secondary btn-sm" style="margin-left:8px">Refresh</button></label>
           <div id="worker-log-panel" class="worker-log-panel"><span class="worker-log-empty">No tasks recorded yet.</span></div>
         </div>

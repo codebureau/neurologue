@@ -1594,6 +1594,18 @@ btnSettings.addEventListener('click', async () => {
   if (inputClust)  inputClust.value  = wi.clustering    ?? 300;
   if (inputContra) inputContra.value = wi.contradiction ?? 900;
 
+  // Populate contradiction scope selector
+  const scope = settings.contradictionScope || 'themes';
+  document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.scopeValue === scope);
+  });
+  document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#contradiction-scope-group .theme-toggle-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
   activateSettingsTab('models');
   settingsModal.classList.remove('hidden');
   window.neurologue.pauseHotkey();
@@ -1638,6 +1650,7 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
       clustering:    parseInt(document.getElementById('input-interval-clustering').value, 10)   || 300,
       contradiction: parseInt(document.getElementById('input-interval-contradiction').value, 10) || 900,
     },
+    contradictionScope: document.querySelector('#contradiction-scope-group .theme-toggle-btn.active')?.dataset.scopeValue || 'themes',
   });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');

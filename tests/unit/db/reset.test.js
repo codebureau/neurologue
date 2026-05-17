@@ -134,7 +134,7 @@ describe('resetDb — after importing demo content', () => {
     await resetDb();
     const result = await importCCF(DEMO_DIR);
     expect(result.ok).toBe(true);
-    expect(result.stats.entriesImported).toBe(21);
+    expect(result.stats.entriesImported).toBe(23);
     expect(result.stats.themesImported).toBe(4);
   });
 
@@ -219,7 +219,7 @@ describe('resetDb — keepTags option', () => {
     // Re-importing should work; tags that already exist will be reused
     const result = await importCCF(DEMO_DIR);
     expect(result.ok).toBe(true);
-    expect(result.stats.entriesImported).toBe(21);
+    expect(result.stats.entriesImported).toBe(23);
   });
 });
 

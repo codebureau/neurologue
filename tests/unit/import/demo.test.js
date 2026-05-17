@@ -55,7 +55,7 @@ describe('demo bundle — static validity', () => {
   test('entries.jsonl parses to expected count', () => {
     const lines = fs.readFileSync(path.join(DEMO_DIR, 'entries.jsonl'), 'utf8')
       .split('\n').map((l) => l.trim()).filter(Boolean);
-    expect(lines.length).toBe(21);
+    expect(lines.length).toBe(23);
   });
 
   test('all entry IDs are unique', () => {
@@ -133,10 +133,10 @@ describe('demo bundle — import fidelity', () => {
     expect(result.errors).toEqual([]);
   });
 
-  test('imports all 21 entries', async () => {
+  test('imports all 23 entries', async () => {
     const { importCCF } = require('../../../src/backend/import/ccf-import');
     const result = await importCCF(DEMO_DIR);
-    expect(result.stats.entriesImported).toBe(21);
+    expect(result.stats.entriesImported).toBe(23);
     expect(result.stats.entriesSkipped).toBe(0);
   });
 
@@ -153,7 +153,7 @@ describe('demo bundle — import fidelity', () => {
     const { openDb } = require('../../../src/backend/db/connection');
     const db = await openDb();
     const { n } = db.prepare('SELECT COUNT(*) as n FROM entries').get();
-    expect(n).toBe(21);
+    expect(n).toBe(23);
   });
 
   test('themes appear in the database after import', async () => {
@@ -171,7 +171,7 @@ describe('demo bundle — import fidelity', () => {
     const { openDb } = require('../../../src/backend/db/connection');
     const db = await openDb();
     const { n } = db.prepare('SELECT COUNT(*) as n FROM theme_entries').get();
-    expect(n).toBe(19); // 5+5+5+4 themed entries
+    expect(n).toBe(21); // 7+5+5+4 themed entries (demo_t001 has 7: e001-e005 + e022-e023)
   });
 
   test('tags are applied to entries after import', async () => {
@@ -188,7 +188,7 @@ describe('demo bundle — import fidelity', () => {
     await importCCF(DEMO_DIR);
     const second = await importCCF(DEMO_DIR);
     expect(second.stats.entriesImported).toBe(0);
-    expect(second.stats.entriesSkipped).toBe(21);
+    expect(second.stats.entriesSkipped).toBe(23);
     expect(second.stats.themesSkipped).toBe(4);
     expect(second.ok).toBe(true);
   });
@@ -200,6 +200,6 @@ describe('demo bundle — import fidelity', () => {
     const { openDb } = require('../../../src/backend/db/connection');
     const db = await openDb();
     const { n } = db.prepare('SELECT COUNT(*) as n FROM entries').get();
-    expect(n).toBe(21);
+    expect(n).toBe(23);
   });
 });
