@@ -506,6 +506,9 @@ async function scanContradictions({ force = false } = {}) {
   _scanAborted = false;
   let checked = 0;
   let found = 0;
+  // Within-run deduplication: the nested loop visits A→B and B→A; track
+  // canonical keys so each unordered pair is processed at most once per scan.
+  const seenThisScan = new Set();
 
   for (const { entries, themeId } of groups) {
     if (_scanAborted) break;
@@ -525,6 +528,11 @@ async function scanContradictions({ force = false } = {}) {
         if (_scanAborted) break;
         if (!force && checked >= scheduledCap) break;
         if (otherEntry.id === candidateEntry.id) continue;
+
+        // Deduplicate within this scan run (canonical key = sorted ids)
+        const pairKey = [candidateEntry.id, otherEntry.id].sort().join('\0');
+        if (seenThisScan.has(pairKey)) continue;
+        seenThisScan.add(pairKey);
 
         const alreadyKnown = await pairExists(candidateEntry.id, otherEntry.id, { forceRescan: force });
         if (alreadyKnown) continue;
