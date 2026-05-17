@@ -1284,11 +1284,10 @@ window.neurologue.onWorkerTaskCompleted(({ task, status, message }) => {
   }
 });
 
-// Clicking the error badge opens Settings → Worker tab
-statusErrorBadge.addEventListener('click', () => {
-  settingsModal.classList.remove('hidden');
-  window.neurologue.pauseHotkey();
-  activateSettingsTab('worker');
+// Clicking the error badge opens Settings → Worker section
+statusErrorBadge.addEventListener('click', async () => {
+  activateView('settings');
+  await loadSettingsView('worker');
   renderWorkerLog();
 });
 
@@ -1347,8 +1346,6 @@ window.neurologue.onContradictionsUpdated(() => loadContradictionsView());
 // ── Setup + settings modals ────────────────────────────────────────
 
 const setupModal    = document.getElementById('setup-modal');
-const settingsModal = document.getElementById('settings-modal');
-const btnSettings   = document.getElementById('btn-settings');
 
 function showSetupStep(stepId) {
   document.querySelectorAll('.setup-step').forEach((el) => el.classList.add('hidden'));
@@ -1463,22 +1460,20 @@ document.getElementById('btn-recheck-running').addEventListener('click', async (
 
 document.getElementById('btn-pull-all').addEventListener('click', pullAllMissing);
 
-// ── Settings modal ─────────────────────────────────────────────────
+// ── Settings view ──────────────────────────────────────────────────
 
-// Tab switching
-function activateSettingsTab(name) {
-  document.querySelectorAll('.settings-tab').forEach((t) => {
-    const active = t.dataset.tab === name;
-    t.classList.toggle('active', active);
-    t.setAttribute('aria-selected', String(active));
+// Section switching
+function activateSettingsSection(name) {
+  document.querySelectorAll('.settings-subnav-item').forEach((t) => {
+    t.classList.toggle('active', t.dataset.section === name);
   });
   document.querySelectorAll('.settings-panel').forEach((p) => {
     p.classList.toggle('hidden', p.id !== `settings-tab-${name}`);
   });
 }
 
-document.querySelectorAll('.settings-tab').forEach((tab) => {
-  tab.addEventListener('click', () => activateSettingsTab(tab.dataset.tab));
+document.querySelectorAll('.settings-subnav-item').forEach((item) => {
+  item.addEventListener('click', () => activateSettingsSection(item.dataset.section));
 });
 
 // ── Hotkey recorder ─────────────────────────────────────────────────────────
@@ -1528,6 +1523,7 @@ function onHotkeyKeydown(e) {
 
 function startHotkeyRecording() {
   _recordingHotkey = true;
+  window.neurologue.pauseHotkey();
   hotkeyDisplay.textContent = 'Press keys…';
   hotkeyDisplay.classList.add('recording');
   btnRecord.textContent = 'Cancel';
@@ -1538,6 +1534,7 @@ function startHotkeyRecording() {
 
 function stopHotkeyRecording(restore) {
   _recordingHotkey = false;
+  window.neurologue.resumeHotkey();
   document.removeEventListener('keydown', onHotkeyKeydown, { capture: true });
   hotkeyDisplay.classList.remove('recording');
   btnRecord.textContent = 'Change';
@@ -1555,7 +1552,7 @@ btnRecord.addEventListener('click', () => {
 });
 // ────────────────────────────────────────────────────────────────────────────
 
-btnSettings.addEventListener('click', async () => {
+async function loadSettingsView(section = 'models') {
   _pendingHotkey = null;
   hotkeyConflict.classList.add('hidden');
   const [settings, status] = await Promise.all([
@@ -1615,16 +1612,8 @@ btnSettings.addEventListener('click', async () => {
     btn.classList.toggle('active', btn.dataset.scopeValue === scope);
   });
 
-  activateSettingsTab('models');
-  settingsModal.classList.remove('hidden');
-  window.neurologue.pauseHotkey();
-});
-
-document.getElementById('settings-close').addEventListener('click', () => {
-  if (_recordingHotkey) stopHotkeyRecording(true);
-  settingsModal.classList.add('hidden');
-  window.neurologue.resumeHotkey();
-});
+  activateSettingsSection(section);
+}
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
   const embedModel = document.getElementById('select-embed-model').value;
@@ -1675,9 +1664,6 @@ document.getElementById('btn-reindex-all').addEventListener('click', async () =>
   );
   if (!confirmed) return;
   const { queued } = await window.neurologue.reindexAll();
-  const settingsModal = document.getElementById('settings-modal');
-  settingsModal.classList.add('hidden');
-  window.neurologue.resumeHotkey();
   console.info(`[library] Reindex started — ${queued} entries queued`);
 });
 
@@ -2241,7 +2227,10 @@ function activateView(viewId) {
 }
 
 navItems.forEach(btn => {
-  btn.addEventListener('click', () => activateView(btn.dataset.view));
+  btn.addEventListener('click', async () => {
+    activateView(btn.dataset.view);
+    if (btn.dataset.view === 'settings') await loadSettingsView();
+  });
 });
 
 // ── Themes view controller ───────────────────────────────────────────────────
