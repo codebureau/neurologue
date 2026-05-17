@@ -33,6 +33,7 @@ const DEFAULTS = {
   contradictionScheduledCap: 15, // max pairs checked per scheduled scan run
   theme: 'dark',          // 'dark' | 'light'
   homeView: 'library',    // view id to show on launch
+  navHistoryLimit: 10,    // max entries in session nav stack
   scheduledExport: {
     enabled:     false,
     frequency:   'daily',   // 'daily' | 'weekly'

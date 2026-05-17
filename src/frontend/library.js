@@ -2280,7 +2280,34 @@ const navItems        = document.querySelectorAll('.nav-item');
 const views           = document.querySelectorAll('.view');
 const libraryOnlyEls  = document.querySelectorAll('.toolbar-library-only');
 
+// Session-only navigation history stack
+let _navHistory      = [];   // stack of viewIds
+let _navHistoryLimit = 10;   // overridden from settings on init
+let _isNavigatingBack = false;
+
+const btnBack = document.getElementById('btn-back');
+
+function _updateBackButton() {
+  btnBack.classList.toggle('hidden', _navHistory.length === 0);
+}
+
+function navigateBack() {
+  if (_navHistory.length === 0) return;
+  const prev = _navHistory.pop();
+  _isNavigatingBack = true;
+  activateView(prev);
+  _isNavigatingBack = false;
+  _updateBackButton();
+}
+
 function activateView(viewId) {
+  const current = document.querySelector('.nav-item.active')?.dataset.view;
+  if (!_isNavigatingBack && current && current !== viewId) {
+    _navHistory.push(current);
+    if (_navHistory.length > _navHistoryLimit) _navHistory.shift();
+    _updateBackButton();
+  }
+
   navItems.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
   views.forEach(v   => v.classList.toggle('active-view', v.id === `view-${viewId}`));
 
@@ -2297,6 +2324,15 @@ function activateView(viewId) {
   // Destroy graph renderer when leaving the graph view
   if (viewId !== 'graph')          _destroyGraphIfActive();
 }
+
+btnBack.addEventListener('click', navigateBack);
+
+document.addEventListener('keydown', (e) => {
+  if (e.altKey && e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    navigateBack();
+  }
+});
 
 navItems.forEach(btn => {
   btn.addEventListener('click', async () => {
@@ -3511,6 +3547,7 @@ function _escHtml(str) {
   // Apply persisted theme before first paint
   const initSettings = await window.neurologue.getSettings();
   applyTheme(initSettings.theme || 'dark');
+  _navHistoryLimit = initSettings.navHistoryLimit ?? 10;
 
   // Navigate to the user's chosen home view
   const homeView = initSettings.homeView || 'library';
