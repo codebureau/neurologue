@@ -73,9 +73,23 @@ html, body {
   font-size: 15px;
   color: var(--cortex-teal);
   letter-spacing: 0.04em;
-  margin-right: 8px;
+  margin-right: 4px;
   white-space: nowrap;
 }
+
+.btn-back {
+  padding: 4px 8px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.btn-back:hover { border-color: var(--cortex-teal); color: var(--text); }
+.btn-back.hidden { display: none; }
 
 #search-input {
   flex: 1;
