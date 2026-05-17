@@ -254,6 +254,8 @@ function updateCount(total) {
 async function renderHeatmap() {
   heatmapGrid.innerHTML = '';
   heatmapMonths.innerHTML = '';
+  const heatmapYears = document.getElementById('heatmap-years');
+  heatmapYears.innerHTML = '';
 
   const data = await window.neurologue.getActivity();
   const countMap = {};
@@ -294,12 +296,9 @@ async function renderHeatmap() {
         cell.title = `${key}: ${count} entr${count === 1 ? 'y' : 'ies'}`;
 
         if (d === 0 && cellDate.getMonth() !== lastMonth) {
-          const isJan = cellDate.getMonth() === 0;
           monthLabels.push({
             col: w,
-            label: isJan
-              ? String(cellDate.getFullYear())
-              : cellDate.toLocaleDateString(undefined, { month: 'short' }),
+            label: cellDate.toLocaleDateString(undefined, { month: 'short' }),
           });
           lastMonth = cellDate.getMonth();
         }
@@ -309,6 +308,29 @@ async function renderHeatmap() {
     }
     heatmapGrid.appendChild(weekEl);
   }
+
+  // Render year labels: one per year, at the column of the first visible month of that year
+  const yearLabels = [];
+  let lastYear = -1;
+  monthLabels.forEach(({ col, label }) => {
+    // find the cellDate for this column's first day to get the year
+    const cellDate = new Date(startDate);
+    cellDate.setDate(startDate.getDate() + col * 7);
+    const yr = cellDate.getFullYear();
+    if (yr !== lastYear) {
+      yearLabels.push({ col, label: String(yr) });
+      lastYear = yr;
+    }
+  });
+
+  heatmapYears.style.position = 'relative';
+  yearLabels.forEach(({ col, label }) => {
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.position = 'absolute';
+    span.style.left = `${col * WEEK_PX}px`;
+    heatmapYears.appendChild(span);
+  });
 
   // Render month labels using absolute positioning.
   // Skip a label if it would be within 28px of the previous one (prevents overlap
