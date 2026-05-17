@@ -294,9 +294,12 @@ async function renderHeatmap() {
         cell.title = `${key}: ${count} entr${count === 1 ? 'y' : 'ies'}`;
 
         if (d === 0 && cellDate.getMonth() !== lastMonth) {
+          const isJan = cellDate.getMonth() === 0;
           monthLabels.push({
             col: w,
-            label: cellDate.toLocaleDateString(undefined, { month: 'short' }),
+            label: isJan
+              ? String(cellDate.getFullYear())
+              : cellDate.toLocaleDateString(undefined, { month: 'short' }),
           });
           lastMonth = cellDate.getMonth();
         }
