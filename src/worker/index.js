@@ -494,21 +494,19 @@ async function scanContradictions({ force = false } = {}) {
   let found = 0;
 
   for (const { entries, themeId } of groups) {
-    if (checked >= CONTRADICTION_MAX_PAIRS) break;
+    // force = manual Scan Now: no cap, check every unchecked pair
+    // scheduled: cap per run to avoid hammering the LLM on every tick
+    if (!force && checked >= CONTRADICTION_MAX_PAIRS) break;
 
-    // On force (manual Scan Now): check all pairs that haven't been seen yet.
-    // On scheduled scan: prioritise entries updated/created more recently, but
-    // still rely on pairExists() — not timestamps — to skip already-checked pairs.
-    // This means imported entries with old created_at are still checked correctly.
     const candidates = force
       ? entries
       : entries.slice(0, Math.min(10, entries.length));
 
     for (const candidateEntry of candidates) {
-      if (checked >= CONTRADICTION_MAX_PAIRS) break;
+      if (!force && checked >= CONTRADICTION_MAX_PAIRS) break;
 
       for (const otherEntry of entries) {
-        if (checked >= CONTRADICTION_MAX_PAIRS) break;
+        if (!force && checked >= CONTRADICTION_MAX_PAIRS) break;
         if (otherEntry.id === candidateEntry.id) continue;
 
         const alreadyKnown = await pairExists(candidateEntry.id, otherEntry.id);
