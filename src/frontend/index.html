@@ -795,10 +795,19 @@
       </div><!-- /#view-container -->
     </div><!-- /#shell -->
 
-    <!-- ── Status bar ───────────────────────────────────────────────── -->
+    <!-- ── Worker log popup ──────────────────────────────────────── -->
+    <div id="worker-log-popup" class="hidden">
+      <div id="worker-log-popup-header">
+        <span>Activity log</span>
+        <button id="worker-log-popup-close" title="Close">&#x2715;</button>
+      </div>
+      <div id="worker-log-popup-body"></div>
+    </div>
+
+    <!-- ── Status bar ────────────────────────────────────────── -->
     <div id="status-bar">
       <span id="status-ollama"></span>
-      <span id="status-worker"></span>
+      <button id="status-worker" title="Click to view activity log"></button>
       <span id="status-task" class="status-task hidden"></span>
       <span id="status-error-badge" class="status-error-badge hidden" title="Worker error — click to view log">⚠ error</span>
     </div>
