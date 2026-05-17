@@ -2676,15 +2676,22 @@ btnDismiss.addEventListener('click', async () => {
 
 const btnCancelScan        = document.getElementById('btn-cancel-scan');
 const scanProgressEl       = document.getElementById('contradictions-scan-progress');
+const scanBarWrap          = document.getElementById('contradictions-scan-bar-wrap');
+const scanBar              = document.getElementById('contradictions-scan-bar');
 
 // Live progress updates from the worker during a manual scan
 window.neurologue.onContradictionProgress((data) => {
   if (data === null) {
-    // Scan finished — clear progress text
+    // Scan finished — clear progress
     scanProgressEl.textContent = '';
+    scanBarWrap.classList.add('hidden');
+    scanBar.style.width = '0%';
     return;
   }
-  scanProgressEl.textContent = `${data.checked} checked`;
+  const pct = data.total > 0 ? Math.min(100, Math.round((data.checked / data.total) * 100)) : 0;
+  scanProgressEl.textContent = `${data.checked} / ${data.total} pairs`;
+  scanBarWrap.classList.remove('hidden');
+  scanBar.style.width = `${pct}%`;
 });
 
 btnScan.addEventListener('click', async () => {
@@ -2707,6 +2714,8 @@ btnScan.addEventListener('click', async () => {
     btnCancelScan.disabled = false;
     btnCancelScan.textContent = 'Cancel';
     scanProgressEl.textContent = '';
+    scanBarWrap.classList.add('hidden');
+    scanBar.style.width = '0%';
     setTimeout(() => {
       btnScan.disabled = false;
       btnScan.textContent = 'Scan now';

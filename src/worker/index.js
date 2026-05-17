@@ -495,10 +495,12 @@ async function scanContradictions({ force = false } = {}) {
     return { checked: 0, found: 0 };
   }
 
-  // Pre-count total candidate pairs so the UI can show a denominator
+  // Pre-count unique candidate pairs so the UI can show an accurate denominator.
+  // n*(n-1)/2 = unique unordered pairs; pairExists uses canonical ordering so
+  // each pair is only checked once.
   const totalPairs = groups.reduce((sum, { entries }) => {
     const n = entries.length;
-    return sum + n * (n - 1); // directional; halved in practice by pairExists
+    return sum + (n * (n - 1)) / 2;
   }, 0);
 
   _scanAborted = false;
