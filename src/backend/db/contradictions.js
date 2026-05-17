@@ -76,9 +76,15 @@ async function dismissContradiction(id) {
 }
 
 /**
- * Check whether a pair has already been examined — either a contradiction was
- * found (contradictions table) or it was checked and found clean (checked_pairs).
- * Uses canonical ordering.
+ * Check whether a pair has already been examined and the result is still fresh.
+ *
+ * A checked_pairs row is considered fresh only when it was recorded AFTER both
+ * entries were last edited. If either entry has been updated since the pair was
+ * checked, the row is treated as stale and the pair will be re-examined.
+ *
+ * If the pair produced a contradiction it is always considered "known" regardless
+ * of edits (the user can dismiss/resolve it manually).
+ *
  * @param {string} aId
  * @param {string} bId
  * @returns {Promise<boolean>}
@@ -86,19 +92,30 @@ async function dismissContradiction(id) {
 async function pairExists(aId, bId) {
   const [a, b] = _canonical(aId, bId);
   const db = await openDb();
+
+  // A confirmed contradiction always counts, regardless of edits.
   const inContradictions = db
     .prepare('SELECT id FROM contradictions WHERE entry_a_id = ? AND entry_b_id = ?')
     .get(a, b);
   if (inContradictions) return true;
-  const inChecked = db
-    .prepare('SELECT 1 FROM checked_pairs WHERE entry_a_id = ? AND entry_b_id = ?')
-    .get(a, b);
-  return !!inChecked;
+
+  // A clean-pair cache hit is only valid when checked_at is newer than both
+  // entries' edited_at timestamps. If either entry changed, treat as unseen.
+  const fresh = db.prepare(`
+    SELECT 1 FROM checked_pairs cp
+    JOIN entries ea ON ea.id = cp.entry_a_id
+    JOIN entries eb ON eb.id = cp.entry_b_id
+    WHERE cp.entry_a_id = ? AND cp.entry_b_id = ?
+      AND cp.checked_at > COALESCE(ea.edited_at, ea.created_at)
+      AND cp.checked_at > COALESCE(eb.edited_at, eb.created_at)
+  `).get(a, b);
+  return !!fresh;
 }
 
 /**
  * Record that a pair was examined and found NOT to be a contradiction.
- * Subsequent scans (and the reverse-order check in the same scan) will skip it.
+ * The checked_at timestamp is used by pairExists to determine freshness;
+ * no manual invalidation is needed when entries are edited.
  * @param {string} aId
  * @param {string} bId
  */
@@ -106,8 +123,8 @@ async function recordCheckedPair(aId, bId) {
   const [a, b] = _canonical(aId, bId);
   const db = await openDb();
   db.prepare(`
-    INSERT OR IGNORE INTO checked_pairs (entry_a_id, entry_b_id)
-    VALUES (?, ?)
+    INSERT OR REPLACE INTO checked_pairs (entry_a_id, entry_b_id, checked_at)
+    VALUES (?, ?, datetime('now'))
   `).run(a, b);
 }
 
