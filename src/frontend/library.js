@@ -1673,6 +1673,8 @@ document.getElementById('btn-load-demo').addEventListener('click', async () => {
         `Demo loaded — ${s.entriesImported || 0} entries and ${s.themesImported || 0} themes added.`,
         'success',
       );
+      await Promise.all([loadEntries(), loadTags(), renderHeatmap()]);
+      loadThemesView();
     } else {
       const errs = (result.errors || []).join('; ');
       showToast(`Demo import failed: ${errs}`, 'error');
@@ -1700,6 +1702,8 @@ document.getElementById('btn-import-ccf').addEventListener('click', async () => 
         `Imported — ${s.entriesImported || 0} entries, ${s.themesImported || 0} themes (${s.entriesSkipped || 0} skipped).`,
         'success',
       );
+      await Promise.all([loadEntries(), loadTags(), renderHeatmap()]);
+      loadThemesView();
     } else {
       const errs = (result.errors || []).join('; ');
       showToast(`CCF import failed: ${errs}`, 'error');
