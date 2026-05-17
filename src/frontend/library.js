@@ -1315,11 +1315,10 @@ window.neurologue.onWorkerTaskCompleted(({ task, status, message }) => {
   }
 });
 
-// Clicking the error badge opens Settings → Worker section
-statusErrorBadge.addEventListener('click', async () => {
-  activateView('settings');
-  await loadSettingsView('worker');
-  renderWorkerLog();
+// Clicking the error badge opens the worker log popup
+statusErrorBadge.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  await openWorkerLogPopup();
 });
 
 window.neurologue.onWorkerStatus(updateStatus);
@@ -1645,6 +1644,7 @@ async function loadSettingsView(section = 'models') {
 
   activateSettingsSection(section);
   if (section === 'scheduled-export') await loadSchedSettings();
+  if (section === 'worker') await renderWorkerLog();
 }
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
@@ -1791,8 +1791,8 @@ function _formatWLTime(iso) {
   return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 }
 
-async function renderWorkerLog() {
-  const panel = document.getElementById('worker-log-panel');
+async function renderWorkerLog(panelEl) {
+  const panel = panelEl || document.getElementById('worker-log-panel');
   if (!panel) return;
   const entries = await window.neurologue.getWorkerLog();
   panel.innerHTML = '';
@@ -1836,13 +1836,48 @@ async function renderWorkerLog() {
   });
 }
 
-document.getElementById('btn-refresh-worker-log').addEventListener('click', renderWorkerLog);
+document.getElementById('btn-refresh-worker-log').addEventListener('click', () => renderWorkerLog());
 
-// Load the worker log whenever the Worker settings tab is activated
-document.querySelectorAll('.settings-tab').forEach((tab) => {
-  if (tab.dataset.tab === 'worker') {
-    tab.addEventListener('click', renderWorkerLog);
+// Load the worker log whenever the Worker settings section is activated
+document.querySelectorAll('.settings-subnav-item').forEach((item) => {
+  if (item.dataset.section === 'worker') {
+    item.addEventListener('click', () => renderWorkerLog());
   }
+});
+
+// ── Worker log popup ──────────────────────────────────────────────────
+
+const workerLogPopup      = document.getElementById('worker-log-popup');
+const workerLogPopupBody  = document.getElementById('worker-log-popup-body');
+const statusWorkerBtn     = document.getElementById('status-worker');
+
+function _isPopupOpen() { return !workerLogPopup.classList.contains('hidden'); }
+
+async function openWorkerLogPopup() {
+  workerLogPopup.classList.remove('hidden');
+  await renderWorkerLog(workerLogPopupBody);
+}
+
+function closeWorkerLogPopup() {
+  workerLogPopup.classList.add('hidden');
+}
+
+statusWorkerBtn.addEventListener('click', async (e) => {
+  e.stopPropagation();
+  if (_isPopupOpen()) { closeWorkerLogPopup(); return; }
+  await openWorkerLogPopup();
+});
+
+document.getElementById('worker-log-popup-close').addEventListener('click', closeWorkerLogPopup);
+
+document.addEventListener('click', (e) => {
+  if (_isPopupOpen() && !workerLogPopup.contains(e.target) && e.target !== statusWorkerBtn) {
+    closeWorkerLogPopup();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && _isPopupOpen()) closeWorkerLogPopup();
 });
 
 // ── Scheduled Export settings ────────────────────────────────────────────────

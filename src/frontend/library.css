@@ -2221,6 +2221,67 @@ html, body {
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
+/* ── Status bar worker button ─────────────────────────────────────────── */
+#status-worker {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+#status-worker:hover { color: var(--text); }
+
+/* ── Worker log popup ─────────────────────────────────────────────────── */
+#worker-log-popup {
+  position: fixed;
+  bottom: 32px; /* just above status bar */
+  left: 64px;   /* clear of the nav rail */
+  width: 480px;
+  max-height: 320px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  z-index: 300;
+}
+#worker-log-popup.hidden { display: none; }
+
+#worker-log-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+#worker-log-popup-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 5px;
+  border-radius: var(--radius);
+  line-height: 1;
+}
+#worker-log-popup-close:hover { color: var(--text); background: var(--surface2); }
+
+#worker-log-popup-body {
+  overflow-y: auto;
+  flex: 1;
+  padding: 4px 0;
+  font-size: 12px;
+}
+
 .status-error-badge {
   font-size: 10px;
   font-weight: 700;
