@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, globalShortcut, ipcMain, shell } = require('electron');
+const { app, BrowserWindow, globalShortcut, ipcMain, shell, Menu } = require('electron');
 const path = require('path');
 const { runMigrations } = require('./db/migrate');
 const { initVectorStore, searchNearest, deleteVector } = require('./backend/vector/store');
@@ -629,6 +629,29 @@ handle('export:adapter', async (_event, { id } = {}) => {
 
 app.whenReady().then(async () => {
   await initialise();
+
+  // Minimal application menu — removes default nav/view clutter
+  const isMac = process.platform === 'darwin';
+  const template = [
+    ...(isMac ? [{ role: 'appMenu' }] : []),
+    { role: 'editMenu' },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: `About Neurologue v${app.getVersion()}`,
+          click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win) win.webContents.send('app:show-about');
+          },
+        },
+        { type: 'separator' },
+        { label: 'Open DevTools', accelerator: 'CmdOrCtrl+Shift+I', click: () => BrowserWindow.getFocusedWindow()?.webContents.openDevTools() },
+      ],
+    },
+  ];
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+
   createMainWindow();
   const { captureHotkey } = getSettings();
   registerCaptureHotkey(captureHotkey);
