@@ -3507,11 +3507,10 @@ body.theme-light .graph-tooltip {
    PORTFOLIOS  (opt-in feature, gated by [data-portfolios="true"] on <html>)
    -------------------------------------------------------------------------- */
 
-/* Feature gate — hide everything by default */
+/* Feature gate â€” hide everything by default */
 .feature-portfolios                               { display: none !important; }
-[data-portfolios="true"] .feature-portfolios      { display: flex; }
-[data-portfolios="true"] .nav-item.feature-portfolios { display: flex; }
-[data-portfolios="true"] button.feature-portfolios { display: inline-flex; }
+[data-portfolios="true"] button.portfolio-badge         { display: inline-flex !important; }
+[data-portfolios="true"] .settings-subnav-item.feature-portfolios { display: inline-block !important; }
 
 /* Portfolio badge in toolbar */
 .portfolio-badge {
@@ -3652,7 +3651,7 @@ body.theme-light .graph-tooltip {
 
 .portfolio-form-actions { display: flex; gap: 8px; }
 
-/* Toggle switch — used in Features settings panel */
+/* Toggle switch ï¿½ used in Features settings panel */
 .toggle-switch {
   position: relative;
   display: inline-block;
@@ -3706,3 +3705,78 @@ body.theme-light .graph-tooltip {
   flex: 1;
   font-weight: 500;
 }
+
+/* Portfolio card inline rename/recolor */
+.portfolio-card-inline-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portfolio-inline-name {
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  width: 100%;
+}
+
+.portfolio-inline-colors { display: flex; gap: 6px; align-items: center; }
+
+.portfolio-inline-actions { display: flex; gap: 8px; }
+
+/* Portfolio card inline rename/recolor */
+.portfolio-card-inline-edit { display: flex; flex-direction: column; gap: 8px; }
+.portfolio-inline-name { padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 13px; width: 100%; }
+.portfolio-inline-colors { display: flex; gap: 6px; align-items: center; }
+.portfolio-inline-actions { display: flex; gap: 8px; }
+
+
+.portfolio-card-inline-edit--hidden { display: none; }
+.portfolio-card-actions--hidden { display: none; }
+
+/* Profile rows in Settings > Portfolios panel ------------------------------------------- */
+.profile-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.profile-row:last-child { border-bottom: none; }
+.profile-row--active .profile-row-name { font-weight: 700; }
+
+.profile-row-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.profile-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-row-name-line { display: flex; align-items: center; gap: 8px; }
+.profile-row-name      { font-size: 14px; }
+.profile-row-meta      { display: flex; gap: 10px; font-size: 12px; color: var(--text-dim); flex-wrap: wrap; }
+.profile-row-path      { font-family: var(--font-mono, monospace); font-size: 11px; color: var(--text-dim); }
+
+.profile-row-actions   { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
+
+.profile-row-inline-edit { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.profile-row-inline-edit--hidden { display: none; }
+
+.profile-inline-colors { display: flex; gap: 6px; align-items: center; }
+
+#profiles-list { padding: 4px 0 16px; }
+
+.profile-color-swatches { display: flex; gap: 8px; }
+
+.settings-actions-row { padding-top: 8px; }

@@ -1649,6 +1649,7 @@ async function loadSettingsView(section = 'models') {
   activateSettingsSection(section);
   if (section === 'scheduled-export') await loadSchedSettings();
   if (section === 'worker') await renderWorkerLog();
+  if (section === 'portfolios') loadProfilesPanel();
 
   // Features panel
   const chkPortfolios = document.getElementById('chk-portfolios-enabled');
@@ -2330,7 +2331,6 @@ function activateView(viewId) {
   if (viewId === 'graph')          loadGraphView();
   if (viewId === 'replay')         loadReplayView();
   if (viewId === 'agents')         loadAgentsView();
-  if (viewId === 'portfolios')      loadPortfoliosView();
   // Destroy graph renderer when leaving the graph view
   if (viewId !== 'graph')          _destroyGraphIfActive();
 }
@@ -3572,20 +3572,22 @@ async function refreshPortfolioBadge() {
   } catch (_e) { /* silent — portfolios may not be configured yet */ }
 }
 
-async function loadPortfoliosView() {
-  const grid = document.getElementById('portfolios-grid');
-  if (!grid) return;
-  grid.innerHTML = '<p class="loading">Loading\u2026</p>';
+async function loadProfilesPanel() {
+  const list = document.getElementById('profiles-list');
+  if (!list) return;
+  list.innerHTML = '<p class="loading">Loading\u2026</p>';
 
   let manifest;
   try {
     manifest = await window.neurologue.listPortfolios();
   } catch (err) {
-    grid.innerHTML = `<p class="error-msg">Could not load portfolios: ${err.message}</p>`;
+    list.innerHTML = `<p class="error-msg">Could not load profiles: ${err.message}</p>`;
     return;
   }
 
-  grid.innerHTML = '';
+  list.innerHTML = '';
+
+  const COLORS = ['#2AA6A1','#6B7A8D','#E07B54','#7C5CBF','#4A9E6B','#D64F4F'];
 
   for (const profile of manifest.profiles) {
     let stats = {};
@@ -3595,93 +3597,147 @@ async function loadPortfoliosView() {
     } catch (_e) { /* non-fatal */ }
 
     const isActive = profile.id === manifest.activeId;
-    const card = document.createElement('div');
-    card.className = `portfolio-card${isActive ? ' portfolio-card--active' : ''}`;
-    card.dataset.id = profile.id;
+    const row = document.createElement('div');
+    row.className = `profile-row${isActive ? ' profile-row--active' : ''}`;
+    row.dataset.id = profile.id;
 
-    const topThemesHtml = (stats.topThemes || []).length
-      ? `<div class="portfolio-card-themes">${(stats.topThemes || []).map((t) => `<span class="portfolio-theme-chip">${t}</span>`).join('')}</div>`
-      : '';
-    const previewHtml = (stats.recentEntries || []).length
-      ? `<p class="portfolio-card-preview">${stats.recentEntries[0].content || ''}</p>`
-      : '';
-
-    card.innerHTML = `
-      <div class="portfolio-card-header" style="border-left:4px solid ${profile.color}">
-        <span class="portfolio-card-name">${profile.name}</span>
-        ${isActive ? '<span class="portfolio-card-active-badge">Active</span>' : ''}
+    row.innerHTML = `
+      <div class="profile-row-color-dot"></div>
+      <div class="profile-row-main">
+        <div class="profile-row-name-line">
+          <span class="profile-row-name">${profile.name}</span>
+          ${isActive ? '<span class="portfolio-card-active-badge">Active</span>' : ''}
+        </div>
+        <div class="profile-row-meta">
+          <span>${stats.entryCount ?? 0} entries</span>
+          <span>${stats.themeCount ?? 0} themes</span>
+          <span>${stats.tagCount ?? 0} tags</span>
+          <span class="profile-row-path" title="${profile.dbPath}">${profile.dbPath.split(/[\\/]/).pop()}</span>
+        </div>
+        <div class="profile-row-inline-edit profile-row-inline-edit--hidden">
+          <input class="profile-inline-name" type="text" value="${profile.name}" maxlength="40" />
+          <div class="portfolio-inline-colors profile-inline-colors">
+            ${COLORS.map((c) => `<button class="color-swatch${c === profile.color ? ' active' : ''}" data-color="${c}" title="${c}"></button>`).join('')}
+          </div>
+          <div class="portfolio-inline-actions">
+            <button class="btn-primary btn-inline-save">Save</button>
+            <button class="btn-secondary btn-inline-cancel">Cancel</button>
+          </div>
+        </div>
       </div>
-      <div class="portfolio-card-stats">
-        <span>${stats.entryCount ?? 0} entries</span>
-        <span>${stats.themeCount ?? 0} themes</span>
-        <span>${stats.tagCount ?? 0} tags</span>
-      </div>
-      ${topThemesHtml}
-      ${previewHtml}
-      <div class="portfolio-card-actions">
-        ${!isActive ? `<button class="btn-primary btn-portfolio-switch" data-id="${profile.id}">Switch to</button>` : ''}
-        <button class="btn-secondary btn-portfolio-rename" data-id="${profile.id}">Rename</button>
-        ${!isActive ? `<button class="btn-danger btn-portfolio-delete" data-id="${profile.id}">Delete</button>` : ''}
+      <div class="profile-row-actions">
+        ${!isActive ? `<button class="btn-primary btn-sm btn-profile-switch" data-id="${profile.id}">Switch to</button>` : ''}
+        <button class="btn-secondary btn-sm btn-profile-edit" data-id="${profile.id}">Edit</button>
+        ${!isActive ? `<button class="btn-danger btn-sm btn-profile-delete" data-id="${profile.id}">Delete</button>` : ''}
       </div>`;
-    grid.appendChild(card);
+
+    // Color dot and inline swatch colors set programmatically
+    row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
+    row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
+      sw.style.backgroundColor = sw.dataset.color;
+    });
+
+    list.appendChild(row);
   }
 
-  // Wire action buttons
-  grid.querySelectorAll('.btn-portfolio-switch').forEach((btn) => {
+  // Switch
+  list.querySelectorAll('.btn-profile-switch').forEach((btn) => {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
       btn.textContent = 'Switching\u2026';
       await window.neurologue.switchPortfolio(btn.dataset.id);
-      // renderer reloads via onPortfolioSwitched
     });
   });
 
-  grid.querySelectorAll('.btn-portfolio-rename').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const current = grid.querySelector(`.portfolio-card[data-id="${btn.dataset.id}"] .portfolio-card-name`)?.textContent || '';
-      const next    = prompt('Rename portfolio:', current);
-      if (next && next.trim() && next.trim() !== current) {
-        await window.neurologue.renamePortfolio(btn.dataset.id, next.trim());
-        loadPortfoliosView();
-      }
+  // Edit (inline rename + recolor)
+  list.querySelectorAll('.btn-profile-edit').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const row       = list.querySelector(`.profile-row[data-id="${btn.dataset.id}"]`);
+      const editRow   = row.querySelector('.profile-row-inline-edit');
+      const actRow    = row.querySelector('.profile-row-actions');
+      const nameInput = row.querySelector('.profile-inline-name');
+      editRow.classList.remove('profile-row-inline-edit--hidden');
+      actRow.style.display = 'none';
+      nameInput.focus();
+      nameInput.select();
+
+      let _editColor = row.querySelector('.profile-inline-colors .color-swatch.active')?.dataset.color || '#2AA6A1';
+
+      row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
+        sw.addEventListener('click', () => {
+          row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((s) => s.classList.remove('active'));
+          sw.classList.add('active');
+          _editColor = sw.dataset.color;
+        });
+      });
+
+      row.querySelector('.btn-inline-cancel').addEventListener('click', () => {
+        editRow.classList.add('profile-row-inline-edit--hidden');
+        actRow.style.display = '';
+      });
+
+      row.querySelector('.btn-inline-save').addEventListener('click', async () => {
+        const n = nameInput.value.trim();
+        if (!n) return;
+        row.querySelector('.btn-inline-save').disabled = true;
+        const manifest2 = await window.neurologue.listPortfolios();
+        const p = manifest2.profiles.find((x) => x.id === btn.dataset.id);
+        if (p && p.name !== n)        await window.neurologue.renamePortfolio(btn.dataset.id, n);
+        if (p && p.color !== _editColor) await window.neurologue.recolorPortfolio(btn.dataset.id, _editColor);
+        loadProfilesPanel();
+        refreshPortfolioBadge();
+      });
     });
   });
 
-  grid.querySelectorAll('.btn-portfolio-delete').forEach((btn) => {
+  // Delete
+  list.querySelectorAll('.btn-profile-delete').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      const name = grid.querySelector(`.portfolio-card[data-id="${btn.dataset.id}"] .portfolio-card-name`)?.textContent || '';
-      if (!confirm(`Delete portfolio \u201c${name}\u201d? This cannot be undone.`)) return;
+      const name = list.querySelector(`.profile-row[data-id="${btn.dataset.id}"] .profile-row-name`)?.textContent || '';
+      if (!confirm(`Delete profile \u201c${name}\u201d? This cannot be undone.`)) return;
       await window.neurologue.deletePortfolio(btn.dataset.id);
-      loadPortfoliosView();
+      loadProfilesPanel();
     });
   });
 
-  // New portfolio form
-  const btnNew    = document.getElementById('btn-new-portfolio');
-  const form      = document.getElementById('portfolio-create-form');
-  const btnCreate = document.getElementById('btn-create-portfolio-confirm');
-  const btnCancel = document.getElementById('btn-create-portfolio-cancel');
-  const nameInput = document.getElementById('portfolio-new-name');
+  // Create form — clone-replace static buttons to strip accumulated listeners
+  function _rewire(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const fresh = el.cloneNode(true);
+    el.replaceWith(fresh);
+    return fresh;
+  }
+
+  const form      = document.getElementById('profile-create-form');
+  const nameInput = document.getElementById('profile-new-name');
+  const btnNew    = _rewire('btn-new-profile');
+  const btnCreate = _rewire('btn-profile-create-confirm');
+  const btnCancel = _rewire('btn-profile-create-cancel');
   let _selectedColor = '#2AA6A1';
 
-  document.querySelectorAll('#portfolio-color-swatches .color-swatch').forEach((sw) => {
-    sw.addEventListener('click', () => {
-      document.querySelectorAll('#portfolio-color-swatches .color-swatch').forEach((s) => s.classList.remove('active'));
-      sw.classList.add('active');
-      _selectedColor = sw.dataset.color;
+  document.querySelectorAll('#profile-color-swatches .color-swatch').forEach((sw) => {
+    const fresh = sw.cloneNode(true);
+    sw.replaceWith(fresh);
+    fresh.style.backgroundColor = fresh.dataset.color;
+    fresh.addEventListener('click', () => {
+      document.querySelectorAll('#profile-color-swatches .color-swatch').forEach((s) => s.classList.remove('active'));
+      fresh.classList.add('active');
+      _selectedColor = fresh.dataset.color;
     });
   });
 
   if (btnNew && form) {
-    btnNew.addEventListener('click', () => { form.classList.remove('hidden'); nameInput.focus(); });
-    btnCancel?.addEventListener('click', () => { form.classList.add('hidden'); nameInput.value = ''; });
+    btnNew.addEventListener('click', () => { form.classList.remove('hidden'); nameInput?.focus(); });
+    btnCancel?.addEventListener('click', () => { form.classList.add('hidden'); if (nameInput) nameInput.value = ''; });
     btnCreate?.addEventListener('click', async () => {
-      const n = nameInput.value.trim();
+      const n = nameInput?.value.trim();
       if (!n) return;
+      btnCreate.disabled = true;
       await window.neurologue.createPortfolio(n, _selectedColor);
       form.classList.add('hidden');
-      nameInput.value = '';
-      loadPortfoliosView();
+      if (nameInput) nameInput.value = '';
+      loadProfilesPanel();
     });
   }
 }

@@ -65,10 +65,6 @@
           <span class="nav-icon">&#10022;</span>
           <span class="nav-label">Agents</span>
         </button>
-        <button class="nav-item feature-portfolios" data-view="portfolios" title="Portfolios">
-          <span class="nav-icon">&#128193;</span>
-          <span class="nav-label">Portfolios</span>
-        </button>
         <button class="nav-item nav-item--settings" data-view="settings" title="Settings">
           <span class="nav-icon">&#9881;</span>
           <span class="nav-label">Settings</span>
@@ -614,6 +610,7 @@
             <button class="settings-subnav-item" data-section="data">Data</button>
             <button class="settings-subnav-item" data-section="scheduled-export">Scheduled Export</button>
             <button class="settings-subnav-item" data-section="features">Features</button>
+            <button class="settings-subnav-item feature-portfolios" data-section="portfolios">Portfolios</button>
           </nav>
           <div id="settings-content">
 
@@ -816,7 +813,39 @@
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
-                <span class="settings-hint">Organise your notes into separate named workspaces — e.g. Personal and Work. Each portfolio has its own entries, themes, and AI context.</span>
+                <span class="settings-hint">Organise your notes into separate named profiles &#8212; e.g. Personal and Work. Each profile has its own entries, themes, and AI context. Once enabled, manage profiles in the Portfolios settings tab.</span>
+              </div>
+            </div>
+
+            <!-- Portfolios panel (visible only when feature enabled) -->
+            <div class="settings-panel hidden" id="settings-tab-portfolios">
+              <p class="settings-panel-desc">Manage your corpus profiles. Each profile has its own entries, themes, tags, and AI context.</p>
+              <div id="profiles-list">
+                <!-- populated by loadProfilesPanel() in library.js -->
+              </div>
+              <div id="profile-create-form" class="hidden">
+                <div class="settings-field">
+                  <label for="profile-new-name">Profile name</label>
+                  <input id="profile-new-name" type="text" placeholder="e.g. Work" maxlength="40" />
+                </div>
+                <div class="settings-field">
+                  <label>Colour</label>
+                  <div id="profile-color-swatches" class="profile-color-swatches">
+                    <button class="color-swatch active" data-color="#2AA6A1" title="Teal"></button>
+                    <button class="color-swatch" data-color="#6B7A8D" title="Slate"></button>
+                    <button class="color-swatch" data-color="#E07B54" title="Amber"></button>
+                    <button class="color-swatch" data-color="#7C5CBF" title="Violet"></button>
+                    <button class="color-swatch" data-color="#4A9E6B" title="Green"></button>
+                    <button class="color-swatch" data-color="#D64F4F" title="Red"></button>
+                  </div>
+                </div>
+                <div class="portfolio-form-actions">
+                  <button id="btn-profile-create-confirm" class="btn-primary">Create profile</button>
+                  <button id="btn-profile-create-cancel" class="btn-secondary">Cancel</button>
+                </div>
+              </div>
+              <div class="settings-actions-row">
+                <button id="btn-new-profile" class="btn-secondary">+ New profile</button>
               </div>
             </div>
 
@@ -828,36 +857,7 @@
           </div><!-- /#settings-content -->
         </div><!-- /#view-settings -->
 
-        <!-- ── View: Portfolios (feature-gated) ──────────────────── -->
-        <div id="view-portfolios" class="view feature-portfolios">
-          <div id="portfolios-header">
-            <h2 class="portfolios-title">Portfolios</h2>
-            <button id="btn-new-portfolio" class="btn-primary">+ New portfolio</button>
-          </div>
-          <p class="portfolios-desc">Each portfolio is an independent corpus with its own entries, themes, and AI context. Switch between them at any time.</p>
-          <div id="portfolios-grid">
-            <!-- populated by library.js -->
-          </div>
-          <!-- New portfolio form -->
-          <div id="portfolio-create-form" class="hidden">
-            <input id="portfolio-new-name" type="text" placeholder="Portfolio name" maxlength="40" />
-            <div class="portfolio-color-row">
-              <label>Colour</label>
-              <div id="portfolio-color-swatches">
-                <button class="color-swatch active" data-color="#2AA6A1" style="background:#2AA6A1" title="Teal"></button>
-                <button class="color-swatch" data-color="#6B7A8D" style="background:#6B7A8D" title="Slate"></button>
-                <button class="color-swatch" data-color="#E07B54" style="background:#E07B54" title="Amber"></button>
-                <button class="color-swatch" data-color="#7C5CBF" style="background:#7C5CBF" title="Violet"></button>
-                <button class="color-swatch" data-color="#4A9E6B" style="background:#4A9E6B" title="Green"></button>
-                <button class="color-swatch" data-color="#D64F4F" style="background:#D64F4F" title="Red"></button>
-              </div>
-            </div>
-            <div class="portfolio-form-actions">
-              <button id="btn-create-portfolio-confirm" class="btn-primary">Create</button>
-              <button id="btn-create-portfolio-cancel" class="btn-secondary">Cancel</button>
-            </div>
-          </div>
-        </div><!-- /#view-portfolios -->
+      </div><!-- /#view-container -->
     </div><!-- /#shell -->
 
     <!-- ── Worker log popup ──────────────────────────────────────── -->
