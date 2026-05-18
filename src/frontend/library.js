@@ -1503,7 +1503,12 @@ function activateSettingsSection(name) {
 }
 
 document.querySelectorAll('.settings-subnav-item').forEach((item) => {
-  item.addEventListener('click', () => activateSettingsSection(item.dataset.section));
+  item.addEventListener('click', () => {
+    activateSettingsSection(item.dataset.section);
+    if (item.dataset.section === 'portfolio') loadProfilesPanel();
+    if (item.dataset.section === 'scheduled-export') loadSchedSettings();
+    if (item.dataset.section === 'worker') renderWorkerLog();
+  });
 });
 
 // ── Hotkey recorder ─────────────────────────────────────────────────────────
@@ -1649,7 +1654,7 @@ async function loadSettingsView(section = 'models') {
   activateSettingsSection(section);
   if (section === 'scheduled-export') await loadSchedSettings();
   if (section === 'worker') await renderWorkerLog();
-  if (section === 'portfolio') loadProfilesPanel();
+  if (section === 'portfolio') await loadProfilesPanel();
 
   // Features panel
   const chkPortfolio = document.getElementById('chk-portfolio-enabled');
@@ -3705,6 +3710,13 @@ function _closeProfileDropdown() {
   document.addEventListener('click', _closeProfileDropdown);
 }());
 
+function _fmtBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.min(Math.floor(Math.log2(bytes) / 10), units.length - 1);
+  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
 async function loadProfilesPanel() {
   const list = document.getElementById('profiles-list');
   if (!list) return;
@@ -3734,7 +3746,8 @@ async function loadProfilesPanel() {
     row.className = `profile-row${isActive ? ' profile-row--active' : ''}`;
     row.dataset.id = profile.id;
 
-    row.innerHTML = `
+    try {
+      row.innerHTML = `
       <div class="profile-row-color-dot"></div>
       <div class="profile-row-main">
         <div class="profile-row-name-line">
@@ -3745,7 +3758,10 @@ async function loadProfilesPanel() {
           <span>${stats.entryCount ?? 0} entries</span>
           <span>${stats.themeCount ?? 0} themes</span>
           <span>${stats.tagCount ?? 0} tags</span>
-          <span class="profile-row-path" title="${profile.dbPath}">${profile.dbPath.split(/[\\/]/).pop()}</span>
+        </div>
+        <div class="profile-row-storage">
+          <span class="profile-row-storage-item" title="${profile.dbPath}">DB: ${_fmtBytes(stats.dbSizeBytes ?? 0)}</span>
+          <span class="profile-row-storage-item" title="${profile.vectorStorePath || ''}">Vectors: ${_fmtBytes(stats.vectorStoreSizeBytes ?? 0)}</span>
         </div>
         <div class="profile-row-inline-edit profile-row-inline-edit--hidden">
           <input class="profile-inline-name" type="text" value="${profile.name}" maxlength="40" />
@@ -3764,13 +3780,16 @@ async function loadProfilesPanel() {
         ${!isActive ? `<button class="btn-danger btn-sm btn-profile-delete" data-id="${profile.id}">Delete</button>` : ''}
       </div>`;
 
-    // Color dot and inline swatch colors set programmatically
-    row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
-    row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
-      sw.style.backgroundColor = sw.dataset.color;
-    });
+      // Color dot and inline swatch colors set programmatically
+      row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
+      row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
+        sw.style.backgroundColor = sw.dataset.color;
+      });
 
-    list.appendChild(row);
+      list.appendChild(row);
+    } catch (rowErr) {
+      console.error('[portfolio] failed to render profile row:', profile.id, rowErr);
+    }
   }
 
   // Switch

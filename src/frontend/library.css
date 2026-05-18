@@ -3911,7 +3911,8 @@ body.theme-light .graph-tooltip {
 .profile-row-name-line { display: flex; align-items: center; gap: 8px; }
 .profile-row-name      { font-size: 14px; }
 .profile-row-meta      { display: flex; gap: 10px; font-size: 12px; color: var(--text-dim); flex-wrap: wrap; }
-.profile-row-path      { font-family: var(--font-mono, monospace); font-size: 11px; color: var(--text-dim); }
+.profile-row-storage   { display: flex; gap: 12px; margin-top: 2px; }
+.profile-row-storage-item { font-size: 11px; color: var(--text-dim); cursor: default; }
 
 .profile-row-actions   { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
 

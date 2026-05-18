@@ -755,7 +755,7 @@ handle('portfolio:stats', async (_e, { id }) => {
   const manifest = listProfiles();
   const profile  = manifest.profiles.find((p) => p.id === id);
   if (!profile) return { ok: false, error: 'Profile not found' };
-  const stats = await getProfileStats(profile.dbPath);
+  const stats = await getProfileStats(profile.dbPath, profile.vectorStorePath);
   return { ok: true, ...stats };
 });
 
