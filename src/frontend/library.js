@@ -1503,7 +1503,12 @@ function activateSettingsSection(name) {
 }
 
 document.querySelectorAll('.settings-subnav-item').forEach((item) => {
-  item.addEventListener('click', () => activateSettingsSection(item.dataset.section));
+  item.addEventListener('click', () => {
+    activateSettingsSection(item.dataset.section);
+    if (item.dataset.section === 'portfolio') loadProfilesPanel();
+    if (item.dataset.section === 'scheduled-export') loadSchedSettings();
+    if (item.dataset.section === 'worker') renderWorkerLog();
+  });
 });
 
 // ── Hotkey recorder ─────────────────────────────────────────────────────────
@@ -1649,7 +1654,7 @@ async function loadSettingsView(section = 'models') {
   activateSettingsSection(section);
   if (section === 'scheduled-export') await loadSchedSettings();
   if (section === 'worker') await renderWorkerLog();
-  if (section === 'portfolio') loadProfilesPanel();
+  if (section === 'portfolio') await loadProfilesPanel();
 
   // Features panel
   const chkPortfolio = document.getElementById('chk-portfolio-enabled');
