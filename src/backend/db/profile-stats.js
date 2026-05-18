@@ -75,11 +75,11 @@ async function getProfileStats(dbPath) {
     }
   }
 
-  const entryRow  = queryOne('SELECT COUNT(*) AS n FROM entries WHERE deleted_at IS NULL');
+  const entryRow  = queryOne('SELECT COUNT(*) AS n FROM entries');
   const tagRow    = queryOne('SELECT COUNT(*) AS n FROM tags');
   const themeRow  = queryOne('SELECT COUNT(*) AS n FROM themes');
-  const contraRow = queryOne("SELECT COUNT(*) AS n FROM contradictions WHERE status = 'open'");
-  const lastRow   = queryOne('SELECT MAX(created_at) AS last FROM entries WHERE deleted_at IS NULL');
+  const contraRow = queryOne("SELECT COUNT(*) AS n FROM contradictions WHERE status = 'active'");
+  const lastRow   = queryOne('SELECT MAX(created_at) AS last FROM entries');
 
   const topThemes = queryAll(
     'SELECT name FROM themes ORDER BY updated_at DESC LIMIT 5'
