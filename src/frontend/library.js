@@ -3741,7 +3741,8 @@ async function loadProfilesPanel() {
     row.className = `profile-row${isActive ? ' profile-row--active' : ''}`;
     row.dataset.id = profile.id;
 
-    row.innerHTML = `
+    try {
+      row.innerHTML = `
       <div class="profile-row-color-dot"></div>
       <div class="profile-row-main">
         <div class="profile-row-name-line">
@@ -3774,13 +3775,16 @@ async function loadProfilesPanel() {
         ${!isActive ? `<button class="btn-danger btn-sm btn-profile-delete" data-id="${profile.id}">Delete</button>` : ''}
       </div>`;
 
-    // Color dot and inline swatch colors set programmatically
-    row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
-    row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
-      sw.style.backgroundColor = sw.dataset.color;
-    });
+      // Color dot and inline swatch colors set programmatically
+      row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
+      row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
+        sw.style.backgroundColor = sw.dataset.color;
+      });
 
-    list.appendChild(row);
+      list.appendChild(row);
+    } catch (rowErr) {
+      console.error('[portfolio] failed to render profile row:', profile.id, rowErr);
+    }
   }
 
   // Switch
