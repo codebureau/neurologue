@@ -3509,10 +3509,10 @@ body.theme-light .graph-tooltip {
 
 /* Feature gate — hide everything by default */
 .feature-portfolio                               { display: none !important; }
-[data-portfolio="true"] button.portfolio-badge         { display: inline-flex !important; }
+[data-portfolio="true"] div.portfolio-switcher.feature-portfolio { display: flex !important; align-items: center; position: relative; }
 [data-portfolio="true"] .settings-subnav-item.feature-portfolio { display: inline-block !important; }
 
-/* Portfolio badge in toolbar */
+/* Portfolio badge + dropdown */
 .portfolio-badge {
   font-size: 11px;
   font-weight: 600;
@@ -3521,9 +3521,81 @@ body.theme-light .graph-tooltip {
   border: 2px solid var(--cortex-teal);
   color: var(--text-muted);
   white-space: nowrap;
-  cursor: default;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
+  gap: 5px;
 }
+.portfolio-badge:hover { color: var(--text); }
+
+.portfolio-badge-caret {
+  font-size: 8px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.portfolio-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.portfolio-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--text);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+.portfolio-dropdown-item:hover { background: var(--surface2); }
+.portfolio-dropdown-item--active { cursor: default; color: var(--text-muted); }
+.portfolio-dropdown-item--active:hover { background: none; }
+
+.portfolio-dd-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.portfolio-dd-name { flex: 1; }
+
+.portfolio-dd-check {
+  font-size: 11px;
+  color: var(--cortex-teal);
+  font-weight: 700;
+}
+
+.portfolio-dropdown-footer {
+  border-top: 1px solid var(--border);
+  padding: 6px 8px;
+}
+
+.portfolio-dropdown-manage {
+  width: 100%;
+  padding: 7px 8px;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: var(--radius);
+}
+.portfolio-dropdown-manage:hover { background: var(--surface2); color: var(--text); }
 
 /* Portfolio card styles (used in profile panels) ----------------------------------------- */
 .portfolio-card {

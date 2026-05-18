@@ -3562,15 +3562,68 @@ function applyPortfolioFeature(enabled) {
 
 async function refreshPortfolioBadge() {
   try {
-    const manifest = await window.neurologue.getPortfolioManifest();
-    const active   = manifest.profiles.find((p) => p.id === manifest.activeId);
-    const badge    = document.getElementById('portfolio-badge');
+    const manifest  = await window.neurologue.getPortfolioManifest();
+    const active    = manifest.profiles.find((p) => p.id === manifest.activeId);
+    const nameSpan  = document.getElementById('portfolio-badge-name');
+    const badge     = document.getElementById('portfolio-badge');
     if (badge && active) {
-      badge.textContent   = active.name;
+      if (nameSpan) nameSpan.textContent = active.name;
       badge.style.borderColor = active.color;
     }
+    _populateProfileDropdown(manifest);
   } catch (_e) { /* silent — Portfolio feature may not be configured yet */ }
 }
+
+function _populateProfileDropdown(manifest) {
+  const list = document.getElementById('portfolio-dropdown-list');
+  if (!list) return;
+  list.innerHTML = '';
+  for (const p of manifest.profiles) {
+    const isActive = p.id === manifest.activeId;
+    const item = document.createElement('button');
+    item.className = `portfolio-dropdown-item${isActive ? ' portfolio-dropdown-item--active' : ''}`;
+    item.innerHTML = `<span class="portfolio-dd-dot"></span><span class="portfolio-dd-name">${p.name}</span>${isActive ? '<span class="portfolio-dd-check">&#x2713;</span>' : ''}`;
+    item.querySelector('.portfolio-dd-dot').style.backgroundColor = p.color;
+    if (!isActive) {
+      item.addEventListener('click', async () => {
+        _closeProfileDropdown();
+        item.disabled = true;
+        await window.neurologue.switchPortfolio(p.id);
+      });
+    }
+    list.appendChild(item);
+  }
+}
+
+function _closeProfileDropdown() {
+  const dd = document.getElementById('portfolio-dropdown');
+  if (dd) dd.hidden = true;
+}
+
+// Badge click — toggle dropdown
+(function _wireProfileDropdown() {
+  const badge = document.getElementById('portfolio-badge');
+  const dd    = document.getElementById('portfolio-dropdown');
+  const mgr   = document.getElementById('btn-portfolio-manage');
+
+  if (badge && dd) {
+    badge.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!dd.hidden) { _closeProfileDropdown(); return; }
+      await refreshPortfolioBadge(); // always refresh before opening
+      dd.hidden = false;
+    });
+    dd.addEventListener('click', (e) => e.stopPropagation());
+  }
+  if (mgr) {
+    mgr.addEventListener('click', () => {
+      _closeProfileDropdown();
+      activateView('settings');
+      loadSettingsView('portfolio');
+    });
+  }
+  document.addEventListener('click', _closeProfileDropdown);
+}());
 
 async function loadProfilesPanel() {
   const list = document.getElementById('profiles-list');
