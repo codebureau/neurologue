@@ -3502,3 +3502,235 @@ body.theme-light .graph-tooltip {
 
 
 
+
+/* --------------------------------------------------------------------------
+   PORTFOLIO  (opt-in feature, gated by [data-portfolio="true"] on <html>)
+   -------------------------------------------------------------------------- */
+
+/* Feature gate — hide everything by default */
+.feature-portfolio                               { display: none !important; }
+[data-portfolio="true"] button.portfolio-badge         { display: inline-flex !important; }
+[data-portfolio="true"] .settings-subnav-item.feature-portfolio { display: inline-block !important; }
+
+/* Portfolio badge in toolbar */
+.portfolio-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  border: 2px solid var(--cortex-teal);
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: default;
+  align-items: center;
+}
+
+/* Portfolio card styles (used in profile panels) ----------------------------------------- */
+.portfolio-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 2);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color 0.15s;
+}
+
+.portfolio-card--active { border-color: var(--cortex-teal); }
+
+.portfolio-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 8px;
+}
+
+.portfolio-card-name        { font-weight: 600; font-size: 15px; }
+
+.portfolio-card-active-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cortex-teal);
+  letter-spacing: 0.06em;
+}
+
+.portfolio-card-stats       { display: flex; gap: 12px; font-size: 12px; color: var(--text-dim); }
+.portfolio-card-themes      { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.portfolio-theme-chip {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+
+.portfolio-card-preview {
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.portfolio-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.portfolio-color-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.color-swatch.active,
+.color-swatch:hover { transform: scale(1.2); border-color: var(--text); }
+
+.portfolio-form-actions { display: flex; gap: 8px; }
+
+/* Toggle switch � used in Features settings panel */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--surface2);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+  border: 1px solid var(--border);
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 2px;
+  top: 2px;
+  background: var(--text-dim);
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--cortex-teal);
+  border-color: var(--cortex-teal);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+  background: #fff;
+}
+
+/* Settings field with toggle */
+.settings-field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-field-label-row label:first-child {
+  flex: 1;
+  font-weight: 500;
+}
+
+/* Portfolio card inline rename/recolor */
+.portfolio-card-inline-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portfolio-inline-name {
+  padding: 6px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  width: 100%;
+}
+
+.portfolio-inline-colors { display: flex; gap: 6px; align-items: center; }
+
+.portfolio-inline-actions { display: flex; gap: 8px; }
+
+/* Portfolio card inline rename/recolor */
+.portfolio-card-inline-edit { display: flex; flex-direction: column; gap: 8px; }
+.portfolio-inline-name { padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); font-size: 13px; width: 100%; }
+.portfolio-inline-colors { display: flex; gap: 6px; align-items: center; }
+.portfolio-inline-actions { display: flex; gap: 8px; }
+
+
+.portfolio-card-inline-edit--hidden { display: none; }
+.portfolio-card-actions--hidden { display: none; }
+
+/* Profile rows in Settings > Portfolio panel ------------------------------------------- */
+.profile-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.profile-row:last-child { border-bottom: none; }
+.profile-row--active .profile-row-name { font-weight: 700; }
+
+.profile-row-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.profile-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-row-name-line { display: flex; align-items: center; gap: 8px; }
+.profile-row-name      { font-size: 14px; }
+.profile-row-meta      { display: flex; gap: 10px; font-size: 12px; color: var(--text-dim); flex-wrap: wrap; }
+.profile-row-path      { font-family: var(--font-mono, monospace); font-size: 11px; color: var(--text-dim); }
+
+.profile-row-actions   { display: flex; gap: 6px; flex-shrink: 0; align-items: flex-start; }
+
+.profile-row-inline-edit { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.profile-row-inline-edit--hidden { display: none; }
+
+.profile-inline-colors { display: flex; gap: 6px; align-items: center; }
+
+#profiles-list { padding: 4px 0 16px; }
+
+.profile-color-swatches { display: flex; gap: 8px; }
+
+.settings-actions-row { padding-top: 8px; }

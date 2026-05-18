@@ -5,6 +5,27 @@ const config = require('../../config');
 
 let _db = null;
 let _table = null;
+let _storePathOverride = null;
+
+/**
+ * Override the vector store path used by initVectorStore().
+ * @param {string|null} storePath
+ */
+function setStorePath(storePath) {
+  _storePathOverride = storePath || null;
+}
+
+/**
+ * Close the current vector store and reinitialise at a new path.
+ * Used by portfolio switching.
+ * @param {string} newPath
+ */
+async function switchVectorStore(newPath) {
+  _db = null;
+  _table = null;
+  _storePathOverride = newPath;
+  return initVectorStore();
+}
 
 const TABLE_NAME = 'entry_embeddings';
 
@@ -13,7 +34,8 @@ const TABLE_NAME = 'entry_embeddings';
  * Call once at startup before using other functions.
  */
 async function initVectorStore() {
-  _db = await lancedb.connect(config.vectorStore.path);
+  const storePath = _storePathOverride || config.vectorStore.path;
+  _db = await lancedb.connect(storePath);
 
   const tableNames = await _db.tableNames();
   if (tableNames.includes(TABLE_NAME)) {
@@ -82,4 +104,4 @@ async function clearAllVectors() {
   await _table.delete('entry_id IS NOT NULL');
 }
 
-module.exports = { initVectorStore, upsertVector, searchNearest, deleteVector, clearAllVectors };
+module.exports = { initVectorStore, upsertVector, searchNearest, deleteVector, clearAllVectors, setStorePath, switchVectorStore };

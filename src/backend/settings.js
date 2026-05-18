@@ -34,6 +34,7 @@ const DEFAULTS = {
   theme: 'dark',          // 'dark' | 'light'
   homeView: 'library',    // view id to show on launch
   navHistoryLimit: 10,    // max entries in session nav stack
+  portfolioEnabled: false, // opt-in: multiple named corpus profiles (Portfolio feature)
   scheduledExport: {
     enabled:     false,
     frequency:   'daily',   // 'daily' | 'weekly'

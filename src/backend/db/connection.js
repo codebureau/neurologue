@@ -13,6 +13,27 @@ const initSqlJs = require('sql.js');
 const config = require('../../config');
 
 let _wrappedDb = null;
+let _dbPathOverride = null;
+
+/**
+ * Override the DB path used by openDb().
+ * Call before openDb() or use switchDb() to replace a live connection.
+ * @param {string|null} dbPath
+ */
+function setDbPath(dbPath) {
+  _dbPathOverride = dbPath || null;
+}
+
+/**
+ * Close the current DB connection and reopen at a new path.
+ * Used by portfolio switching.
+ * @param {string} newPath
+ */
+async function switchDb(newPath) {
+  if (_wrappedDb) _wrappedDb.close(); // close() sets _wrappedDb = null
+  _dbPathOverride = newPath;
+  return openDb();
+}
 
 // ---------------------------------------------------------------------------
 // Parameter normalisation
@@ -144,7 +165,7 @@ class SqlJsDb {
 async function openDb() {
   if (_wrappedDb) return _wrappedDb;
 
-  const dbPath = config.db.path;
+  const dbPath = _dbPathOverride || config.db.path;
   const dir = path.dirname(dbPath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
@@ -172,4 +193,4 @@ function closeDb() {
   }
 }
 
-module.exports = { openDb, closeDb };
+module.exports = { openDb, closeDb, setDbPath, switchDb };
