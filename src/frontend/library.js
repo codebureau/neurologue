@@ -3083,6 +3083,7 @@ const dashOpenLoops        = document.getElementById('dash-open-loops');
 const dashLoopsCount       = document.getElementById('dash-loops-count');
 const dashRecentCaptures   = document.getElementById('dash-recent-captures');
 const btnDashRefresh       = document.getElementById('btn-dash-refresh');
+let _dashScope = 'profile'; // 'profile' | 'portfolio'
 
 function _truncate(text, len = 72) {
   if (!text) return '—';
@@ -3096,6 +3097,15 @@ function _dashNavigate(viewId, action) {
 }
 
 async function loadDashboardView() {
+  const dashBody          = document.getElementById('dash-body');
+  const dashPortfolioBody = document.getElementById('dash-portfolio-body');
+  if (_dashScope === 'portfolio') {
+    dashBody.style.display = 'none';
+    dashPortfolioBody.style.display = '';
+    return _loadPortfolioOverview();
+  }
+  dashBody.style.display = '';
+  dashPortfolioBody.style.display = 'none';
   try {
     const d = await window.neurologue.getDashboardSummary();
 
@@ -3208,6 +3218,69 @@ async function loadDashboardView() {
 }
 
 btnDashRefresh.addEventListener('click', loadDashboardView);
+
+// Wire Dashboard scope toggle (Portfolio feature)
+document.querySelectorAll('.dash-scope-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    _dashScope = btn.dataset.scope;
+    document.querySelectorAll('.dash-scope-btn').forEach((b) =>
+      b.classList.toggle('dash-scope-btn--active', b === btn)
+    );
+    loadDashboardView();
+  });
+});
+
+async function _loadPortfolioOverview() {
+  const grid = document.getElementById('dash-portfolio-grid');
+  grid.innerHTML = '<div class="dash-empty">Loading\u2026</div>';
+  try {
+    const manifest = await window.neurologue.getPortfolioManifest();
+    const statsArr = await Promise.all(
+      manifest.profiles.map((p) =>
+        window.neurologue.portfolioStats(p.id).then((s) => ({ profile: p, stats: s }))
+      )
+    );
+    grid.innerHTML = '';
+    statsArr.forEach(({ profile, stats }) => {
+      const isActive = profile.id === manifest.activeId;
+      const card = document.createElement('div');
+      card.className = 'dash-profile-card' + (isActive ? ' dash-profile-card--active' : '');
+      card.style.setProperty('--profile-color', profile.color);
+      const topChips = (stats.topThemes || []).slice(0, 3)
+        .map((t) => `<span class="dash-profile-chip">${t}</span>`).join('');
+      const lastActive = stats.lastActiveAt
+        ? new Date(stats.lastActiveAt).toLocaleDateString()
+        : 'No activity';
+      card.innerHTML = `
+        <div class="dash-profile-card-header">
+          <span class="dash-profile-color-dot" style="background:${profile.color}"></span>
+          <span class="dash-profile-name">${profile.name}</span>
+          ${isActive ? '<span class="dash-profile-active-badge">active</span>' : ''}
+        </div>
+        <div class="dash-profile-stats">
+          <div class="dash-profile-stat">
+            <span class="dash-profile-stat-num">${stats.entryCount}</span>
+            <span class="dash-profile-stat-label">notes</span>
+          </div>
+          <div class="dash-profile-stat">
+            <span class="dash-profile-stat-num">${stats.themeCount}</span>
+            <span class="dash-profile-stat-label">themes</span>
+          </div>
+          <div class="dash-profile-stat">
+            <span class="dash-profile-stat-num">${stats.openContradictions}</span>
+            <span class="dash-profile-stat-label">conflicts</span>
+          </div>
+        </div>
+        <div class="dash-profile-themes">${topChips || '<span class="dash-empty">No themes yet</span>'}</div>
+        <div class="dash-profile-last-active">Last active: ${lastActive}</div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (err) {
+    grid.innerHTML = '<div class="dash-empty">Could not load portfolio stats.</div>';
+    console.error('[dashboard] _loadPortfolioOverview failed:', err);
+  }
+}
 
 // ── Memory Replay view controller ────────────────────────────────────────────
 
@@ -3557,20 +3630,80 @@ function _escHtml(str) {
 
 function applyPortfolioFeature(enabled) {
   document.documentElement.dataset.portfolio = enabled ? 'true' : 'false';
-  if (enabled) refreshPortfolioBadge();
+  if (enabled) {
+    refreshPortfolioBadge();
+  } else if (_dashScope === 'portfolio') {
+    _dashScope = 'profile';
+    document.querySelectorAll('.dash-scope-btn').forEach((b) =>
+      b.classList.toggle('dash-scope-btn--active', b.dataset.scope === 'profile')
+    );
+  }
 }
 
 async function refreshPortfolioBadge() {
   try {
-    const manifest = await window.neurologue.getPortfolioManifest();
-    const active   = manifest.profiles.find((p) => p.id === manifest.activeId);
-    const badge    = document.getElementById('portfolio-badge');
+    const manifest  = await window.neurologue.getPortfolioManifest();
+    const active    = manifest.profiles.find((p) => p.id === manifest.activeId);
+    const nameSpan  = document.getElementById('portfolio-badge-name');
+    const badge     = document.getElementById('portfolio-badge');
     if (badge && active) {
-      badge.textContent   = active.name;
+      if (nameSpan) nameSpan.textContent = active.name;
       badge.style.borderColor = active.color;
     }
+    _populateProfileDropdown(manifest);
   } catch (_e) { /* silent — Portfolio feature may not be configured yet */ }
 }
+
+function _populateProfileDropdown(manifest) {
+  const list = document.getElementById('portfolio-dropdown-list');
+  if (!list) return;
+  list.innerHTML = '';
+  for (const p of manifest.profiles) {
+    const isActive = p.id === manifest.activeId;
+    const item = document.createElement('button');
+    item.className = `portfolio-dropdown-item${isActive ? ' portfolio-dropdown-item--active' : ''}`;
+    item.innerHTML = `<span class="portfolio-dd-dot"></span><span class="portfolio-dd-name">${p.name}</span>${isActive ? '<span class="portfolio-dd-check">&#x2713;</span>' : ''}`;
+    item.querySelector('.portfolio-dd-dot').style.backgroundColor = p.color;
+    if (!isActive) {
+      item.addEventListener('click', async () => {
+        _closeProfileDropdown();
+        item.disabled = true;
+        await window.neurologue.switchPortfolio(p.id);
+      });
+    }
+    list.appendChild(item);
+  }
+}
+
+function _closeProfileDropdown() {
+  const dd = document.getElementById('portfolio-dropdown');
+  if (dd) dd.hidden = true;
+}
+
+// Badge click — toggle dropdown
+(function _wireProfileDropdown() {
+  const badge = document.getElementById('portfolio-badge');
+  const dd    = document.getElementById('portfolio-dropdown');
+  const mgr   = document.getElementById('btn-portfolio-manage');
+
+  if (badge && dd) {
+    badge.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!dd.hidden) { _closeProfileDropdown(); return; }
+      await refreshPortfolioBadge(); // always refresh before opening
+      dd.hidden = false;
+    });
+    dd.addEventListener('click', (e) => e.stopPropagation());
+  }
+  if (mgr) {
+    mgr.addEventListener('click', () => {
+      _closeProfileDropdown();
+      activateView('settings');
+      loadSettingsView('portfolio');
+    });
+  }
+  document.addEventListener('click', _closeProfileDropdown);
+}());
 
 async function loadProfilesPanel() {
   const list = document.getElementById('profiles-list');

@@ -25,7 +25,18 @@
       <button id="btn-new-note" class="mode-btn btn-new-note" title="New note (Ctrl+Shift+Space)">+ New note</button>
       <button id="btn-maintenance" class="mode-btn toolbar-library-only" title="Tag management">Maintenance</button>
       <button id="btn-help" class="mode-btn">Help</button>
-      <button id="portfolio-badge" class="portfolio-badge feature-portfolios" title="Active portfolio — click to switch"></button>
+      <div id="portfolio-switcher" class="portfolio-switcher feature-portfolio">
+        <button id="portfolio-badge" class="portfolio-badge" title="Switch profile">
+          <span id="portfolio-badge-name"></span>
+          <span class="portfolio-badge-caret">&#9660;</span>
+        </button>
+        <div id="portfolio-dropdown" class="portfolio-dropdown" hidden>
+          <div id="portfolio-dropdown-list"></div>
+          <div class="portfolio-dropdown-footer">
+            <button id="btn-portfolio-manage" class="portfolio-dropdown-manage">Manage profiles&#x2026;</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ── Shell: nav rail + view container ───────────────────────── -->
@@ -421,6 +432,15 @@
           <div id="dash-header">
             <span id="dash-title">Dashboard</span>
             <button id="btn-dash-refresh" class="btn-sm" title="Refresh">↻</button>
+          </div>
+          <!-- scope toggle — only visible when Portfolio feature is enabled -->
+          <div id="dash-scope-toggle" class="feature-portfolio">
+            <button class="dash-scope-btn dash-scope-btn--active" data-scope="profile">This profile</button>
+            <button class="dash-scope-btn" data-scope="portfolio">All profiles</button>
+          </div>
+          <!-- portfolio overview body — shown when scope = "portfolio" -->
+          <div id="dash-portfolio-body" style="display:none">
+            <div id="dash-portfolio-grid"></div>
           </div>
           <div id="dash-body">
 
