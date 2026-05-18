@@ -433,6 +433,15 @@
             <span id="dash-title">Dashboard</span>
             <button id="btn-dash-refresh" class="btn-sm" title="Refresh">↻</button>
           </div>
+          <!-- scope toggle — only visible when Portfolio feature is enabled -->
+          <div id="dash-scope-toggle" class="feature-portfolio">
+            <button class="dash-scope-btn dash-scope-btn--active" data-scope="profile">This profile</button>
+            <button class="dash-scope-btn" data-scope="portfolio">All profiles</button>
+          </div>
+          <!-- portfolio overview body — shown when scope = "portfolio" -->
+          <div id="dash-portfolio-body" style="display:none">
+            <div id="dash-portfolio-grid"></div>
+          </div>
           <div id="dash-body">
 
             <!-- Row 1: stat cards -->
