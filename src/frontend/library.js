@@ -3705,6 +3705,13 @@ function _closeProfileDropdown() {
   document.addEventListener('click', _closeProfileDropdown);
 }());
 
+function _fmtBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.min(Math.floor(Math.log2(bytes) / 10), units.length - 1);
+  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
+
 async function loadProfilesPanel() {
   const list = document.getElementById('profiles-list');
   if (!list) return;
@@ -3745,7 +3752,10 @@ async function loadProfilesPanel() {
           <span>${stats.entryCount ?? 0} entries</span>
           <span>${stats.themeCount ?? 0} themes</span>
           <span>${stats.tagCount ?? 0} tags</span>
-          <span class="profile-row-path" title="${profile.dbPath}">${profile.dbPath.split(/[\\/]/).pop()}</span>
+        </div>
+        <div class="profile-row-storage">
+          <span class="profile-row-storage-item" title="${profile.dbPath}">DB: ${_fmtBytes(stats.dbSizeBytes ?? 0)}</span>
+          <span class="profile-row-storage-item" title="${profile.vectorStorePath || ''}">Vectors: ${_fmtBytes(stats.vectorStoreSizeBytes ?? 0)}</span>
         </div>
         <div class="profile-row-inline-edit profile-row-inline-edit--hidden">
           <input class="profile-inline-name" type="text" value="${profile.name}" maxlength="40" />
