@@ -3722,6 +3722,12 @@ async function loadProfilesPanel() {
   if (!list) return;
   list.innerHTML = '<p class="loading">Loading\u2026</p>';
 
+  // Always reset the create form to a clean hidden state on any reload
+  const _createForm = document.getElementById('profile-create-form');
+  const _nameInput  = document.getElementById('profile-new-name');
+  if (_createForm) _createForm.classList.add('hidden');
+  if (_nameInput)  _nameInput.value = '';
+
   let manifest;
   try {
     manifest = await window.neurologue.getPortfolioManifest();
