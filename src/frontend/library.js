@@ -3846,7 +3846,15 @@ async function loadProfilesPanel() {
   list.querySelectorAll('.btn-profile-delete').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const name = list.querySelector(`.profile-row[data-id="${btn.dataset.id}"] .profile-row-name`)?.textContent || '';
-      if (!confirm(`Delete profile \u201c${name}\u201d? This cannot be undone.`)) return;
+      const stats = {};
+      try {
+        const res = await window.neurologue.portfolioStats(btn.dataset.id);
+        if (res.ok) Object.assign(stats, res);
+      } catch (_e) { /* non-fatal */ }
+      const entryNote = (stats.entryCount > 0)
+        ? `\n\nThis will permanently delete ${stats.entryCount} note${stats.entryCount !== 1 ? 's' : ''}, ${stats.themeCount ?? 0} theme${(stats.themeCount ?? 0) !== 1 ? 's' : ''}, and all associated data. This cannot be undone.`
+        : `\n\nThis cannot be undone.`;
+      if (!confirm(`Delete profile \u201c${name}\u201d?${entryNote}`)) return;
       await window.neurologue.deletePortfolio(btn.dataset.id);
       loadProfilesPanel();
     });

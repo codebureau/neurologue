@@ -76,6 +76,21 @@
     .titlebar__label { opacity: 0.85; }
     .titlebar__hint  { opacity: 0.45; font-size: 11px; }
 
+    .titlebar__profile {
+      display: none;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    .titlebar__profile.visible { display: flex; }
+    .titlebar__profile-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
     /* ── Toolbar ── */
     .toolbar {
       display: none;
@@ -351,6 +366,10 @@
   <div class="popup">
     <div class="titlebar">
       <span class="titlebar__label">Neurologue — Capture</span>
+      <span class="titlebar__profile" id="titlebar-profile">
+        <span class="titlebar__profile-dot" id="titlebar-profile-dot"></span>
+        <span id="titlebar-profile-name"></span>
+      </span>
       <span class="titlebar__hint">Esc to cancel</span>
     </div>
 
