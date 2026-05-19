@@ -3717,7 +3717,10 @@ function _fmtBytes(bytes) {
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+let _profilePanelGen = 0;
+
 async function loadProfilesPanel() {
+  const gen  = ++_profilePanelGen;
   const list = document.getElementById('profiles-list');
   if (!list) return;
   list.innerHTML = '<p class="loading">Loading\u2026</p>';
@@ -3732,28 +3735,33 @@ async function loadProfilesPanel() {
   try {
     manifest = await window.neurologue.getPortfolioManifest();
   } catch (err) {
+    if (gen !== _profilePanelGen) return;
     list.innerHTML = `<p class="error-msg">Could not load profiles: ${err.message}</p>`;
     return;
   }
+  if (gen !== _profilePanelGen) return;
+
+  // Fetch all stats in parallel so the loop has no internal awaits
+  const statsMap = {};
+  await Promise.all(manifest.profiles.map(async (p) => {
+    try {
+      const res = await window.neurologue.portfolioStats(p.id);
+      if (res.ok) statsMap[p.id] = res;
+    } catch (_e) { /* non-fatal */ }
+  }));
+  if (gen !== _profilePanelGen) return;
 
   list.innerHTML = '';
-
   const COLORS = ['#2AA6A1','#6B7A8D','#E07B54','#7C5CBF','#4A9E6B','#D64F4F'];
 
   for (const profile of manifest.profiles) {
-    let stats = {};
-    try {
-      const res = await window.neurologue.portfolioStats(profile.id);
-      if (res.ok) stats = res;
-    } catch (_e) { /* non-fatal */ }
-
+    const stats    = statsMap[profile.id] || {};
     const isActive = profile.id === manifest.activeId;
-    const row = document.createElement('div');
-    row.className = `profile-row${isActive ? ' profile-row--active' : ''}`;
+    const row      = document.createElement('div');
+    row.className  = `profile-row${isActive ? ' profile-row--active' : ''}`;
     row.dataset.id = profile.id;
 
-    try {
-      row.innerHTML = `
+    row.innerHTML = `
       <div class="profile-row-color-dot"></div>
       <div class="profile-row-main">
         <div class="profile-row-name-line">
@@ -3786,17 +3794,15 @@ async function loadProfilesPanel() {
         ${!isActive ? `<button class="btn-danger btn-sm btn-profile-delete" data-id="${profile.id}">Delete</button>` : ''}
       </div>`;
 
-      // Color dot and inline swatch colors set programmatically
-      row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
-      row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
-        sw.style.backgroundColor = sw.dataset.color;
-      });
+    row.querySelector('.profile-row-color-dot').style.backgroundColor = profile.color;
+    row.querySelectorAll('.profile-inline-colors .color-swatch').forEach((sw) => {
+      sw.style.backgroundColor = sw.dataset.color;
+    });
 
-      list.appendChild(row);
-    } catch (rowErr) {
-      console.error('[portfolio] failed to render profile row:', profile.id, rowErr);
-    }
+    list.appendChild(row);
   }
+
+  // ── Event wiring ──
 
   // Switch
   list.querySelectorAll('.btn-profile-switch').forEach((btn) => {
@@ -3840,7 +3846,7 @@ async function loadProfilesPanel() {
         row.querySelector('.btn-inline-save').disabled = true;
         const manifest2 = await window.neurologue.getPortfolioManifest();
         const p = manifest2.profiles.find((x) => x.id === btn.dataset.id);
-        if (p && p.name !== n)        await window.neurologue.renamePortfolio(btn.dataset.id, n);
+        if (p && p.name !== n)           await window.neurologue.renamePortfolio(btn.dataset.id, n);
         if (p && p.color !== _editColor) await window.neurologue.recolorPortfolio(btn.dataset.id, _editColor);
         loadProfilesPanel();
         refreshPortfolioBadge();
@@ -3852,13 +3858,9 @@ async function loadProfilesPanel() {
   list.querySelectorAll('.btn-profile-delete').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const name = list.querySelector(`.profile-row[data-id="${btn.dataset.id}"] .profile-row-name`)?.textContent || '';
-      const stats = {};
-      try {
-        const res = await window.neurologue.portfolioStats(btn.dataset.id);
-        if (res.ok) Object.assign(stats, res);
-      } catch (_e) { /* non-fatal */ }
-      const entryNote = (stats.entryCount > 0)
-        ? `\n\nThis will permanently delete ${stats.entryCount} note${stats.entryCount !== 1 ? 's' : ''}, ${stats.themeCount ?? 0} theme${(stats.themeCount ?? 0) !== 1 ? 's' : ''}, and all associated data. This cannot be undone.`
+      const s    = statsMap[btn.dataset.id] || {};
+      const entryNote = (s.entryCount > 0)
+        ? `\n\nThis will permanently delete ${s.entryCount} note${s.entryCount !== 1 ? 's' : ''}, ${s.themeCount ?? 0} theme${(s.themeCount ?? 0) !== 1 ? 's' : ''}, and all associated data. This cannot be undone.`
         : `\n\nThis cannot be undone.`;
       if (!confirm(`Delete profile \u201c${name}\u201d?${entryNote}`)) return;
       await window.neurologue.deletePortfolio(btn.dataset.id);
@@ -3866,7 +3868,7 @@ async function loadProfilesPanel() {
     });
   });
 
-  // Create form — clone-replace static buttons to strip accumulated listeners
+  // Create form — wire once per panel render using clones to strip old listeners
   function _rewire(id) {
     const el = document.getElementById(id);
     if (!el) return null;
