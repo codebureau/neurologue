@@ -360,9 +360,21 @@ function hideError() {
 
 contentEl.focus();
 
-// Apply persisted theme + restore any unsaved draft
+// ── Apply persisted theme + restore any unsaved draft + show active profile
 window.capture.getSettings().then((s) => {
   document.documentElement.setAttribute('data-theme', (s && s.theme) || 'dark');
+  if (s && s.portfolioEnabled) {
+    window.capture.getPortfolioManifest().then((manifest) => {
+      const active = manifest && manifest.profiles.find((p) => p.id === manifest.activeId);
+      if (!active) return;
+      const badge    = document.getElementById('titlebar-profile');
+      const dot      = document.getElementById('titlebar-profile-dot');
+      const nameSpan = document.getElementById('titlebar-profile-name');
+      dot.style.backgroundColor = active.color;
+      nameSpan.textContent = active.name;
+      badge.classList.add('visible');
+    }).catch(() => { /* non-fatal */ });
+  }
 });
 
 window.capture.loadDraft().then((draft) => {
