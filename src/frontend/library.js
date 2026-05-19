@@ -3873,6 +3873,7 @@ async function loadProfilesPanel() {
     const el = document.getElementById(id);
     if (!el) return null;
     const fresh = el.cloneNode(true);
+    fresh.disabled = false; // cloneNode copies the disabled attr if it was set
     el.replaceWith(fresh);
     return fresh;
   }
