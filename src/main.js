@@ -69,6 +69,8 @@ function createMainWindow() {
   _mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(__dirname, '..', 'build',
+      process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'frontend', 'preload.js'),
       contextIsolation: true,
