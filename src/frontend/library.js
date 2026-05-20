@@ -1234,9 +1234,26 @@ async function loadAdapterList() {
 // Load adapter list when the export modal opens
 exportBtn.addEventListener('click', loadAdapterList);
 
-helpBtn.addEventListener('click', () => {
-  window.neurologue.openHelp();
-});
+// ── About modal ─────────────────────────────────────────────────────────────
+const aboutModal   = document.getElementById('about-modal');
+const aboutClose   = document.getElementById('about-close');
+const aboutVersion = document.getElementById('about-version');
+const aboutDocsLink = document.getElementById('about-docs-link');
+
+async function showAboutModal() {
+  try {
+    const v = await window.neurologue.getAppVersion();
+    if (aboutVersion) aboutVersion.textContent = `v${v}`;
+  } catch (_e) { /* leave ellipsis */ }
+  aboutModal.classList.remove('hidden');
+}
+
+aboutClose?.addEventListener('click', () => aboutModal.classList.add('hidden'));
+aboutModal?.addEventListener('click', (e) => { if (e.target === aboutModal) aboutModal.classList.add('hidden'); });
+aboutDocsLink?.addEventListener('click', (e) => { e.preventDefault(); window.neurologue.openHelp(); });
+
+helpBtn.addEventListener('click', showAboutModal);
+window.neurologue.onShowAbout(showAboutModal);
 
 newNoteBtn.addEventListener('click', () => {
   window.neurologue.openCapture();

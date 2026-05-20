@@ -69,6 +69,8 @@ function createMainWindow() {
   _mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    icon: path.join(__dirname, '..', 'build',
+      process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'frontend', 'preload.js'),
       contextIsolation: true,
@@ -426,6 +428,7 @@ handle('priorities:recompute', async () => {
 ipcMain.handle('help:open', () => {
   shell.openExternal('https://codebureau.github.io/neurologue');
 });
+ipcMain.handle('app:version', () => app.getVersion());
 // Open the Ollama download page in the system browser
 ipcMain.handle('ollama:open-download', () => {
   shell.openExternal('https://ollama.ai');

@@ -57,6 +57,7 @@ contextBridge.exposeInMainWorld('neurologue', {
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
+  getAppVersion: () => ipcRenderer.invoke('app:version'),
 
   // ── Reindex ──────────────────────────────────────────────────────────────
   reindexAll:   ()   => ipcRenderer.invoke('worker:reindex-all'),
@@ -65,6 +66,7 @@ contextBridge.exposeInMainWorld('neurologue', {
   // ── Status ───────────────────────────────────────────────────────────────
   getStatus: () => ipcRenderer.invoke('status:get'),
   getWorkerLog: () => ipcRenderer.invoke('worker:get-log'),
+  onShowAbout:            (cb) => { ipcRenderer.on('app:show-about',          ()       => cb()); },
   onWorkerStatus:         (cb) => { ipcRenderer.on('worker:status',           (_e, d) => cb(d)); },
   onEntriesUpdated:       (cb) => { ipcRenderer.on('worker:entries-updated',  (_e, d) => cb(d)); },
   onThemesUpdated:        (cb) => { ipcRenderer.on('worker:themes-updated',   (_e, d) => cb(d)); },

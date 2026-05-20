@@ -69,12 +69,100 @@ html, body {
 }
 
 #toolbar .logo {
-  font-weight: 700;
-  font-size: 15px;
-  color: var(--cortex-teal);
-  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-right: 4px;
-  white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+#toolbar .logo-mark {
+  height: 26px;
+  width: auto;
+  /* full-colour mark looks good on all backgrounds — no filter */
+}
+
+#toolbar .logo-wordmark {
+  height: 16px;
+  width: auto;
+  /* dark wordmark → render white on dark toolbar */
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] #toolbar .logo-wordmark {
+  /* dark wordmark is legible on light toolbar — restore natural colour */
+  filter: none;
+}
+
+/* ── About modal ─────────────────────────────────────────────────────────── */
+.about-modal-box {
+  max-width: 380px;
+  text-align: center;
+  padding: 40px 36px 32px;
+}
+
+.about-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.about-mark {
+  width: 80px;
+  height: auto;
+  /* full-colour mark — no filter needed on any background */
+}
+
+.about-wordmark {
+  width: 160px;
+  height: auto;
+  /* dark wordmark → white on dark modal background */
+  filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] .about-wordmark {
+  filter: none;
+}
+
+.about-tagline {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+.about-version {
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+
+.about-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.about-link {
+  color: var(--cortex-teal);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.about-link:hover { text-decoration: underline; }
+
+.about-local-badge {
+  color: var(--text-dim);
+  font-size: 11px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+  margin-top: 4px;
 }
 
 .btn-back {
@@ -3638,6 +3726,7 @@ body.theme-light .graph-tooltip {
   padding: 3px 10px;
   border-radius: var(--radius);
   border: 2px solid var(--cortex-teal);
+  background: transparent;
   color: var(--text-muted);
   white-space: nowrap;
   cursor: pointer;
@@ -3645,7 +3734,10 @@ body.theme-light .graph-tooltip {
   align-items: center;
   gap: 5px;
 }
-.portfolio-badge:hover { color: var(--text); }
+.portfolio-badge:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
 
 .portfolio-badge-caret {
   font-size: 8px;
