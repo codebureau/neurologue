@@ -3726,6 +3726,7 @@ body.theme-light .graph-tooltip {
   padding: 3px 10px;
   border-radius: var(--radius);
   border: 2px solid var(--cortex-teal);
+  background: transparent;
   color: var(--text-muted);
   white-space: nowrap;
   cursor: pointer;
@@ -3733,7 +3734,10 @@ body.theme-light .graph-tooltip {
   align-items: center;
   gap: 5px;
 }
-.portfolio-badge:hover { color: var(--text); }
+.portfolio-badge:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
 
 .portfolio-badge-caret {
   font-size: 8px;
