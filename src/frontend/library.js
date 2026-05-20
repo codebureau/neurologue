@@ -1253,6 +1253,7 @@ aboutModal?.addEventListener('click', (e) => { if (e.target === aboutModal) abou
 aboutDocsLink?.addEventListener('click', (e) => { e.preventDefault(); window.neurologue.openHelp(); });
 
 helpBtn.addEventListener('click', showAboutModal);
+window.neurologue.onShowAbout(showAboutModal);
 
 newNoteBtn.addEventListener('click', () => {
   window.neurologue.openCapture();

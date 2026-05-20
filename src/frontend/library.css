@@ -80,15 +80,19 @@ html, body {
 #toolbar .logo-mark {
   height: 26px;
   width: auto;
-  /* navy mark on dark toolbar → render white */
-  filter: brightness(0) invert(1);
+  /* full-colour mark looks good on all backgrounds — no filter */
 }
 
 #toolbar .logo-wordmark {
   height: 16px;
   width: auto;
-  /* dark wordmark on dark toolbar → render white */
+  /* dark wordmark → render white on dark toolbar */
   filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] #toolbar .logo-wordmark {
+  /* dark wordmark is legible on light toolbar — restore natural colour */
+  filter: none;
 }
 
 /* ── About modal ─────────────────────────────────────────────────────────── */
@@ -109,13 +113,18 @@ html, body {
 .about-mark {
   width: 80px;
   height: auto;
+  /* full-colour mark — no filter needed on any background */
 }
 
 .about-wordmark {
   width: 160px;
   height: auto;
-  /* dark wordmark on dark modal → render white */
+  /* dark wordmark → white on dark modal background */
   filter: brightness(0) invert(1);
+}
+
+[data-theme="light"] .about-wordmark {
+  filter: none;
 }
 
 .about-tagline {
