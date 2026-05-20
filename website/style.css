@@ -58,14 +58,13 @@ body {
 .site-logo-mark {
   height: 28px;
   width: auto;
-  /* dark navy mark on dark bg → render white */
-  filter: brightness(0) invert(1);
+  /* full-colour SVG — navy/teal/white reads correctly on the dark site bg */
 }
 
 .site-logo-wordmark {
   height: 17px;
   width: auto;
-  /* dark wordmark on dark bg → render white */
+  /* dark navy wordmark → white on dark site header */
   filter: brightness(0) invert(1);
 }
 
@@ -83,13 +82,13 @@ body {
 .hero-mark {
   width: 96px;
   height: auto;
-  /* full-colour mark — use on a transparent/dark bg; the navy reads on dark */
-  filter: brightness(0) invert(1);
+  /* full-colour SVG — no filter */
 }
 
 .hero-wordmark {
   width: 220px;
   height: auto;
+  /* dark navy wordmark → white on dark hero bg */
   filter: brightness(0) invert(1);
 }
 
