@@ -57,6 +57,7 @@ contextBridge.exposeInMainWorld('neurologue', {
 
   // ── Help ─────────────────────────────────────────────────────────────────
   openHelp: () => ipcRenderer.invoke('help:open'),
+  getAppVersion: () => ipcRenderer.invoke('app:version'),
 
   // ── Reindex ──────────────────────────────────────────────────────────────
   reindexAll:   ()   => ipcRenderer.invoke('worker:reindex-all'),

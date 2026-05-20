@@ -426,6 +426,7 @@ handle('priorities:recompute', async () => {
 ipcMain.handle('help:open', () => {
   shell.openExternal('https://codebureau.github.io/neurologue');
 });
+ipcMain.handle('app:version', () => app.getVersion());
 // Open the Ollama download page in the system browser
 ipcMain.handle('ollama:open-download', () => {
   shell.openExternal('https://ollama.ai');

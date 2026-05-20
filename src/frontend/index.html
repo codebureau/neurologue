@@ -13,7 +13,10 @@
 
     <!-- ── Toolbar ─────────────────────────────────────────────────── -->
     <div id="toolbar">
-      <span class="logo">Neurologue</span>
+      <span class="logo" title="Neurologue">
+        <img src="neurologue-mark.svg" class="logo-mark" alt="" aria-hidden="true" />
+        <img src="neurologue-wordmark.svg" class="logo-wordmark" alt="Neurologue" />
+      </span>
       <button id="btn-back" class="btn-back hidden" title="Back (Alt+Left)">&#8592;</button>
       <input id="search-input" type="text" placeholder="Search entries…" autocomplete="off" />
       <div id="search-mode">
@@ -898,6 +901,23 @@
     </div>
 
   </div><!-- /#app -->
+
+  <!-- ── About modal ──────────────────────────────────────────────────────── -->
+  <div id="about-modal" class="modal-overlay hidden">
+    <div class="modal-box about-modal-box">
+      <button class="modal-close" id="about-close" title="Close">&#x2715;</button>
+      <div class="about-logo">
+        <img src="neurologue-mark.svg" class="about-mark" alt="Neurologue mark" />
+        <img src="neurologue-wordmark.svg" class="about-wordmark" alt="Neurologue" />
+      </div>
+      <p class="about-tagline">Your thinking, organised.</p>
+      <p class="about-version" id="about-version">v&hellip;</p>
+      <div class="about-links">
+        <a id="about-docs-link" href="#" class="about-link">Open documentation &#x2197;</a>
+      </div>
+      <p class="about-local-badge">&#x1F512; 100% local &mdash; no accounts, no cloud, no telemetry</p>
+    </div>
+  </div>
 
   <!-- ── Setup modal (Ollama not installed / not running / models missing) ─── -->
   <div id="setup-modal" class="modal-overlay hidden">
