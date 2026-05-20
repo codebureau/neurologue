@@ -19,7 +19,10 @@
       <a href="capture.html">Capture</a>
       <a href="library.html">Library</a>
       <a href="themes.html">Themes</a>
+      <a href="analysis.html">Analysis</a>
+      <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
+      <a href="settings.html">Settings</a>
       <a href="troubleshooting.html" class="active">Troubleshooting</a>
     </nav>
   </div>
@@ -29,12 +32,26 @@
   <h1>Troubleshooting</h1>
   <p class="page-subtitle">Solutions to the most common issues.</p>
 
-  <h2>Ollama is not installed</h2>
+  <nav class="on-page-nav">
+    <a href="#ollama-not-installed">Ollama not installed</a>
+    <a href="#ollama-not-running">Ollama not running</a>
+    <a href="#no-themes">No themes</a>
+    <a href="#semantic-search">Semantic search</a>
+    <a href="#no-summaries">No summaries</a>
+    <a href="#entries-not-appearing">Entries not appearing</a>
+    <a href="#no-categories">No categories</a>
+    <a href="#no-conflicts">No conflicts detected</a>
+    <a href="#agent-errors">Agent errors</a>
+    <a href="#hotkey">Hotkey not working</a>
+    <a href="#data-location">Data location</a>
+  </nav>
+
+  <h2 id="ollama-not-installed">Ollama is not installed</h2>
 
   <p>When Neurologue starts up, it checks whether Ollama is installed. If it isn’t, a <strong>setup modal</strong> appears automatically with a <strong>Download Ollama</strong> button.</p>
   <p>Click the button to open <a href="https://ollama.ai" target="_blank" rel="noopener">ollama.ai</a>, install Ollama, then click <strong>Check again</strong> in the modal.</p>
 
-  <h2>Ollama is not running</h2>
+  <h2 id="ollama-not-running">Ollama is not running</h2>
 
   <p><strong>Symptoms:</strong> The status bar at the bottom of the library window shows <strong>Ollama not running</strong> (grey dot). A setup modal also appears on startup if Ollama is installed but not yet started.</p>
 
@@ -58,13 +75,13 @@ ollama pull phi3:mini</code></pre>
 
   <h2>Changing the embedding or LLM model</h2>
 
-  <p>Click the <strong>⚙</strong> (gear) button in the top toolbar to open the <strong>Model settings</strong> panel. The dropdowns are populated from your locally available Ollama models. Choose your preferred models and click <strong>Save settings</strong>.</p>
+  <p>Open <a href="settings.html#models">Settings → Models</a>. The dropdowns are populated from your locally available Ollama models. Choose your preferred models and click <strong>Save settings</strong>.</p>
 
   <div class="callout warning">
     <p><strong>Note:</strong> Changing the embedding model means existing entries were embedded with the old model. The background worker will re-embed them over time using the new model. During the transition, semantic search results may be inconsistent.</p>
   </div>
 
-  <h2>No themes appearing</h2>
+  <h2 id="no-themes">No themes appearing</h2>
 
   <p><strong>Cause:</strong> Themes require at least 4 entries to have been embedded, and clustering only runs after every 5 new embeddings in the current session.</p>
 
@@ -83,7 +100,7 @@ ollama pull phi3:mini</code></pre>
   <p>If you have 4+ embedded entries but no themes, open the DevTools console (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> in the library window) and run:</p>
   <pre><code>await window.neurologue.triggerClustering()</code></pre>
 
-  <h2>Semantic search not working</h2>
+  <h2 id="semantic-search">Semantic search not working</h2>
 
   <p><strong>Symptom:</strong> A yellow notice appears: "Ollama not available — showing text results instead."</p>
   <p>This means Ollama was not reachable when you ran the search. The app falls back to text search automatically.</p>
@@ -93,7 +110,7 @@ ollama pull phi3:mini</code></pre>
     <li>Try the search again — if Ollama just started, it may need a moment to be ready.</li>
   </ul>
 
-  <h2>Theme summaries show "No summary yet"</h2>
+  <h2 id="no-summaries">Theme summaries show "No summary yet"</h2>
 
   <p>This means clustering ran successfully but the LLM summary step couldn't complete. This happens when:</p>
   <ul>
@@ -101,7 +118,7 @@ ollama pull phi3:mini</code></pre>
     <li>Ollama was unavailable or slow at the time clustering ran — summaries will be generated the next time clustering runs</li>
   </ul>
 
-  <h2>Entries saved but not appearing in library</h2>
+  <h2 id="entries-not-appearing">Entries saved but not appearing in library</h2>
 
   <p>The timeline refreshes automatically once the background worker has embedded a new entry. If a captured entry is not appearing:</p>
   <ul>
@@ -110,7 +127,7 @@ ollama pull phi3:mini</code></pre>
     <li>If you have an active tag or category filter, or a search query, the new entry may be filtered out. Click the <strong>×</strong> on each active filter pill (or <strong>Clear all</strong>) to remove the active filters and confirm the entry is present.</li>
   </ul>
 
-  <h2>Entry categories not appearing</h2>
+  <h2 id="no-categories">Entry categories not appearing</h2>
 
   <p><strong>Cause:</strong> Entry categorisation is performed by the LLM (default: <code>phi3:mini</code>) after each entry is embedded. Categories won’t appear if:</p>
   <ul>
@@ -120,14 +137,14 @@ ollama pull phi3:mini</code></pre>
   </ul>
   <p>Once assigned, the category badge appears on the entry card and in the detail panel. You can always set it manually via the category dropdown in the detail panel regardless of Ollama availability.</p>
 
-  <h2>Hotkey not working</h2>
+  <h2 id="hotkey">Hotkey not working</h2>
 
   <ul>
     <li>Ensure Neurologue is running (check the taskbar or system tray).</li>
     <li>The hotkey is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>. Another application may have registered the same combination — check for conflicts in your OS keyboard settings or other running apps.</li>
   </ul>
 
-  <h2>Data location</h2>
+  <h2 id="data-location">Data location</h2>
   <p>Neurologue stores all data under your OS user data directory:</p>
   <table>
     <thead><tr><th>OS</th><th>Path</th></tr></thead>
@@ -142,6 +159,27 @@ ollama pull phi3:mini</code></pre>
   <div class="callout danger">
     <p><strong>Do not delete the data folder</strong> unless you want to start fresh. There is currently no built-in backup — use <a href="export.html">Export</a> to take snapshots of your data.</p>
   </div>
+
+  <h2 id="no-conflicts">No conflicts detected</h2>
+
+  <p><strong>Cause:</strong> Contradiction detection requires at least a few embedded entries sharing a theme or tag, and the scheduled scan may not have run yet.</p>
+  <ul>
+    <li>Ensure Ollama is running — the LLM is required to evaluate whether a pair of statements is contradictory.</li>
+    <li>Check the scan scope in <a href="settings.html#worker">Settings → Worker</a>. If set to <em>Theme only</em>, entries must share a theme; try switching to <em>Tags also</em> for broader coverage.</li>
+    <li>Click <strong>Scan now</strong> at the bottom of the Conflicts view to trigger an immediate, unlimited scan rather than waiting for the next scheduled run.</li>
+    <li>The scheduled scan only checks a limited number of pairs per run (default: 15). If you have a large corpus, you may need to run several manual scans or increase the limit in Settings → Worker.</li>
+  </ul>
+
+  <h2 id="agent-errors">Agent errors</h2>
+
+  <p><strong>Symptom:</strong> The Agents output panel shows <code>[Error: ...]</code> after clicking Run.</p>
+  <ul>
+    <li><strong>Ollama not running</strong> — agents require Ollama. Start Ollama and try again.</li>
+    <li><strong>Model not available</strong> — the configured LLM model may not be pulled. Open <a href="settings.html#models">Settings → Models</a> and confirm the LLM model is in the dropdown, or run <code>ollama pull phi3:mini</code> in a terminal.</li>
+    <li><strong>Not enough data</strong> — some agents (e.g. <em>Identify emerging priorities</em>) need at least a few themed entries before they have meaningful data to analyse. Capture more entries and wait for themes to be generated.</li>
+    <li><strong>Stopped manually</strong> — clicking ■ Stop shows <code>[Stopped]</code> in the output, which is expected and not an error.</li>
+  </ul>
+
 </main>
 
 <footer class="site-footer">

@@ -19,7 +19,10 @@
       <a href="capture.html">Capture</a>
       <a href="library.html" class="active">Library</a>
       <a href="themes.html">Themes</a>
+      <a href="analysis.html">Analysis</a>
+      <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
+      <a href="settings.html">Settings</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -28,6 +31,10 @@
 <main class="page-content">
   <h1>Library</h1>
   <p class="page-subtitle">Browse, search, and explore everything you've captured.</p>
+
+  <figure class="screenshot-placeholder">
+    <figcaption>📸 Screenshot suggestion: The Library in three-panel layout — sidebar tags/categories on the left, timeline with grouped entries in the centre, detail panel with full entry content and Similar entries expanded on the right</figcaption>
+  </figure>
 
   <h2>Layout overview</h2>
   <p>The main library window has three panels side by side:</p>
@@ -49,7 +56,7 @@
     <li><strong>Entry count</strong> — shows how many entries match the current view.</li>
     <li><strong>Export…</strong> — opens the <a href="export.html">export</a> workflow.</li>
     <li><strong>Maintenance</strong> — opens the <a href="#tag-management">Tag Management</a> panel.</li>
-    <li><strong>⚙</strong> — opens the <a href="#settings">Settings</a> panel to change Ollama models and the capture hotkey.</li>
+    <li><strong>⚙</strong> — opens the <a href="settings.html">Settings</a> view in the navigation rail.</li>
     <li><strong>Help</strong> — opens this documentation in your browser.</li>
   </ul>
 
@@ -73,6 +80,10 @@
   <div class="callout">
     <p><strong>Tip:</strong> Semantic search only returns the top 10 results. If you need to browse more, use Text mode.</p>
   </div>
+
+  <figure class="screenshot-placeholder">
+    <figcaption>📸 Screenshot suggestion: Semantic search results in the timeline — match score badges visible on entry cards, search bar showing a natural-language query like "feeling overwhelmed at work"</figcaption>
+  </figure>
 
   <h2>Tag filtering</h2>
   <p>
@@ -180,6 +191,10 @@
     <li>Result count (currently 8) and similarity threshold are not user-configurable in this version.</li>
   </ul>
 
+  <figure class="screenshot-placeholder">
+    <figcaption>📸 Screenshot suggestion: An open entry in the detail panel showing the full content, tag pills, category badge dropdown open, "Similar entries" section expanded with 4–5 cards each showing a similarity percentage</figcaption>
+  </figure>
+
   <h3 id="editing">Editing an entry</h3>
   <p>
     Click the <strong>Edit</strong> button at the bottom of the detail panel to open an inline edit form. Make your changes and press <strong>Save</strong> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to save. Press <kbd>Escape</kbd> or <strong>Cancel</strong> to discard.
@@ -225,42 +240,17 @@
 
   <h2>Themes view</h2>
   <p>
-    The <strong>Themes</strong> item in the left navigation rail opens a dedicated Themes view with a full two-column layout for browsing and managing your theme clusters. See the <a href="themes.html">Themes</a> page for full details.
+    The <strong>Themes</strong> item in the left navigation rail opens the Themes view. See the <a href="themes.html">Themes</a> page for full details.
   </p>
 
-  <h2 id="settings">Settings</h2>
+  <h2>Other views</h2>
   <p>
-    Click the <strong>⚙</strong> button in the toolbar to open the Settings panel.
+    The left navigation rail also contains several analysis views. See the <a href="analysis.html">Analysis</a> page for full documentation of the Dashboard, Conflicts, Priorities, Knowledge Graph, and Memory Replay views. For AI-powered corpus analysis, see <a href="agents.html">Agents</a>.
   </p>
 
-  <h3 id="model-settings">Model settings</h3>
+  <h2>Settings</h2>
   <p>
-    Choose which locally installed Ollama models are used for embeddings and theme summaries. The dropdowns are populated from your available Ollama models; any changes take effect immediately on the next worker tick.
-  </p>
-
-  <h3 id="tag-settings">Tag settings</h3>
-  <p>
-    <strong>Tag suggestion format</strong> — controls the format that LLM-generated tag suggestions are normalised to (e.g. <em>hyphenated</em> produces <code>machine-learning</code>; <em>lowercase</em> produces <code>machine learning</code>).
-  </p>
-  <p>
-    <strong>Duplicate detection sensitivity</strong> — sets the cosine-similarity threshold for semantic duplicate detection in the Tag Management panel. See <a href="#tag-management">Tag management</a> above.
-  </p>
-
-  <h3 id="capture-hotkey">Capture hotkey</h3>
-  <p>
-    The <strong>Global shortcut</strong> field shows the current key combination that opens the capture popup from anywhere on your desktop. To change it:
-  </p>
-  <ol>
-    <li>Click the <strong>Change</strong> button next to the hotkey field.</li>
-    <li>The field will show <em>Press keys…</em> — press the combination you want (e.g. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>).</li>
-    <li>The new shortcut appears in the field. Press <kbd>Escape</kbd> or click <strong>Cancel</strong> to discard.</li>
-    <li>Click <strong>Save settings</strong>. If the shortcut is already claimed by another application, a conflict warning is shown and the old shortcut is kept.</li>
-  </ol>
-  <p>
-    The shortcut must include at least one modifier key (Ctrl, Alt, or Shift).
-  </p>
-  <p>
-    Settings are stored in <code>settings.json</code> alongside your database in the app’s user data directory.
+    Click the <strong>&#9881;</strong> icon in the left navigation rail (or the <strong>&#9881;</strong> button in the toolbar) to open the Settings view. See the <a href="settings.html">Settings</a> page for a full reference of all options: models, tags, hotkey, worker intervals, appearance, data management, scheduled export, and Portfolio.
   </p>
 
   <h2>Status bar</h2>

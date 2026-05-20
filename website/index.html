@@ -19,7 +19,10 @@
       <a href="capture.html">Capture</a>
       <a href="library.html">Library</a>
       <a href="themes.html">Themes</a>
+      <a href="analysis.html">Analysis</a>
+      <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
+      <a href="settings.html">Settings</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -33,6 +36,10 @@
   </div>
 
   <p class="page-subtitle">A local-first personal cognitive system — capture thoughts instantly, rediscover them intelligently.</p>
+
+  <figure class="screenshot-placeholder">
+    <figcaption>📸 Screenshot suggestion: The main Library window showing the three-panel layout — sidebar with tags and themes, timeline with grouped entries, detail panel with an open entry and similar entries expanded</figcaption>
+  </figure>
 
   <h2>What is Neurologue?</h2>
   <p>
@@ -59,6 +66,96 @@
   <p>
     After capture, the <strong>background worker</strong> picks up your entry within 10 seconds, generates a semantic embedding via Ollama, and after every 5 new embeddings automatically re-clusters everything into themes. This happens silently — you don't need to trigger it.
   </p>
+
+  <h2>The science in brief</h2>
+
+  <h3>Semantic embeddings</h3>
+  <p>
+    When you save an entry, the background worker passes its text through the <code>nomic-embed-text</code> model running in Ollama. The model converts the text into a <strong>768-dimensional vector</strong> — a list of 768 numbers that encodes the <em>meaning</em> of what you wrote, not just the words.
+  </p>
+  <p>
+    Entries about similar ideas end up with vectors that are close together in this high-dimensional space. Entries about different topics are far apart. This is what powers semantic search: instead of matching keywords, Neurologue finds entries whose meaning-vectors are nearest to your query's meaning-vector.
+  </p>
+
+  <figure class="science-diagram" aria-label="Semantic embedding pipeline diagram">
+    <svg viewBox="0 0 560 110" xmlns="http://www.w3.org/2000/svg" role="img">
+      <!-- Entry box -->
+      <rect x="4" y="30" width="110" height="50" rx="6" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="59" y="51" text-anchor="middle" font-size="11" fill="var(--text)" font-family="inherit">Entry text</text>
+      <text x="59" y="68" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="inherit">"Interesting idea…"</text>
+      <!-- Arrow 1 -->
+      <line x1="114" y1="55" x2="148" y2="55" stroke="var(--cortex-teal)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Model box -->
+      <rect x="149" y="25" width="132" height="60" rx="6" fill="var(--surface2)" stroke="var(--cortex-teal)" stroke-width="1.5"/>
+      <text x="215" y="47" text-anchor="middle" font-size="11" fill="var(--cortex-teal)" font-family="inherit" font-weight="bold">nomic-embed-text</text>
+      <text x="215" y="63" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="inherit">(via Ollama)</text>
+      <text x="215" y="78" text-anchor="middle" font-size="9" fill="var(--text-dim)" font-family="inherit">embedding model</text>
+      <!-- Arrow 2 -->
+      <line x1="281" y1="55" x2="315" y2="55" stroke="var(--cortex-teal)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Vector box -->
+      <rect x="316" y="25" width="118" height="60" rx="6" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="375" y="47" text-anchor="middle" font-size="11" fill="var(--text)" font-family="inherit">768 numbers</text>
+      <text x="375" y="62" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">[0.021, −0.014, 0.087…]</text>
+      <text x="375" y="77" text-anchor="middle" font-size="9" fill="var(--text-dim)" font-family="inherit">meaning encoded</text>
+      <!-- Arrow 3 -->
+      <line x1="434" y1="55" x2="468" y2="55" stroke="var(--cortex-teal)" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Store box -->
+      <rect x="469" y="25" width="87" height="60" rx="6" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="512" y="47" text-anchor="middle" font-size="11" fill="var(--text)" font-family="inherit">LanceDB</text>
+      <text x="512" y="62" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">vector store</text>
+      <text x="512" y="77" text-anchor="middle" font-size="9" fill="var(--text-dim)" font-family="inherit">fast NN search</text>
+      <!-- Arrowhead marker -->
+      <defs>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L6,3 z" fill="var(--cortex-teal)"/>
+        </marker>
+      </defs>
+    </svg>
+    <figcaption>Each entry's text is converted into a 768-number vector by the embedding model, then stored in LanceDB for fast nearest-neighbour search.</figcaption>
+  </figure>
+
+  <h3>Automatic clustering into themes</h3>
+  <p>
+    Once entries have vectors, Neurologue periodically runs <strong>k-means++ clustering</strong> to group similar entries together. The number of clusters is chosen automatically using the formula <code>k&nbsp;=&nbsp;round(√(n/2))</code>, clamped between 2 and 20.
+  </p>
+  <p>
+    Each cluster becomes a <strong>Theme</strong>. Neurologue asks the LLM to read the top entries from each cluster and write a short name and summary. Themes update automatically every time 5 new entries are embedded — your mental landscape evolves as you write.
+  </p>
+
+  <figure class="science-diagram" aria-label="k-means clustering into themes diagram">
+    <svg viewBox="0 0 560 160" xmlns="http://www.w3.org/2000/svg" role="img">
+      <!-- Cluster A dots (teal) -->
+      <circle cx="80"  cy="60"  r="5" fill="var(--cortex-teal)" opacity="0.8"/>
+      <circle cx="95"  cy="45"  r="5" fill="var(--cortex-teal)" opacity="0.8"/>
+      <circle cx="105" cy="70"  r="5" fill="var(--cortex-teal)" opacity="0.8"/>
+      <circle cx="70"  cy="80"  r="5" fill="var(--cortex-teal)" opacity="0.8"/>
+      <circle cx="90"  cy="90"  r="5" fill="var(--cortex-teal)" opacity="0.8"/>
+      <!-- Centroid A -->
+      <circle cx="88" cy="69" r="8" fill="none" stroke="var(--cortex-teal)" stroke-width="2" stroke-dasharray="3 2"/>
+      <text x="88" y="110" text-anchor="middle" font-size="10" fill="var(--cortex-teal)" font-family="inherit" font-weight="bold">Theme A</text>
+      <!-- Cluster B dots (amber) -->
+      <circle cx="230" cy="50"  r="5" fill="#C8962A" opacity="0.8"/>
+      <circle cx="250" cy="65"  r="5" fill="#C8962A" opacity="0.8"/>
+      <circle cx="220" cy="75"  r="5" fill="#C8962A" opacity="0.8"/>
+      <circle cx="245" cy="85"  r="5" fill="#C8962A" opacity="0.8"/>
+      <circle cx="260" cy="55"  r="5" fill="#C8962A" opacity="0.8"/>
+      <!-- Centroid B -->
+      <circle cx="241" cy="66" r="8" fill="none" stroke="#C8962A" stroke-width="2" stroke-dasharray="3 2"/>
+      <text x="241" y="110" text-anchor="middle" font-size="10" fill="#C8962A" font-family="inherit" font-weight="bold">Theme B</text>
+      <!-- Cluster C dots (violet) -->
+      <circle cx="400" cy="55"  r="5" fill="#7C5CBF" opacity="0.8"/>
+      <circle cx="420" cy="40"  r="5" fill="#7C5CBF" opacity="0.8"/>
+      <circle cx="435" cy="65"  r="5" fill="#7C5CBF" opacity="0.8"/>
+      <circle cx="415" cy="80"  r="5" fill="#7C5CBF" opacity="0.8"/>
+      <circle cx="445" cy="50"  r="5" fill="#7C5CBF" opacity="0.8"/>
+      <!-- Centroid C -->
+      <circle cx="423" cy="58" r="8" fill="none" stroke="#7C5CBF" stroke-width="2" stroke-dasharray="3 2"/>
+      <text x="423" y="110" text-anchor="middle" font-size="10" fill="#7C5CBF" font-family="inherit" font-weight="bold">Theme C</text>
+      <!-- Label -->
+      <text x="280" y="145" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="inherit">Each dot = one entry (projected from 768D). Dashed circles = cluster centroids. Colour = theme.</text>
+    </svg>
+    <figcaption>k-means clustering groups entries with similar meaning-vectors into themes. Each cluster gets a name and summary from the LLM.</figcaption>
+  </figure>
 
   <h2>Requirements</h2>
 
@@ -131,10 +228,13 @@ ollama pull phi3:mini</code></pre>
     <thead><tr><th>Section</th><th>What it covers</th></tr></thead>
     <tbody>
       <tr><td><a href="capture.html">Capture</a></td><td>Global hotkey, popup UI, keyboard shortcuts, tags, LLM tag suggestions</td></tr>
-      <tr><td><a href="library.html">Library</a></td><td>Timeline (grouping, heatmap, infinite scroll), search, tag &amp; category filtering, tag management, entry detail</td></tr>
-      <tr><td><a href="themes.html">Themes</a></td><td>How themes are generated, timing, viewing and understanding them</td></tr>
-      <tr><td><a href="export.html">Export</a></td><td>Export output files and using them with external AI tools</td></tr>
-      <tr><td><a href="troubleshooting.html">Troubleshooting</a></td><td>Ollama issues, no themes appearing, semantic search fallback, missing categories</td></tr>
+      <tr><td><a href="library.html">Library</a></td><td>Timeline (grouping, heatmap, infinite scroll), search, tag &amp; category filtering, tag management, entry detail, similar entries</td></tr>
+      <tr><td><a href="themes.html">Themes</a></td><td>How themes are generated from vector clusters, viewing and renaming, timing expectations</td></tr>
+      <tr><td><a href="analysis.html">Analysis</a></td><td>Dashboard, Conflicts (contradiction detection), Priorities (EVOM scoring), Knowledge Graph, Memory Replay</td></tr>
+      <tr><td><a href="agents.html">Agents</a></td><td>Pre-built AI agents that analyse your corpus and produce narrative reports</td></tr>
+      <tr><td><a href="export.html">Export &amp; Import</a></td><td>CCF snapshots, scheduled exports, importing backups, using exports with external AI tools</td></tr>
+      <tr><td><a href="settings.html">Settings</a></td><td>Models, tags, hotkey, worker intervals, appearance, data management, scheduled export, Portfolio</td></tr>
+      <tr><td><a href="troubleshooting.html">Troubleshooting</a></td><td>Ollama issues, no themes appearing, semantic search fallback, missing categories, hotkey conflicts</td></tr>
     </tbody>
   </table>
 </main>

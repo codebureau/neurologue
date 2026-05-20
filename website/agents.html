@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agents — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">
+      <img src="neurologue-mark.svg" class="site-logo-mark" alt="" aria-hidden="true" />
+      <img src="neurologue-wordmark.svg" class="site-logo-wordmark" alt="Neurologue" />
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="analysis.html">Analysis</a>
+      <a href="agents.html" class="active">Agents</a>
+      <a href="export.html">Export</a>
+      <a href="settings.html">Settings</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>Agents</h1>
+  <p class="page-subtitle">Local AI agents that read your entire corpus and produce narrative reports.</p>
+
+  <figure class="screenshot-placeholder">
+    <figcaption>📸 Screenshot suggestion: The Agents view showing four agent cards in a grid, with the output panel open and streaming text below</figcaption>
+  </figure>
+
+  <h2>What are agents?</h2>
+  <p>
+    Agents are pre-built analysis tasks that run a local LLM against your full corpus. Unlike search — which returns individual matching entries — an agent reads across many entries at once and produces a synthesised narrative: a written report, an organised list, or a set of recommendations.
+  </p>
+  <p>
+    Each agent gathers structured data from your database (entries, themes, task counts), builds a carefully crafted prompt, and streams the LLM's response back to the output panel token by token — so you see the answer forming in real time.
+  </p>
+
+  <div class="callout warning">
+    <p><strong>Requires Ollama.</strong> Agents send prompts to your locally installed LLM (configured in <a href="settings.html#models">Settings → Models</a>). If Ollama is not running when you click Run, the agent will fail with an error message in the output panel. See <a href="troubleshooting.html">Troubleshooting</a> if Ollama isn't available.</p>
+  </div>
+
+  <h2>Opening the Agents view</h2>
+  <p>
+    Click <strong>Agents</strong> in the left navigation rail of the Library window. The view shows a grid of agent cards — one card per available agent.
+  </p>
+
+  <h2>Available agents</h2>
+
+  <div class="agent-doc-card">
+    <div class="agent-doc-icon">📅</div>
+    <div class="agent-doc-body">
+      <h3 class="agent-doc-name">Summarise my week</h3>
+      <p>A narrative summary of everything you captured in the last 7 days. The agent reads all entries from the past week, identifies the key themes and ideas you were engaging with, and writes a 3–5 paragraph reflective summary in second person — <em>"You spent time thinking about…"</em></p>
+      <p><strong>Best used when:</strong> it's the end of a working week and you want a high-level view of what occupied your mind.</p>
+    </div>
+  </div>
+
+  <div class="agent-doc-card">
+    <div class="agent-doc-icon">✅</div>
+    <div class="agent-doc-body">
+      <h3 class="agent-doc-name">Find open tasks</h3>
+      <p>Scans all entries categorised as <strong>Task</strong> and organises them by apparent urgency. The agent looks for wording that suggests unresolved items, groups related tasks by theme or area, and flags anything that appears time-sensitive or high-priority.</p>
+      <p><strong>Best used when:</strong> you've accumulated many task-type notes across different themes and want to see what still needs action without trawling through the library manually.</p>
+    </div>
+  </div>
+
+  <div class="agent-doc-card">
+    <div class="agent-doc-icon">📈</div>
+    <div class="agent-doc-body">
+      <h3 class="agent-doc-name">Identify emerging priorities</h3>
+      <p>Compares theme activity from this week versus the previous week and identifies which themes are gaining or losing momentum. The agent explains what the trends suggest about your current focus and highlights anything that seems to be growing in urgency or drifting away.</p>
+      <p><strong>Best used when:</strong> you want to understand what's naturally rising to the top of your attention without consciously tracking it — useful for weekly retrospectives or planning sessions.</p>
+    </div>
+  </div>
+
+  <div class="agent-doc-card">
+    <div class="agent-doc-icon">🎯</div>
+    <div class="agent-doc-body">
+      <h3 class="agent-doc-name">Suggest focus areas for today</h3>
+      <p>Combines your active themes, open tasks, and recent captures to produce personalised suggestions for where to direct your attention today. The agent considers what's been most active recently, what tasks appear unresolved, and what patterns suggest growing urgency.</p>
+      <p><strong>Best used when:</strong> you're starting a work session and want a grounded, corpus-informed answer to "what should I focus on?"</p>
+    </div>
+  </div>
+
+  <h2>Running an agent</h2>
+
+  <ol class="steps">
+    <li>
+      <div><p>Click the <strong>Run</strong> button on any agent card. The output panel opens at the bottom of the view.</p></div>
+    </li>
+    <li>
+      <div><p>The agent gathers data from your corpus (entries, themes, task lists), builds a prompt, and begins streaming the LLM response token by token. The agent's name appears in the output panel header.</p></div>
+    </li>
+    <li>
+      <div><p>The output scrolls automatically as new text arrives. A <strong>● Running…</strong> indicator in the panel header shows the agent is active.</p></div>
+    </li>
+    <li>
+      <div><p>When the agent finishes, the indicator disappears. Scroll back up to read the full response at your own pace.</p></div>
+    </li>
+  </ol>
+
+  <figure class="screenshot-placeholder">
+    <figcaption>📸 Screenshot suggestion: The output panel mid-run — "Identify emerging priorities" label in the header, partial text visible, ● Running… indicator and ■ Stop button visible in the top-right of the panel</figcaption>
+  </figure>
+
+  <h2>Stopping an agent mid-run</h2>
+  <p>
+    Click the <strong>■ Stop</strong> button in the output panel header to abort the agent. A <code>[Stopped]</code> message appears at the end of the output, and the panel returns to idle state. The output produced up to that point is preserved — you can still read whatever was generated before you stopped it.
+  </p>
+
+  <h2>Clearing the output</h2>
+  <p>
+    Click <strong>Clear</strong> in the output panel header to reset the panel. The output panel closes until you run another agent.
+  </p>
+
+  <h2>Requirements and limitations</h2>
+  <ul>
+    <li>Agents require Ollama to be running with a configured LLM model (default: <code>phi3:mini</code>). Change the LLM in <a href="settings.html#models">Settings → Models</a>.</li>
+    <li>Only one agent can run at a time. The <strong>Run</strong> buttons on all other cards are disabled while an agent is active.</li>
+    <li>If Portfolio is enabled, agents read the <strong>currently active profile's</strong> corpus only. Switch profiles before running an agent to query a different profile.</li>
+    <li>Agent results are not saved. Copy the text from the output panel if you want to keep it — or use <a href="export.html">Export</a> to produce a full corpus snapshot for use with external AI tools.</li>
+    <li>Output quality depends on the LLM model. Larger or more capable models produce more nuanced responses. <code>phi3:mini</code> is the default as it runs well on consumer hardware; swap it for a larger model in Settings if you have the resources.</li>
+  </ul>
+
+  <div class="callout">
+    <p><strong>Coming in 0.10.x:</strong> A free-text chat input in the Agents view will let you ask open-ended questions and give natural language instructions, with streamed token-by-token responses — extending agents from pre-built tasks to an interactive conversational interface over your corpus.</p>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; local-first &mdash; <a href="https://github.com/codebureau/neurologue" target="_blank" rel="noopener">GitHub</a></p>
+</footer>
+
+</body>
+</html>
