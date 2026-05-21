@@ -3,3 +3,4 @@ node_modules/
 *.db
 dist/
 out/
+build/test-output.txt
