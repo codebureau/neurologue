@@ -363,3 +363,137 @@ tr:hover td { background: var(--surface); }
 
 .site-footer a { color: var(--text-dim); }
 .site-footer a:hover { color: var(--cortex-teal); text-decoration: none; }
+
+/* ── Screenshots ── */
+
+figure.screenshot {
+  margin: 28px 0;
+  max-width: 100%;
+}
+
+figure.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+figure.screenshot figcaption {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ── Screenshot placeholders ── */
+
+figure.screenshot-placeholder {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 20px 24px;
+  margin: 24px 0;
+  text-align: center;
+}
+
+figure.screenshot-placeholder figcaption {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── On-page navigation ── */
+
+nav.on-page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 36px;
+  padding: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+nav.on-page-nav a {
+  font-size: 13px;
+  color: var(--cortex-teal);
+  text-decoration: none;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  transition: background 0.15s, border-color 0.15s;
+}
+
+nav.on-page-nav a:hover {
+  background: var(--surface2);
+  border-color: var(--cortex-teal);
+}
+
+/* ── Section subtitle (used on analysis.html sections) ── */
+
+.section-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: -16px 0 20px;
+  font-style: italic;
+}
+
+/* ── Agent doc cards ── */
+
+.agent-doc-card {
+  display: flex;
+  gap: 20px;
+  padding: 20px 24px;
+  margin: 20px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.agent-doc-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.agent-doc-body h3.agent-doc-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.agent-doc-body p {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.agent-doc-body p:last-child { margin-bottom: 0; }
+
+/* ── Science diagrams ── */
+
+figure.science-diagram {
+  margin: 28px 0;
+  overflow-x: auto;
+}
+
+figure.science-diagram svg {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto 12px;
+  font-family: inherit;
+}
+
+figure.science-diagram figcaption {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+  font-style: italic;
+}
+
