@@ -364,6 +364,29 @@ tr:hover td { background: var(--surface); }
 .site-footer a { color: var(--text-dim); }
 .site-footer a:hover { color: var(--cortex-teal); text-decoration: none; }
 
+/* ── Screenshots ── */
+
+figure.screenshot {
+  margin: 28px 0;
+  max-width: 100%;
+}
+
+figure.screenshot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+figure.screenshot figcaption {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 8px;
+  text-align: center;
+}
+
 /* ── Screenshot placeholders ── */
 
 figure.screenshot-placeholder {
