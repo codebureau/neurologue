@@ -273,6 +273,34 @@ kbd {
 .steps li > div { flex: 1; }
 .steps li > div p { margin-bottom: 6px; }
 
+/* ── Documentation table ── */
+
+.doc-table {
+  width:           100%;
+  border-collapse: collapse;
+  font-size:       14px;
+  margin:          20px 0;
+}
+
+.doc-table th,
+.doc-table td {
+  text-align:  left;
+  padding:     10px 14px;
+  border:      1px solid var(--border);
+  line-height: 1.5;
+}
+
+.doc-table thead th {
+  background:  var(--surface);
+  font-weight: 600;
+  font-size:   13px;
+  color:       var(--text-muted);
+}
+
+.doc-table tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
 /* ── Flow diagram ── */
 
 .flow {

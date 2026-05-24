@@ -400,14 +400,21 @@ handle('agents:abort', async () => {
 });
 
 handle('agents:chat', async (event, { message, history = [] }) => {
-  await chat(message, history, (token) => {
-    if (!event.sender.isDestroyed()) {
-      event.sender.send('chat:token', { token });
-    }
-  });
-  if (!event.sender.isDestroyed()) {
-    event.sender.send('chat:done');
-  }
+  await chat(
+    message,
+    history,
+    (token) => {
+      if (!event.sender.isDestroyed()) event.sender.send('chat:token', { token });
+    },
+    (action) => {
+      if (event.sender.isDestroyed()) return;
+      if (action.type === 'entry-created') {
+        event.sender.send('worker:entries-updated', { reason: 'chat-create' });
+        reindexEntry(action.entryId).catch(() => {});
+      }
+    },
+  );
+  if (!event.sender.isDestroyed()) event.sender.send('chat:done');
   return { ok: true };
 });
 
