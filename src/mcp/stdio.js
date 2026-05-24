@@ -10,7 +10,7 @@
  */
 
 const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
-const { runMigrations } = require('../../db/migrate');
+const { runMigrations } = require('../db/migrate');
 const { initVectorStore, setStorePath } = require('../backend/vector/store');
 const { getActiveProfile } = require('../backend/portfolio');
 const { setDbPath } = require('../backend/db/connection');
