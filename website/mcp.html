@@ -87,11 +87,16 @@
     </tbody>
   </table>
 
+  <div class="callout warning">
+    <p>Claude Desktop may not create this folder automatically. If it does not exist, create it manually before adding the config file.</p>
+  </div>
+
   <p>The config snippet looks like this (substitute your actual token):</p>
 
   <pre><code>{
   "mcpServers": {
     "neurologue": {
+      "type": "http",
       "url": "http://127.0.0.1:3737/mcp",
       "headers": {
         "Authorization": "Bearer &lt;your-token&gt;"
@@ -100,7 +105,7 @@
   }
 }</code></pre>
 
-  <p>Restart Claude Desktop after saving. The Neurologue tools will appear in the tool picker inside any conversation.</p>
+  <p><strong>Fully quit and restart Claude Desktop</strong> after saving (use the system tray / menu bar quit option, not just closing the window). The Neurologue tools will appear in the tool picker inside any conversation.</p>
 
   <h2 id="cursor">Connecting Cursor</h2>
   <p>In <strong>Cursor → Settings → MCP</strong>, add a new server entry:</p>

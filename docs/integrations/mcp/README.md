@@ -19,6 +19,7 @@ Add the following snippet to your `claude_desktop_config.json` (or click **Copy 
 {
   "mcpServers": {
     "neurologue": {
+      "type": "http",
       "url": "http://127.0.0.1:3737/mcp",
       "headers": {
         "Authorization": "Bearer <your-token>"
@@ -32,7 +33,9 @@ Add the following snippet to your `claude_desktop_config.json` (or click **Copy 
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-Restart Claude Desktop after saving. The Neurologue tools will appear in the tool picker.
+> **Note:** Claude Desktop may not create this folder automatically. Create it manually if it does not exist.
+
+Fully quit and restart Claude Desktop after saving (use the system tray/menu bar quit option). The tools will appear in the tool picker. The Neurologue tools will appear in the tool picker.
 
 ## Connecting Cursor
 

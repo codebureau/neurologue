@@ -1781,6 +1781,7 @@ document.getElementById('btn-mcp-copy-config')?.addEventListener('click', async 
   const config = {
     mcpServers: {
       neurologue: {
+        type: 'http',
         url: `http://127.0.0.1:${port}/mcp`,
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       },
