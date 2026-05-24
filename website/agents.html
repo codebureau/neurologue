@@ -29,8 +29,8 @@
 </header>
 
 <main class="page-content">
-  <h1>Agents</h1>
-  <p class="page-subtitle">Local AI agents that read your entire corpus and produce narrative reports.</p>
+  <h1>Agents &amp; Chat</h1>
+  <p class="page-subtitle">Local AI agents that produce narrative reports, plus a free-text chat interface for questions and note management.</p>
 
   <figure class="screenshot">
     <img src="screenshots/agents.png" alt="The Agents view showing four agent cards in a grid with the output panel open below" />
@@ -51,7 +51,7 @@
 
   <h2>Opening the Agents view</h2>
   <p>
-    Click <strong>Agents</strong> in the left navigation rail of the Library window. The view shows a grid of agent cards — one card per available agent.
+    Click <strong>Agents</strong> in the left navigation rail of the Library window. The view has two tabs: <strong>Agents</strong> (pre-built analysis tasks) and <strong>Chat</strong> (free-text conversation). Click either tab to switch between them.
   </p>
 
   <h2>Available agents</h2>
@@ -129,9 +129,58 @@
     <li>Output quality depends on the LLM model. Larger or more capable models produce more nuanced responses. <code>phi3:mini</code> is the default as it runs well on consumer hardware; swap it for a larger model in Settings if you have the resources.</li>
   </ul>
 
-  <div class="callout">
-    <p><strong>Coming in 0.10.x:</strong> A free-text chat input in the Agents view will let you ask open-ended questions and give natural language instructions, with streamed token-by-token responses — extending agents from pre-built tasks to an interactive conversational interface over your corpus.</p>
+  <hr />
+
+  <h2>Chat tab</h2>
+  <p>
+    The <strong>Chat</strong> tab provides a free-text conversational interface over your corpus. Type a message and press <kbd>Enter</kbd> (or click <strong>Send</strong>) — Neurologue retrieves relevant notes and theme summaries, then streams a grounded response token by token.
+  </p>
+  <p>
+    Conversation history is kept for the session. Each message you send includes the previous turns so the LLM can answer follow-up questions coherently. Click <strong>Clear</strong> to reset the thread and start fresh.
+  </p>
+
+  <h3>Intent-aware note management</h3>
+  <p>
+    The chat interface recognises the intent behind your message and can act on your corpus directly — not just answer questions:
+  </p>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>Intent</th><th>Example messages</th><th>What happens</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Create</strong></td>
+        <td>"Create a note: remember to follow up with Alex"<br />"Add note: idea for the homepage redesign"</td>
+        <td>A new entry is saved immediately and appears in the Library. The background worker picks it up for embedding and classification on the next cycle.</td>
+      </tr>
+      <tr>
+        <td><strong>Search</strong></td>
+        <td>"Find notes about the Q3 review"<br />"Show me notes on machine learning"</td>
+        <td>Neurologue runs semantic and text search and returns a formatted list of matching entries with dates and categories.</td>
+      </tr>
+      <tr>
+        <td><strong>Summarise</strong></td>
+        <td>"Summarise my notes on Ollama"<br />"What do I know about embeddings?"</td>
+        <td>Retrieves the most relevant notes on the topic and asks the LLM to synthesise them into a 2–3 paragraph summary.</td>
+      </tr>
+      <tr>
+        <td><strong>General</strong></td>
+        <td>"What themes have I been exploring lately?"<br />"Which of my ideas relate to productivity?"</td>
+        <td>Builds a context window from your corpus (recent entries + themes) and streams a grounded conversational answer.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <p><strong>Requires Ollama.</strong> Intent detection and response generation both use the LLM configured in Settings → Models. If Ollama is unavailable, chat falls back to general mode (no intent detection) and will fail if the model cannot be reached. <strong>Create</strong> and <strong>Search</strong> do not require Ollama and work even when the model is offline.</p>
   </div>
+
+  <h3>Stopping and clearing</h3>
+  <ul>
+    <li>Click <strong>■ Stop</strong> to abort a streaming response mid-way. The text generated so far is preserved.</li>
+    <li>Click <strong>Clear</strong> to wipe the thread and reset conversation history. This does not affect any notes created during the session.</li>
+  </ul>
 
 </main>
 

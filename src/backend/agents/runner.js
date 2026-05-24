@@ -20,6 +20,7 @@ const { generateStream, chatStream, generateEmbedding, isOllamaAvailable } = req
 const { searchNearest } = require('../vector/store');
 const { searchEntriesText, getEntryWithTags } = require('../db/search');
 const { listThemes } = require('../db/themes');
+const { createEntry } = require('../db/entries');
 
 // ── Agent definitions ────────────────────────────────────────────────────────
 
@@ -200,32 +201,110 @@ async function runAgent(agentId, onToken) {
 
 // ── Chat ─────────────────────────────────────────────────────────────────────
 
+// Pending destructive action waiting for user confirmation
+let _pendingConfirmation = null;
+
 /**
- * Free-text chat grounded in the user's corpus.
- * Retrieves relevant entries + theme summaries as system context, then streams
- * a multi-turn response via /api/chat.
+ * Classify a user message into one of: create | search | summarise | edit | general
+ * @param {string} message
+ * @returns {Promise<string>}
+ */
+async function detectIntent(message) {
+  const prompt =
+    `Classify this message into exactly one intent word.\n` +
+    `Valid intents: create, search, summarise, edit, general\n\n` +
+    `- "create": save/add/record a new note\n` +
+    `- "search": find existing notes\n` +
+    `- "summarise": summarise notes on a topic\n` +
+    `- "edit": modify or delete an existing note\n` +
+    `- "general": a question, conversation, or anything else\n\n` +
+    `Message: "${message.slice(0, 300)}"\n\n` +
+    `Intent (one word only):`;
+
+  let result = '';
+  try {
+    await generateStream(prompt, (t) => { result += t; }, 15_000);
+  } catch { /* default to general */ }
+
+  result = result.trim().toLowerCase().split(/\s+/)[0] || 'general';
+  const valid = ['create', 'search', 'summarise', 'edit', 'general'];
+  return valid.includes(result) ? result : 'general';
+}
+
+function _extractCreateContent(message) {
+  return message
+    .replace(/^(create\s+a?\s*note\s*[:—\-]?\s*|add\s+(?:a\s+)?note\s*[:—\-]?\s*|save\s+(?:a?\s*note\s*[:—\-]?\s*|this\s*[:—\-]?\s*)|record\s*[:—\-]?\s*|note\s*[:—\-]\s*)/i, '')
+    .trim();
+}
+
+/**
+ * Free-text chat with corpus grounding and agentic note management.
+ * Detects intent and dispatches: create → save entry; search → find entries;
+ * summarise → LLM synthesis; general → context-grounded chatStream.
  *
- * @param {string}   userMessage  The latest user message
- * @param {{ role: 'user'|'assistant', content: string }[]} history  Prior turns
- * @param {function} onToken      Called with each streamed text fragment
+ * @param {string}   userMessage
+ * @param {{ role: 'user'|'assistant', content: string }[]} history
+ * @param {function} onToken    Called with each text fragment
+ * @param {function} [onAction] Called with { type, ... } on corpus mutations
  * @returns {Promise<void>}
  */
-async function chat(userMessage, history, onToken) {
-  abortAgent(); // cancel any in-flight agent or chat
+async function chat(userMessage, history, onToken, onAction = null) {
+  abortAgent();
 
+  // Resolve any pending confirmation before normal dispatch
+  if (_pendingConfirmation) {
+    const confirmed = /^yes\b/i.test(userMessage.trim());
+    const pending   = _pendingConfirmation;
+    _pendingConfirmation = null;
+    if (confirmed) {
+      onToken(`Action confirmed — "${pending.type}" via chat is not yet fully implemented.`);
+    } else {
+      onToken('Action cancelled.');
+    }
+    return;
+  }
+
+  // Detect intent (falls back to general if Ollama unavailable or detection fails)
+  let intent = 'general';
+  try {
+    if (await isOllamaAvailable()) intent = await detectIntent(userMessage);
+  } catch { /* keep general */ }
+
+  // ── Non-streaming intents ────────────────────────────────────────────────
+  if (intent === 'create') {
+    await _handleCreate(userMessage, onToken, onAction);
+    return;
+  }
+
+  if (intent === 'search') {
+    await _handleSearch(userMessage, onToken);
+    return;
+  }
+
+  if (intent === 'edit') {
+    _pendingConfirmation = { type: 'edit' };
+    onToken('Editing notes via chat requires confirmation and is not yet fully implemented. Reply "yes" to acknowledge, or continue with another request.');
+    return;
+  }
+
+  // ── Streaming intents (summarise + general) ──────────────────────────────
   const controller = new AbortController();
   _currentController = controller;
 
   try {
+    if (intent === 'summarise') {
+      await _handleSummarise(userMessage, onToken, controller.signal);
+      return;
+    }
+
+    // General: context-grounded multi-turn chat
     const [contextEntries, themes] = await Promise.all([
       _buildChatContext(userMessage),
       listThemes().catch(() => []),
     ]);
 
-    const systemContent = _buildSystemMessage(contextEntries, themes.slice(0, 3));
-
     const messages = [
-      { role: 'system', content: systemContent },
+      { role: 'system', content: _buildSystemMessage(contextEntries, themes.slice(0, 3)) },
       ...history,
       { role: 'user', content: userMessage },
     ];
@@ -234,6 +313,74 @@ async function chat(userMessage, history, onToken) {
   } finally {
     if (_currentController === controller) _currentController = null;
   }
+}
+
+async function _handleCreate(userMessage, onToken, onAction) {
+  const content = _extractCreateContent(userMessage);
+  if (!content) {
+    onToken('I couldn\'t find note content to save. Try: "Create a note: your text here"');
+    return;
+  }
+  const entry = await createEntry({ content, source: 'chat' });
+  if (onAction) onAction({ type: 'entry-created', entryId: entry.id });
+  onToken(`Created 1 new note:\n"${content.slice(0, 120)}${content.length > 120 ? '…' : ''}"`);
+}
+
+async function _handleSearch(userMessage, onToken) {
+  const query = userMessage
+    .replace(/^(find\s+(?:notes?\s+)?(?:about|on|for)?|search\s+(?:for\s+)?(?:notes?\s+)?(?:about|on)?|look\s+(?:up|for)\s+(?:notes?\s+)?(?:about|on)?|show\s+(?:me\s+)?(?:notes?\s+)?(?:about|on|for)?)\s*/i, '')
+    .trim() || userMessage;
+
+  const [textResults, semanticEntries] = await Promise.all([
+    searchEntriesText(query, { limit: 8 }).catch(() => []),
+    _buildChatContext(query),
+  ]);
+
+  const seen = new Set();
+  const entries = [];
+  for (const e of [...semanticEntries, ...textResults]) {
+    if (!seen.has(e.id)) { seen.add(e.id); entries.push(e); }
+  }
+
+  if (entries.length === 0) {
+    onToken(`No notes found matching "${query}".`);
+    return;
+  }
+
+  const lines = entries.slice(0, 8).map((e) => {
+    const date = e.created_at ? e.created_at.slice(0, 10) : '';
+    const cat  = e.category ? ` [${e.category}]` : '';
+    return `• ${date}${cat}: ${e.content.slice(0, 150)}${e.content.length > 150 ? '…' : ''}`;
+  });
+
+  onToken(`Found ${entries.length} note${entries.length !== 1 ? 's' : ''} matching "${query}":\n\n${lines.join('\n')}`);
+}
+
+async function _handleSummarise(userMessage, onToken, signal) {
+  const topic = userMessage
+    .replace(/^(summari[sz]e?\s+(?:my\s+)?(?:notes?\s+)?(?:on|about)?|give\s+me\s+a\s+summary\s+of(?:\s+my\s+notes?\s+on)?|what\s+(?:do\s+I\s+know|have\s+I\s+(?:written|noted|said))\s+about)\s*/i, '')
+    .replace(/\s+(notes?|entries?|thoughts?)$/i, '')
+    .trim() || userMessage;
+
+  const contextEntries = await _buildChatContext(topic);
+
+  if (contextEntries.length === 0) {
+    onToken(`No notes found on "${topic}" to summarise.`);
+    return;
+  }
+
+  const entryLines = contextEntries.map((e) => {
+    const date = e.created_at ? e.created_at.slice(0, 10) : '';
+    return `- ${date}: ${e.content.slice(0, 300)}`;
+  }).join('\n');
+
+  const prompt =
+    `Here are notes from my knowledge base on the topic "${topic}":\n\n${entryLines}\n\n` +
+    `Write a concise summary (2–3 paragraphs) of what these notes reveal about this topic. ` +
+    `Identify key ideas, any patterns or tensions, and what they collectively suggest. ` +
+    `Write in second person.`;
+
+  await generateStream(prompt, onToken, 120_000, signal);
 }
 
 async function _buildChatContext(query) {
@@ -293,4 +440,4 @@ function _buildSystemMessage(entries, themes) {
   return parts.join('\n');
 }
 
-module.exports = { listAgents, runAgent, abortAgent, chat };
+module.exports = { listAgents, runAgent, abortAgent, chat, detectIntent };
