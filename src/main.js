@@ -25,7 +25,7 @@ const { getDashboardSummary } = require('./backend/db/dashboard');
 const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signals');
 const { getGraphData } = require('./backend/db/graph');
 const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
-const { listAgents, runAgent, abortAgent } = require('./backend/agents/runner');
+const { listAgents, runAgent, abortAgent, chat } = require('./backend/agents/runner');
 const { listProfiles, getActiveProfile, createProfile, renameProfile, recolorProfile, deleteProfile, setActiveProfile } = require('./backend/portfolio');
 const { getProfileStats } = require('./backend/db/profile-stats');
 const { setDbPath, switchDb } = require('./backend/db/connection');
@@ -396,6 +396,18 @@ handle('agents:run', async (event, { agentId }) => {
 
 handle('agents:abort', async () => {
   abortAgent();
+  return { ok: true };
+});
+
+handle('agents:chat', async (event, { message, history = [] }) => {
+  await chat(message, history, (token) => {
+    if (!event.sender.isDestroyed()) {
+      event.sender.send('chat:token', { token });
+    }
+  });
+  if (!event.sender.isDestroyed()) {
+    event.sender.send('chat:done');
+  }
   return { ok: true };
 });
 

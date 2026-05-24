@@ -87,6 +87,11 @@ contextBridge.exposeInMainWorld('neurologue', {
   onAgentToken:  (cb)      => { ipcRenderer.on('agent:token', (_e, d) => cb(d)); },
   onAgentDone:   (cb)      => { ipcRenderer.on('agent:done',  ()       => cb()); },
 
+  // ── Chat ─────────────────────────────────────────────────────────────────
+  chat:        (message, history) => ipcRenderer.invoke('agents:chat', { message, history }),
+  onChatToken: (cb) => { ipcRenderer.on('chat:token', (_e, d) => cb(d)); },
+  onChatDone:  (cb) => { ipcRenderer.on('chat:done',  ()       => cb()); },
+
   // ── Memory Replay ─────────────────────────────────────────────────────────
   listActiveMonths:   ()                          => ipcRenderer.invoke('replay:active-months'),
   getMonthSnapshot:   (year, month)               => ipcRenderer.invoke('replay:month-snapshot',  { year, month }),

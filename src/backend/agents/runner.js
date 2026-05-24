@@ -16,7 +16,10 @@ const {
   getTodayFocusData,
 } = require('../db/agents');
 
-const { generateStream } = require('../../worker/ollama');
+const { generateStream, chatStream, generateEmbedding, isOllamaAvailable } = require('../../worker/ollama');
+const { searchNearest } = require('../vector/store');
+const { searchEntriesText, getEntryWithTags } = require('../db/search');
+const { listThemes } = require('../db/themes');
 
 // ── Agent definitions ────────────────────────────────────────────────────────
 
@@ -195,4 +198,99 @@ async function runAgent(agentId, onToken) {
   }
 }
 
-module.exports = { listAgents, runAgent, abortAgent };
+// ── Chat ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Free-text chat grounded in the user's corpus.
+ * Retrieves relevant entries + theme summaries as system context, then streams
+ * a multi-turn response via /api/chat.
+ *
+ * @param {string}   userMessage  The latest user message
+ * @param {{ role: 'user'|'assistant', content: string }[]} history  Prior turns
+ * @param {function} onToken      Called with each streamed text fragment
+ * @returns {Promise<void>}
+ */
+async function chat(userMessage, history, onToken) {
+  abortAgent(); // cancel any in-flight agent or chat
+
+  const controller = new AbortController();
+  _currentController = controller;
+
+  try {
+    const [contextEntries, themes] = await Promise.all([
+      _buildChatContext(userMessage),
+      listThemes().catch(() => []),
+    ]);
+
+    const systemContent = _buildSystemMessage(contextEntries, themes.slice(0, 3));
+
+    const messages = [
+      { role: 'system', content: systemContent },
+      ...history,
+      { role: 'user', content: userMessage },
+    ];
+
+    await chatStream(messages, onToken, 180_000, controller.signal);
+  } finally {
+    if (_currentController === controller) _currentController = null;
+  }
+}
+
+async function _buildChatContext(query) {
+  let entries = [];
+
+  // Prefer semantic search when Ollama is available
+  try {
+    if (await isOllamaAvailable()) {
+      const queryVector = await generateEmbedding(query);
+      const hits = await searchNearest(queryVector, 5);
+      entries = (await Promise.all(hits.map((h) => getEntryWithTags(h.entry_id)))).filter(Boolean);
+    }
+  } catch { /* fall through to text search */ }
+
+  // Supplement with text search if semantic returned too few results
+  if (entries.length < 3) {
+    try {
+      const textResults = await searchEntriesText(query, { limit: 5 });
+      const seen = new Set(entries.map((e) => e.id));
+      for (const e of textResults) {
+        if (!seen.has(e.id)) entries.push(e);
+      }
+    } catch { /* ignore */ }
+  }
+
+  return entries.slice(0, 5);
+}
+
+function _buildSystemMessage(entries, themes) {
+  const parts = [
+    'You are a helpful assistant for a personal knowledge base called Neurologue. ' +
+    'Answer questions grounded in the notes and themes below. ' +
+    'Be concise and refer to specific notes when relevant.',
+  ];
+
+  if (entries.length > 0) {
+    parts.push('\nRelevant notes:');
+    for (const e of entries) {
+      const date = e.created_at ? e.created_at.slice(0, 10) : '';
+      const cat  = e.category ? ` [${e.category}]` : '';
+      parts.push(`- ${date}${cat}: ${e.content.slice(0, 300)}`);
+    }
+  }
+
+  if (themes.length > 0) {
+    parts.push('\nActive themes:');
+    for (const t of themes) {
+      const desc = t.description ? ` — ${t.description.slice(0, 120)}` : '';
+      parts.push(`- "${t.display_name}"${desc}`);
+    }
+  }
+
+  if (entries.length === 0 && themes.length === 0) {
+    parts.push('\nThe knowledge base is empty. Let the user know they can start by capturing notes.');
+  }
+
+  return parts.join('\n');
+}
+
+module.exports = { listAgents, runAgent, abortAgent, chat };

@@ -3646,6 +3646,109 @@ function _escHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ── Agents tab switching ──────────────────────────────────────────────────────
+
+document.querySelectorAll('.agents-tab').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    document.querySelectorAll('.agents-tab').forEach((b) => b.classList.toggle('active', b === btn));
+    document.querySelectorAll('.agents-tab-content').forEach((panel) => {
+      panel.style.display = panel.id === `agents-tab-${tab}` ? '' : 'none';
+    });
+    if (tab === 'agents') loadAgentsView();
+  });
+});
+
+// ── Chat view controller ──────────────────────────────────────────────────────
+
+const chatThread   = document.getElementById('chat-thread');
+const chatInput    = document.getElementById('chat-input');
+const btnChatSend  = document.getElementById('btn-chat-send');
+const btnChatStop  = document.getElementById('btn-chat-stop');
+const btnChatClear = document.getElementById('btn-chat-clear');
+
+let _chatHistory         = []; // { role: 'user'|'assistant', content: string }[]
+let _chatRunning         = false;
+let _chatAssistantBubble = null; // DOM node receiving streaming tokens
+
+function _setChatRunning(running) {
+  _chatRunning           = running;
+  chatInput.disabled     = running;
+  btnChatSend.disabled   = running;
+  btnChatStop.style.display = running ? '' : 'none';
+}
+
+function _appendChatBubble(role, text = '') {
+  const bubble = document.createElement('div');
+  bubble.className = `chat-bubble chat-bubble-${role}`;
+  bubble.textContent = text;
+  chatThread.appendChild(bubble);
+  chatThread.scrollTop = chatThread.scrollHeight;
+  return bubble;
+}
+
+async function _sendChatMessage() {
+  const message = chatInput.value.trim();
+  if (!message || _chatRunning) return;
+
+  chatInput.value = '';
+
+  _appendChatBubble('user', message);
+
+  // Snapshot history before appending the new user turn (sent to backend)
+  const historySnapshot = [..._chatHistory];
+  _chatHistory.push({ role: 'user', content: message });
+
+  _setChatRunning(true);
+  _chatAssistantBubble = _appendChatBubble('assistant', '');
+
+  try {
+    await window.neurologue.chat(message, historySnapshot);
+  } catch (err) {
+    if (_chatAssistantBubble) _chatAssistantBubble.textContent += `\n[Error: ${err.message}]`;
+    _setChatRunning(false);
+  }
+  // Normal completion handled by onChatDone
+}
+
+window.neurologue.onChatToken(({ token }) => {
+  if (_chatAssistantBubble) {
+    _chatAssistantBubble.textContent += token;
+    chatThread.scrollTop = chatThread.scrollHeight;
+  }
+});
+
+window.neurologue.onChatDone(() => {
+  if (_chatAssistantBubble) {
+    _chatHistory.push({ role: 'assistant', content: _chatAssistantBubble.textContent });
+    _chatAssistantBubble = null;
+  }
+  _setChatRunning(false);
+});
+
+btnChatSend.addEventListener('click', _sendChatMessage);
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    _sendChatMessage();
+  }
+});
+
+btnChatStop.addEventListener('click', () => {
+  if (_chatAssistantBubble) {
+    _chatAssistantBubble.textContent += '\n[Stopped]';
+    _chatAssistantBubble = null;
+  }
+  window.neurologue.abortAgent(); // reuses the same AbortController
+  _setChatRunning(false);
+});
+
+btnChatClear.addEventListener('click', () => {
+  _chatHistory = [];
+  chatThread.innerHTML = '';
+});
+
 // ── Init ────────────────────────────────────────────────────────────
 
 // ── Portfolio feature gate ─────────────────────────────────────────────────
