@@ -601,10 +601,14 @@
         <!-- ── View: Agents ─────────────────────────────────────────────── -->
         <div id="view-agents" class="view">
           <div id="agents-toolbar">
-            <span id="agents-title">Agents</span>
-            <span class="agents-subtitle">Local AI agents that work on your corpus</span>
+            <div class="agents-tab-bar">
+              <button class="agents-tab active" data-tab="agents">Agents</button>
+              <button class="agents-tab" data-tab="chat">Chat</button>
+            </div>
           </div>
-          <div id="agents-body">
+
+          <!-- Agents tab -->
+          <div id="agents-tab-agents" class="agents-tab-content">
             <div id="agents-grid">
               <!-- Agent cards injected by library.js -->
             </div>
@@ -618,6 +622,20 @@
                 </div>
               </div>
               <div id="agents-output" class="agents-output-body"></div>
+            </div>
+          </div>
+
+          <!-- Chat tab -->
+          <div id="agents-tab-chat" class="agents-tab-content" style="display:none">
+            <div id="chat-thread" class="chat-thread"></div>
+            <div id="chat-controls" class="chat-controls">
+              <textarea id="chat-input" class="chat-input" rows="2"
+                placeholder="Ask something about your notes… (Enter to send, Shift+Enter for new line)"></textarea>
+              <div class="chat-buttons">
+                <button id="btn-chat-send" class="btn-primary">Send</button>
+                <button id="btn-chat-stop" class="btn-sm" style="display:none">&#9632; Stop</button>
+                <button id="btn-chat-clear" class="btn-sm">Clear</button>
+              </div>
             </div>
           </div>
         </div><!-- /#view-agents -->

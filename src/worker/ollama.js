@@ -532,4 +532,84 @@ function generateStream(prompt, onToken, timeoutMs = 180_000, signal = null) {
   });
 }
 
-module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction, computeEntrySignals, generateStream };
+/**
+ * Stream a multi-turn chat completion from Ollama using /api/chat.
+ *
+ * @param {{ role: 'system'|'user'|'assistant', content: string }[]} messages
+ * @param {function}    onToken       Called with each text fragment (string)
+ * @param {number}      [timeoutMs=180000]
+ * @param {AbortSignal} [signal]
+ * @returns {Promise<void>}
+ */
+function chatStream(messages, onToken, timeoutMs = 180_000, signal = null) {
+  return new Promise((resolve, reject) => {
+    if (signal && signal.aborted) return resolve();
+
+    const settings = getSettings();
+    const model    = settings.llmModel || 'phi3:mini';
+    const payload  = JSON.stringify({ model, messages, stream: true });
+    const url      = new URL(config.ollama.baseUrl);
+
+    const options = {
+      hostname: url.hostname,
+      port:     url.port || 11434,
+      path:     '/api/chat',
+      method:   'POST',
+      headers: {
+        'Content-Type':   'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+      },
+    };
+
+    let settled = false;
+    function finish() { if (!settled) { settled = true; resolve(); } }
+    function fail(err) { if (!settled) { settled = true; reject(err); } }
+
+    if (signal) {
+      signal.addEventListener('abort', () => { req.destroy(); finish(); }, { once: true });
+    }
+
+    const req = http.request(options, (res) => {
+      if (res.statusCode >= 400) {
+        res.resume();
+        return fail(new Error(`Ollama chatStream HTTP ${res.statusCode}`));
+      }
+
+      let buf = '';
+      res.on('data', (chunk) => {
+        buf += chunk.toString('utf8');
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const obj = JSON.parse(line);
+            if (obj.message && obj.message.content) onToken(obj.message.content);
+            if (obj.done) finish();
+          } catch { /* ignore malformed line */ }
+        }
+      });
+
+      res.on('end', () => {
+        if (buf.trim()) {
+          try {
+            const obj = JSON.parse(buf);
+            if (obj.message && obj.message.content) onToken(obj.message.content);
+          } catch { /* ignore */ }
+        }
+        finish();
+      });
+
+      res.on('error', (err) => { if (!settled) fail(err); });
+    });
+
+    req.setTimeout(timeoutMs, () => {
+      req.destroy(new Error(`chatStream timed out after ${timeoutMs / 1000}s`));
+    });
+    req.on('error', (err) => { if (!settled) fail(err); });
+    req.write(payload);
+    req.end();
+  });
+}
+
+module.exports = { generateEmbedding, isOllamaAvailable, getOllamaStatus, checkOllamaInstalled, pullModel, classifyEntry, suggestTags, setAvailableModels, detectContradiction, computeEntrySignals, generateStream, chatStream };
