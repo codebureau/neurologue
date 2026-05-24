@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Library — Neurologue Docs</title>
+  <title>Library â€” Neurologue Docs</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -33,8 +34,8 @@
   <p class="page-subtitle">Browse, search, and explore everything you've captured.</p>
 
   <figure class="screenshot">
-    <img src="screenshots/library.png" alt="The Library three-panel layout — sidebar on the left, entry timeline in the centre, entry detail panel on the right" />
-    <figcaption>Library overview — sidebar filters, entry timeline, and detail panel side by side.</figcaption>
+    <img src="screenshots/library.png" alt="The Library three-panel layout â€” sidebar on the left, entry timeline in the centre, entry detail panel on the right" />
+    <figcaption>Library overview â€” sidebar filters, entry timeline, and detail panel side by side.</figcaption>
   </figure>
 
   <h2>Layout overview</h2>
@@ -45,34 +46,34 @@
     <tbody>
       <tr><td><strong>Left sidebar</strong></td><td>Tags (with counts) and Categories for filtering; Themes for navigation</td></tr>
       <tr><td><strong>Timeline (centre)</strong></td><td>Entries matching the current filter or search, with optional grouping and heatmap</td></tr>
-      <tr><td><strong>Detail (right)</strong></td><td>Full content of the selected entry — including tags, category, and revision history</td></tr>
+      <tr><td><strong>Detail (right)</strong></td><td>Full content of the selected entry â€” including tags, category, and revision history</td></tr>
     </tbody>
   </table>
 
   <h2>Toolbar</h2>
   <p>The toolbar at the top contains:</p>
   <ul>
-    <li><strong>Search bar</strong> — type to search; results update as you type (300 ms debounce). Press <kbd>Escape</kbd> to clear.</li>
-    <li><strong>Text / Semantic toggle</strong> — switches the search mode (see below).</li>
-    <li><strong>Entry count</strong> — shows how many entries match the current view.</li>
-    <li><strong>Export…</strong> — opens the <a href="export.html">export</a> workflow.</li>
-    <li><strong>Maintenance</strong> — opens the <a href="#tag-management">Tag Management</a> panel.</li>
-    <li><strong>⚙</strong> — opens the <a href="settings.html">Settings</a> view in the navigation rail.</li>
-    <li><strong>Help</strong> — opens this documentation in your browser.</li>
+    <li><strong>Search bar</strong> â€” type to search; results update as you type (300 ms debounce). Press <kbd>Escape</kbd> to clear.</li>
+    <li><strong>Text / Semantic toggle</strong> â€” switches the search mode (see below).</li>
+    <li><strong>Entry count</strong> â€” shows how many entries match the current view.</li>
+    <li><strong>Exportâ€¦</strong> â€” opens the <a href="export.html">export</a> workflow.</li>
+    <li><strong>Maintenance</strong> â€” opens the <a href="#tag-management">Tag Management</a> panel.</li>
+    <li><strong>âš™</strong> â€” opens the <a href="settings.html">Settings</a> view in the navigation rail.</li>
+    <li><strong>Help</strong> â€” opens this documentation in your browser.</li>
   </ul>
 
   <h2>Search modes</h2>
 
   <h3>Text search</h3>
   <p>
-    The default mode. Uses SQLite full-text search to match entries whose content contains the words you type. Fast and works entirely offline. Results are paginated — 50 per page, with a <strong>Load more</strong> button at the bottom.
+    The default mode. Uses SQLite full-text search to match entries whose content contains the words you type. Fast and works entirely offline. Results are paginated â€” 50 per page, with a <strong>Load more</strong> button at the bottom.
   </p>
 
   <h3>Semantic search</h3>
   <p>
-    Click the <strong>Semantic</strong> button to switch modes. Instead of matching keywords, Neurologue embeds your query using <code>nomic-embed-text</code> and finds the 10 entries most similar in <em>meaning</em> — even if they share no words with your query.
+    Click the <strong>Semantic</strong> button to switch modes. Instead of matching keywords, Neurologue embeds your query using <code>nomic-embed-text</code> and finds the 10 entries most similar in <em>meaning</em> â€” even if they share no words with your query.
   </p>
-  <p>Each result shows a <strong>match score</strong> from 0.00 to 1.00 — the cosine similarity between your query embedding and the entry embedding. Higher is more similar.</p>
+  <p>Each result shows a <strong>match score</strong> from 0.00 to 1.00 â€” the cosine similarity between your query embedding and the entry embedding. Higher is more similar.</p>
 
   <div class="callout warning">
     <p><strong>Requires Ollama.</strong> If Ollama is not running when you switch to Semantic mode, a notice appears and results fall back to text search automatically.</p>
@@ -85,12 +86,12 @@
 
   <h2>Tag filtering</h2>
   <p>
-    The left sidebar lists all tags with their entry counts. Click any tag to filter the timeline to only entries with that tag. An <strong>active filter pill</strong> appears above the timeline showing the active tag with a <strong>×</strong> to clear it.
+    The left sidebar lists all tags with their entry counts. Click any tag to filter the timeline to only entries with that tag. An <strong>active filter pill</strong> appears above the timeline showing the active tag with a <strong>Ã—</strong> to clear it.
   </p>
   <ul>
-    <li>Click the <strong>×</strong> on the filter pill to remove the tag filter.</li>
+    <li>Click the <strong>Ã—</strong> on the filter pill to remove the tag filter.</li>
     <li>Clicking a tag pill on an entry card or in the detail panel also applies that tag filter.</li>
-    <li>A tag filter and a category filter can be active at the same time — they combine with AND (entries must match both).</li>
+    <li>A tag filter and a category filter can be active at the same time â€” they combine with AND (entries must match both).</li>
     <li>A text search can be active on top of both filters simultaneously.</li>
   </ul>
 
@@ -99,19 +100,19 @@
     Below the Tags section in the sidebar is a <strong>Categories</strong> section listing each category with entry counts. Click a category to filter the timeline to only entries of that type. Categories are:
   </p>
   <ul>
-    <li><strong>Task</strong> — something to do or remember to do</li>
-    <li><strong>Thought</strong> — a reflection, opinion, or observation</li>
-    <li><strong>Reminder</strong> — a time-sensitive note</li>
-    <li><strong>Idea</strong> — a creative or exploratory concept</li>
-    <li><strong>Question</strong> — something you're wondering about</li>
-    <li><strong>Decision</strong> — a choice made or being considered</li>
+    <li><strong>Task</strong> â€” something to do or remember to do</li>
+    <li><strong>Thought</strong> â€” a reflection, opinion, or observation</li>
+    <li><strong>Reminder</strong> â€” a time-sensitive note</li>
+    <li><strong>Idea</strong> â€” a creative or exploratory concept</li>
+    <li><strong>Question</strong> â€” something you're wondering about</li>
+    <li><strong>Decision</strong> â€” a choice made or being considered</li>
   </ul>
-  <p>The category badge on an entry card is also clickable — clicking it applies that category as a filter.</p>
+  <p>The category badge on an entry card is also clickable â€” clicking it applies that category as a filter.</p>
   <p>If no category has been assigned yet (Ollama not available during processing), entries appear without a badge and are not counted in any category.</p>
 
   <h2>Active filters</h2>
   <p>
-    When one or more filters are active, a <strong>filter bar</strong> appears between the timeline controls and the entry list. Each active filter (tag, category) shows as a pill with a <strong>×</strong> to remove it individually. A <strong>Clear all</strong> link removes all active filters at once.
+    When one or more filters are active, a <strong>filter bar</strong> appears between the timeline controls and the entry list. Each active filter (tag, category) shows as a pill with a <strong>Ã—</strong> to remove it individually. A <strong>Clear all</strong> link removes all active filters at once.
   </p>
 
   <h2>Timeline controls</h2>
@@ -120,30 +121,30 @@
   <h3>Grouping</h3>
   <p>Choose how entries are grouped in the timeline:</p>
   <ul>
-    <li><strong>None</strong> — flat reverse-chronological list (default)</li>
-    <li><strong>Day</strong> — entries grouped under a header for each calendar day</li>
-    <li><strong>Week</strong> — entries grouped under a header showing the week's date range</li>
-    <li><strong>Month</strong> — entries grouped under a month/year header</li>
+    <li><strong>None</strong> â€” flat reverse-chronological list (default)</li>
+    <li><strong>Day</strong> â€” entries grouped under a header for each calendar day</li>
+    <li><strong>Week</strong> â€” entries grouped under a header showing the week's date range</li>
+    <li><strong>Month</strong> â€” entries grouped under a month/year header</li>
   </ul>
 
   <h3 id="heatmap">Activity heatmap</h3>
   <p>
-    Click <strong>Heatmap</strong> to toggle a 52-week activity graph above the timeline — similar to a GitHub contribution graph. Each cell represents one day; the colour intensity reflects how many entries were captured that day. Hover any cell to see the exact count and date.
+    Click <strong>Heatmap</strong> to toggle a 52-week activity graph above the timeline â€” similar to a GitHub contribution graph. Each cell represents one day; the colour intensity reflects how many entries were captured that day. Hover any cell to see the exact count and date.
   </p>
 
   <h3>Infinite scroll</h3>
   <p>
-    The timeline loads 50 entries at a time. When you scroll to the bottom, the next page loads automatically — there is no "Load more" button. All active filters and grouping settings are respected as pages load.
+    The timeline loads 50 entries at a time. When you scroll to the bottom, the next page loads automatically â€” there is no "Load more" button. All active filters and grouping settings are respected as pages load.
   </p>
 
   <h2>Entry timeline</h2>
   <p>Each card in the timeline shows:</p>
   <ul>
-    <li><strong>Date/time</strong> — when the entry was captured</li>
-    <li><strong>Match score</strong> — only in semantic search mode</li>
-    <li><strong>Preview</strong> — first ~50 characters of content</li>
-    <li><strong>Category badge</strong> — the auto-assigned or user-set category (clickable — applies a category filter)</li>
-    <li><strong>Tag pills</strong> — tags shown as small badges (clickable — applies a tag filter)</li>
+    <li><strong>Date/time</strong> â€” when the entry was captured</li>
+    <li><strong>Match score</strong> â€” only in semantic search mode</li>
+    <li><strong>Preview</strong> â€” first ~50 characters of content</li>
+    <li><strong>Category badge</strong> â€” the auto-assigned or user-set category (clickable â€” applies a category filter)</li>
+    <li><strong>Tag pills</strong> â€” tags shown as small badges (clickable â€” applies a tag filter)</li>
   </ul>
   <p>Click any card to open the full entry in the detail panel. The selected card is highlighted.</p>
 
@@ -152,10 +153,10 @@
   <ul>
     <li>Full content text</li>
     <li>Source and type metadata (if edited, the edit timestamp is shown alongside the capture time)</li>
-    <li>All tags as clickable pills — clicking a tag applies that tag filter to the timeline</li>
-    <li><strong>Category badge</strong> — the effective category (auto or user-set); click the badge to open a dropdown and override it manually</li>
-    <li><strong>Tag suggestions</strong> — if Ollama is running, suggested tags appear below the tag editor as pills you can click to add</li>
-    <li><strong>Similar entries</strong> — a collapsible section at the bottom of the panel listing conceptually related entries (see below)</li>
+    <li>All tags as clickable pills â€” clicking a tag applies that tag filter to the timeline</li>
+    <li><strong>Category badge</strong> â€” the effective category (auto or user-set); click the badge to open a dropdown and override it manually</li>
+    <li><strong>Tag suggestions</strong> â€” if Ollama is running, suggested tags appear below the tag editor as pills you can click to add</li>
+    <li><strong>Similar entries</strong> â€” a collapsible section at the bottom of the panel listing conceptually related entries (see below)</li>
   </ul>
 
   <h3 id="similar-entries">Similar entries</h3>
@@ -165,33 +166,33 @@
 
   <h4>How similarity is measured</h4>
   <p>
-    Similarity is based on <strong>meaning, not wording</strong>. When an entry is saved, the background worker passes its text through the <code>nomic-embed-text</code> embedding model, which produces a 768-dimensional vector encoding the conceptual content of the entry. To find similar entries, Neurologue looks up the stored vector for the selected entry and searches for the nearest neighbours in the vector database — no additional Ollama call is needed.
+    Similarity is based on <strong>meaning, not wording</strong>. When an entry is saved, the background worker passes its text through the <code>nomic-embed-text</code> embedding model, which produces a 768-dimensional vector encoding the conceptual content of the entry. To find similar entries, Neurologue looks up the stored vector for the selected entry and searches for the nearest neighbours in the vector database â€” no additional Ollama call is needed.
   </p>
   <p>
     This means:
   </p>
   <ul>
-    <li>Two entries can be highly similar even if they share <em>no words in common</em> — what matters is whether they are about the same idea or topic.</li>
+    <li>Two entries can be highly similar even if they share <em>no words in common</em> â€” what matters is whether they are about the same idea or topic.</li>
     <li>Entries that share words but are about different things will <em>not</em> be considered similar.</li>
-    <li>Similarity is <em>not</em> sentiment — an anxious note and a calm note about the same topic will still rank as similar.</li>
+    <li>Similarity is <em>not</em> sentiment â€” an anxious note and a calm note about the same topic will still rank as similar.</li>
   </ul>
 
   <h4>The similarity percentage</h4>
   <p>
-    Each card shows a percentage derived from the vector distance between the two entries. It is an approximate indicator — use it as a rough guide rather than a precise score. 80%+ generally indicates strong topical overlap; below 50% the connection may be loose.
+    Each card shows a percentage derived from the vector distance between the two entries. It is an approximate indicator â€” use it as a rough guide rather than a precise score. 80%+ generally indicates strong topical overlap; below 50% the connection may be loose.
   </p>
 
   <h4>Requirements and limitations</h4>
   <ul>
     <li>Only entries that have been processed by the background worker (and therefore have an embedding) can appear in the list. Newly captured entries may not appear until the worker has run.</li>
-    <li>A working Ollama installation is <em>not</em> required to view similar entries — the lookup uses stored embeddings. Ollama is only needed to <em>generate</em> new embeddings for future entries.</li>
+    <li>A working Ollama installation is <em>not</em> required to view similar entries â€” the lookup uses stored embeddings. Ollama is only needed to <em>generate</em> new embeddings for future entries.</li>
     <li>The section is hidden if no embedding exists for the selected entry, or if no similar entries are found.</li>
     <li>Result count (currently 8) and similarity threshold are not user-configurable in this version.</li>
   </ul>
 
   <figure class="screenshot">
     <img src="screenshots/library-entry.png" alt="An open entry in the detail panel showing content, tag pills, category badge, and Similar entries section expanded" />
-    <figcaption>Entry detail panel — full content, tags, category, and semantically similar entries.</figcaption>
+    <figcaption>Entry detail panel â€” full content, tags, category, and semantically similar entries.</figcaption>
   </figure>
 
   <h3 id="editing">Editing an entry</h3>
@@ -199,12 +200,12 @@
     Click the <strong>Edit</strong> button at the bottom of the detail panel to open an inline edit form. Make your changes and press <strong>Save</strong> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>) to save. Press <kbd>Escape</kbd> or <strong>Cancel</strong> to discard.
   </p>
   <p>
-    When an entry is saved, the previous content is automatically preserved in the revision history — nothing is permanently lost.
+    When an entry is saved, the previous content is automatically preserved in the revision history â€” nothing is permanently lost.
   </p>
 
   <h3 id="version-history">Version history</h3>
   <p>
-    Click the <strong>History</strong> button to open the revision history drawer at the bottom of the detail panel. Each row shows when that version was saved and a preview of the text. Click outside the drawer or press the <strong>✕</strong> button to close it.
+    Click the <strong>History</strong> button to open the revision history drawer at the bottom of the detail panel. Each row shows when that version was saved and a preview of the text. Click outside the drawer or press the <strong>âœ•</strong> button to close it.
   </p>
 
   <h2 id="tag-management">Tag management</h2>
@@ -224,17 +225,17 @@
   <h3>Duplicate detection</h3>
   <p>The <strong>Possible duplicates</strong> section shows pairs of tags that may be duplicates, detected in two ways:</p>
   <ul>
-    <li><strong>Structural</strong> — format variants (<em>machine learning</em> vs <em>machine-learning</em>), abbreviations (<em>dev</em> vs <em>development</em>), plural/stem variants (<em>tag</em> vs <em>tagging</em>), and close spelling (Levenshtein distance)</li>
-    <li><strong>Semantic</strong> — tags whose embeddings are similar in meaning, above a configurable threshold</li>
+    <li><strong>Structural</strong> â€” format variants (<em>machine learning</em> vs <em>machine-learning</em>), abbreviations (<em>dev</em> vs <em>development</em>), plural/stem variants (<em>tag</em> vs <em>tagging</em>), and close spelling (Levenshtein distance)</li>
+    <li><strong>Semantic</strong> â€” tags whose embeddings are similar in meaning, above a configurable threshold</li>
   </ul>
   <p>If the list is empty, no probable duplicates were found at the current sensitivity level.</p>
 
   <h3>Duplicate detection sensitivity</h3>
   <p>The sensitivity slider (also available in <a href="#settings">Settings</a>) controls how aggressively semantic duplicates are flagged:</p>
   <ul>
-    <li><strong>Strict</strong> — only very similar tags are flagged (fewer false positives)</li>
-    <li><strong>Balanced</strong> — default; catches most duplicates without being too noisy</li>
-    <li><strong>Broad</strong> — flags loosely related tags (may include false positives)</li>
+    <li><strong>Strict</strong> â€” only very similar tags are flagged (fewer false positives)</li>
+    <li><strong>Balanced</strong> â€” default; catches most duplicates without being too noisy</li>
+    <li><strong>Broad</strong> â€” flags loosely related tags (may include false positives)</li>
   </ul>
 
   <h2>Themes view</h2>
@@ -254,7 +255,7 @@
 
   <h2>Status bar</h2>
   <p>
-    A thin bar at the bottom of the window shows live status for Ollama and the background worker. It updates automatically — you never need to refresh or restart the app to see current state.
+    A thin bar at the bottom of the window shows live status for Ollama and the background worker. It updates automatically â€” you never need to refresh or restart the app to see current state.
   </p>
 
   <h3>Indicators</h3>
@@ -262,31 +263,31 @@
   <table>
     <thead><tr><th>Dot colour</th><th>Meaning</th></tr></thead>
     <tbody>
-      <tr><td><strong>Teal</strong></td><td>Running / active — Ollama is reachable, or the worker is running and idle</td></tr>
-      <tr><td><strong>Gold</strong></td><td>Processing — the worker is currently embedding entries</td></tr>
-      <tr><td><strong>Dim grey</strong></td><td>Stopped / not reachable — Ollama is not running, or the worker has stopped</td></tr>
+      <tr><td><strong>Teal</strong></td><td>Running / active â€” Ollama is reachable, or the worker is running and idle</td></tr>
+      <tr><td><strong>Gold</strong></td><td>Processing â€” the worker is currently embedding entries</td></tr>
+      <tr><td><strong>Dim grey</strong></td><td>Stopped / not reachable â€” Ollama is not running, or the worker has stopped</td></tr>
     </tbody>
   </table>
 
   <h3>Ollama indicator</h3>
   <p>Shows one of:</p>
   <ul>
-    <li><strong>Ollama — nomic-embed-text:latest, phi3:mini</strong> (teal dot) — Ollama is running and those models are available</li>
-    <li><strong>Ollama not running</strong> (grey dot) — Ollama is not reachable; semantic search and embedding will not work</li>
+    <li><strong>Ollama â€” nomic-embed-text:latest, phi3:mini</strong> (teal dot) â€” Ollama is running and those models are available</li>
+    <li><strong>Ollama not running</strong> (grey dot) â€” Ollama is not reachable; semantic search and embedding will not work</li>
   </ul>
 
   <h3>Worker indicator</h3>
   <p>Shows one of:</p>
   <ul>
-    <li><strong>Processing (N queued)</strong> (gold dot) — the background worker is actively embedding entries; N is how many remain</li>
-    <li><strong>Worker idle — last: Mon DD HH:MM</strong> (teal dot) — all entries are embedded; shows when the last one was processed</li>
-    <li><strong>Worker idle</strong> (teal dot) — running but no entries have been embedded yet in this session</li>
-    <li><strong>Worker stopped</strong> (grey dot) — the worker is not running</li>
+    <li><strong>Processing (N queued)</strong> (gold dot) â€” the background worker is actively embedding entries; N is how many remain</li>
+    <li><strong>Worker idle â€” last: Mon DD HH:MM</strong> (teal dot) â€” all entries are embedded; shows when the last one was processed</li>
+    <li><strong>Worker idle</strong> (teal dot) â€” running but no entries have been embedded yet in this session</li>
+    <li><strong>Worker stopped</strong> (grey dot) â€” the worker is not running</li>
   </ul>
 
   <h3>Auto-refresh</h3>
   <p>
-    When the worker finishes embedding new entries, the timeline and tag list refresh automatically — you will see newly captured entries appear without any manual action.
+    When the worker finishes embedding new entries, the timeline and tag list refresh automatically â€” you will see newly captured entries appear without any manual action.
     When clustering completes and new themes are generated, the themes sidebar also refreshes automatically.
   </p>
 </main>

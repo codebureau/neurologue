@@ -114,6 +114,7 @@
   "license": "TBD",
   "dependencies": {
     "@lancedb/lancedb": "^0.17.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "apache-arrow": "^18.1.0",
     "sql.js": "^1.12.0"
   },

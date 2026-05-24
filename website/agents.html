@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agents — Neurologue Docs</title>
+  <title>Agents â€” Neurologue Docs</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html" class="active">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -34,19 +35,20 @@
 
   <figure class="screenshot">
     <img src="screenshots/agents.png" alt="The Agents view showing four agent cards in a grid with the output panel open below" />
-    <figcaption>The Agents view — four built-in agents, each with a Run button and a dedicated output panel.</figcaption>
+    <figcaption>The Agents view â€” four built-in agents, each with a Run button and a dedicated output panel.</figcaption>
   </figure>
 
   <h2>What are agents?</h2>
   <p>
-    Agents are pre-built analysis tasks that run a local LLM against your full corpus. Unlike search — which returns individual matching entries — an agent reads across many entries at once and produces a synthesised narrative: a written report, an organised list, or a set of recommendations.
+    Agents are pre-built analysis tasks that run a local LLM against your full corpus. Unlike search â€” which returns individual matching entries â€” an agent reads across many entries at once and produces a synthesised narrative: a written report, an organised list, or a set of recommendations.
   </p>
   <p>
-    Each agent gathers structured data from your database (entries, themes, task counts), builds a carefully crafted prompt, and streams the LLM's response back to the output panel token by token — so you see the answer forming in real time.
+    Each agent gathers structured data from your database (entries, themes, task counts), builds a carefully crafted prompt, and streams the LLM's response back to the output panel token by token â€” so you see the answer forming in real time.
   </p>
 
   <div class="callout warning">
-    <p><strong>Requires Ollama.</strong> Agents send prompts to your locally installed LLM (configured in <a href="settings.html#models">Settings → Models</a>). If Ollama is not running when you click Run, the agent will fail with an error message in the output panel. See <a href="troubleshooting.html">Troubleshooting</a> if Ollama isn't available.</p>
+    <p><strong>Requires Ollama.</strong> Agents send prompts to your locally installed LLM (configured in <a href="settings.html#models">Settings â†’ Models</a>). If Ollama is not running when you click Run, the agent will fail with an error message in the output panel. See <a href="mcp.html">MCP</a>
+      <a href="troubleshooting.html">Troubleshooting</a> if Ollama isn't available.</p>
   </div>
 
   <h2>Opening the Agents view</h2>
@@ -57,16 +59,16 @@
   <h2>Available agents</h2>
 
   <div class="agent-doc-card">
-    <div class="agent-doc-icon">📅</div>
+    <div class="agent-doc-icon">ðŸ“…</div>
     <div class="agent-doc-body">
       <h3 class="agent-doc-name">Summarise my week</h3>
-      <p>A narrative summary of everything you captured in the last 7 days. The agent reads all entries from the past week, identifies the key themes and ideas you were engaging with, and writes a 3–5 paragraph reflective summary in second person — <em>"You spent time thinking about…"</em></p>
+      <p>A narrative summary of everything you captured in the last 7 days. The agent reads all entries from the past week, identifies the key themes and ideas you were engaging with, and writes a 3â€“5 paragraph reflective summary in second person â€” <em>"You spent time thinking aboutâ€¦"</em></p>
       <p><strong>Best used when:</strong> it's the end of a working week and you want a high-level view of what occupied your mind.</p>
     </div>
   </div>
 
   <div class="agent-doc-card">
-    <div class="agent-doc-icon">✅</div>
+    <div class="agent-doc-icon">âœ…</div>
     <div class="agent-doc-body">
       <h3 class="agent-doc-name">Find open tasks</h3>
       <p>Scans all entries categorised as <strong>Task</strong> and organises them by apparent urgency. The agent looks for wording that suggests unresolved items, groups related tasks by theme or area, and flags anything that appears time-sensitive or high-priority.</p>
@@ -75,16 +77,16 @@
   </div>
 
   <div class="agent-doc-card">
-    <div class="agent-doc-icon">📈</div>
+    <div class="agent-doc-icon">ðŸ“ˆ</div>
     <div class="agent-doc-body">
       <h3 class="agent-doc-name">Identify emerging priorities</h3>
       <p>Compares theme activity from this week versus the previous week and identifies which themes are gaining or losing momentum. The agent explains what the trends suggest about your current focus and highlights anything that seems to be growing in urgency or drifting away.</p>
-      <p><strong>Best used when:</strong> you want to understand what's naturally rising to the top of your attention without consciously tracking it — useful for weekly retrospectives or planning sessions.</p>
+      <p><strong>Best used when:</strong> you want to understand what's naturally rising to the top of your attention without consciously tracking it â€” useful for weekly retrospectives or planning sessions.</p>
     </div>
   </div>
 
   <div class="agent-doc-card">
-    <div class="agent-doc-icon">🎯</div>
+    <div class="agent-doc-icon">ðŸŽ¯</div>
     <div class="agent-doc-body">
       <h3 class="agent-doc-name">Suggest focus areas for today</h3>
       <p>Combines your active themes, open tasks, and recent captures to produce personalised suggestions for where to direct your attention today. The agent considers what's been most active recently, what tasks appear unresolved, and what patterns suggest growing urgency.</p>
@@ -102,7 +104,7 @@
       <div><p>The agent gathers data from your corpus (entries, themes, task lists), builds a prompt, and begins streaming the LLM response token by token. The agent's name appears in the output panel header.</p></div>
     </li>
     <li>
-      <div><p>The output scrolls automatically as new text arrives. A <strong>● Running…</strong> indicator in the panel header shows the agent is active.</p></div>
+      <div><p>The output scrolls automatically as new text arrives. A <strong>â— Runningâ€¦</strong> indicator in the panel header shows the agent is active.</p></div>
     </li>
     <li>
       <div><p>When the agent finishes, the indicator disappears. Scroll back up to read the full response at your own pace.</p></div>
@@ -112,7 +114,7 @@
 
   <h2>Stopping an agent mid-run</h2>
   <p>
-    Click the <strong>■ Stop</strong> button in the output panel header to abort the agent. A <code>[Stopped]</code> message appears at the end of the output, and the panel returns to idle state. The output produced up to that point is preserved — you can still read whatever was generated before you stopped it.
+    Click the <strong>â–  Stop</strong> button in the output panel header to abort the agent. A <code>[Stopped]</code> message appears at the end of the output, and the panel returns to idle state. The output produced up to that point is preserved â€” you can still read whatever was generated before you stopped it.
   </p>
 
   <h2>Clearing the output</h2>
@@ -122,10 +124,10 @@
 
   <h2>Requirements and limitations</h2>
   <ul>
-    <li>Agents require Ollama to be running with a configured LLM model (default: <code>phi3:mini</code>). Change the LLM in <a href="settings.html#models">Settings → Models</a>.</li>
+    <li>Agents require Ollama to be running with a configured LLM model (default: <code>phi3:mini</code>). Change the LLM in <a href="settings.html#models">Settings â†’ Models</a>.</li>
     <li>Only one agent can run at a time. The <strong>Run</strong> buttons on all other cards are disabled while an agent is active.</li>
     <li>If Portfolio is enabled, agents read the <strong>currently active profile's</strong> corpus only. Switch profiles before running an agent to query a different profile.</li>
-    <li>Agent results are not saved. Copy the text from the output panel if you want to keep it — or use <a href="export.html">Export</a> to produce a full corpus snapshot for use with external AI tools.</li>
+    <li>Agent results are not saved. Copy the text from the output panel if you want to keep it â€” or use <a href="export.html">Export</a> to produce a full corpus snapshot for use with external AI tools.</li>
     <li>Output quality depends on the LLM model. Larger or more capable models produce more nuanced responses. <code>phi3:mini</code> is the default as it runs well on consumer hardware; swap it for a larger model in Settings if you have the resources.</li>
   </ul>
 
@@ -133,7 +135,7 @@
 
   <h2>Chat tab</h2>
   <p>
-    The <strong>Chat</strong> tab provides a free-text conversational interface over your corpus. Type a message and press <kbd>Enter</kbd> (or click <strong>Send</strong>) — Neurologue retrieves relevant notes and theme summaries, then streams a grounded response token by token.
+    The <strong>Chat</strong> tab provides a free-text conversational interface over your corpus. Type a message and press <kbd>Enter</kbd> (or click <strong>Send</strong>) â€” Neurologue retrieves relevant notes and theme summaries, then streams a grounded response token by token.
   </p>
   <p>
     Conversation history is kept for the session. Each message you send includes the previous turns so the LLM can answer follow-up questions coherently. Click <strong>Clear</strong> to reset the thread and start fresh.
@@ -141,7 +143,7 @@
 
   <h3>Intent-aware note management</h3>
   <p>
-    The chat interface recognises the intent behind your message and can act on your corpus directly — not just answer questions:
+    The chat interface recognises the intent behind your message and can act on your corpus directly â€” not just answer questions:
   </p>
 
   <table class="doc-table">
@@ -162,7 +164,7 @@
       <tr>
         <td><strong>Summarise</strong></td>
         <td>"Summarise my notes on Ollama"<br />"What do I know about embeddings?"</td>
-        <td>Retrieves the most relevant notes on the topic and asks the LLM to synthesise them into a 2–3 paragraph summary.</td>
+        <td>Retrieves the most relevant notes on the topic and asks the LLM to synthesise them into a 2â€“3 paragraph summary.</td>
       </tr>
       <tr>
         <td><strong>General</strong></td>
@@ -173,12 +175,12 @@
   </table>
 
   <div class="callout warning">
-    <p><strong>Requires Ollama.</strong> Intent detection and response generation both use the LLM configured in Settings → Models. If Ollama is unavailable, chat falls back to general mode (no intent detection) and will fail if the model cannot be reached. <strong>Create</strong> and <strong>Search</strong> do not require Ollama and work even when the model is offline.</p>
+    <p><strong>Requires Ollama.</strong> Intent detection and response generation both use the LLM configured in Settings â†’ Models. If Ollama is unavailable, chat falls back to general mode (no intent detection) and will fail if the model cannot be reached. <strong>Create</strong> and <strong>Search</strong> do not require Ollama and work even when the model is offline.</p>
   </div>
 
   <h3>Stopping and clearing</h3>
   <ul>
-    <li>Click <strong>■ Stop</strong> to abort a streaming response mid-way. The text generated so far is preserved.</li>
+    <li>Click <strong>â–  Stop</strong> to abort a streaming response mid-way. The text generated so far is preserved.</li>
     <li>Click <strong>Clear</strong> to wipe the thread and reset conversation history. This does not affect any notes created during the session.</li>
   </ul>
 

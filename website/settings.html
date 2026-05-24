@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settings — Neurologue Docs</title>
+  <title>Settings â€” Neurologue Docs</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html" class="active">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -38,7 +39,7 @@
 
   <figure class="screenshot">
     <img src="screenshots/settings.png" alt="The Settings view with subnav tabs at the top and the Models tab active" />
-    <figcaption>Settings — all configuration is organised into tabs at the top of the view.</figcaption>
+    <figcaption>Settings â€” all configuration is organised into tabs at the top of the view.</figcaption>
   </figure>
 
   <nav class="on-page-nav">
@@ -53,7 +54,7 @@
     <a href="#portfolio">Portfolio</a>
   </nav>
 
-  <!-- ── Models ──────────────────────────────────────────── -->
+  <!-- â”€â”€ Models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="models">Models</h2>
   <p>
@@ -82,7 +83,7 @@
 
   <p>Click <strong>Save settings</strong> at the bottom of the settings view to apply changes. They take effect on the next background worker tick.</p>
 
-  <!-- ── Tags ────────────────────────────────────────────── -->
+  <!-- â”€â”€ Tags â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="tags">Tags</h2>
 
@@ -91,8 +92,8 @@
     Controls how LLM-generated tag suggestions are normalised when they contain more than one word:
   </p>
   <ul>
-    <li><strong>Hyphenated</strong> (default) — e.g. <code>machine-learning</code></li>
-    <li><strong>Concatenated</strong> — e.g. <code>machinelearning</code></li>
+    <li><strong>Hyphenated</strong> (default) â€” e.g. <code>machine-learning</code></li>
+    <li><strong>Concatenated</strong> â€” e.g. <code>machinelearning</code></li>
   </ul>
   <p>This only affects <em>suggested</em> tags; tags you type manually are saved exactly as entered.</p>
 
@@ -101,33 +102,33 @@
     Controls how closely two tags must be related (semantically) to appear as possible duplicates in the <a href="library.html#tag-management">Tag Management</a> panel. Three presets are available:
   </p>
   <ul>
-    <li><strong>Strict</strong> — only near-identical meanings are flagged (fewer false positives)</li>
-    <li><strong>Balanced</strong> (default) — catches most genuine duplicates without excessive noise</li>
-    <li><strong>Broad</strong> — more suggestions, including loosely related tags (may include false positives)</li>
+    <li><strong>Strict</strong> â€” only near-identical meanings are flagged (fewer false positives)</li>
+    <li><strong>Balanced</strong> (default) â€” catches most genuine duplicates without excessive noise</li>
+    <li><strong>Broad</strong> â€” more suggestions, including loosely related tags (may include false positives)</li>
   </ul>
   <p>This requires Ollama to be running; structural duplicates (spelling variants, plural forms) are always detected regardless.</p>
 
-  <!-- ── Hotkey ───────────────────────────────────────────── -->
+  <!-- â”€â”€ Hotkey â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="hotkey">Hotkey</h2>
   <p>
-    The <strong>Global shortcut</strong> field shows the key combination that opens the capture popup from anywhere on your desktop — even when Neurologue isn't focused.
+    The <strong>Global shortcut</strong> field shows the key combination that opens the capture popup from anywhere on your desktop â€” even when Neurologue isn't focused.
   </p>
 
   <h3>Changing the hotkey</h3>
   <ol>
     <li>Click <strong>Change</strong> next to the hotkey field.</li>
-    <li>The field shows <em>Press keys…</em> — press the new combination (e.g. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>).</li>
+    <li>The field shows <em>Press keysâ€¦</em> â€” press the new combination (e.g. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd>).</li>
     <li>The combination appears in the field. Press <kbd>Escape</kbd> or <strong>Cancel</strong> to discard without saving.</li>
     <li>Click <strong>Save settings</strong>. If the shortcut is already claimed by another application, a conflict warning is shown and the previous shortcut is kept.</li>
   </ol>
   <p>The shortcut must include at least one modifier key (Ctrl, Alt, or Shift). The default is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>.</p>
 
-  <!-- ── Worker ──────────────────────────────────────────── -->
+  <!-- â”€â”€ Worker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="worker">Worker</h2>
   <p>
-    The background worker runs several tasks on a schedule. This tab lets you tune how often each task runs. Changes take effect immediately — no restart required.
+    The background worker runs several tasks on a schedule. This tab lets you tune how often each task runs. Changes take effect immediately â€” no restart required.
   </p>
 
   <table>
@@ -159,17 +160,17 @@
   <h3>Contradiction scan scope</h3>
   <p>Controls which entry pairs are candidates for contradiction detection:</p>
   <ul>
-    <li><strong>Theme only</strong> (default) — only entries within the same theme are compared</li>
-    <li><strong>Tags also</strong> — entries sharing a tag are also compared, even across themes</li>
-    <li><strong>Global ⚠</strong> — all-pairs scan; comprehensive but expensive on large corpora</li>
+    <li><strong>Theme only</strong> (default) â€” only entries within the same theme are compared</li>
+    <li><strong>Tags also</strong> â€” entries sharing a tag are also compared, even across themes</li>
+    <li><strong>Global âš </strong> â€” all-pairs scan; comprehensive but expensive on large corpora</li>
   </ul>
 
   <h3>Activity log</h3>
   <p>
-    The <strong>Activity log</strong> panel at the bottom of the Worker tab shows recent background task completions — embeddings, clustering runs, contradiction scans. Click <strong>Refresh</strong> to update it. You can also click the Worker status indicator in the <a href="library.html#status-bar">status bar</a> at any time to see the same log in a popup.
+    The <strong>Activity log</strong> panel at the bottom of the Worker tab shows recent background task completions â€” embeddings, clustering runs, contradiction scans. Click <strong>Refresh</strong> to update it. You can also click the Worker status indicator in the <a href="library.html#status-bar">status bar</a> at any time to see the same log in a popup.
   </p>
 
-  <!-- ── Appearance ──────────────────────────────────────── -->
+  <!-- â”€â”€ Appearance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="appearance">Appearance</h2>
 
@@ -197,7 +198,7 @@
     </tbody>
   </table>
 
-  <!-- ── Data ────────────────────────────────────────────── -->
+  <!-- â”€â”€ Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="data">Data</h2>
   <p>
@@ -206,12 +207,12 @@
 
   <figure class="screenshot">
     <img src="screenshots/settings-data.png" alt="The Settings Data tab showing Load Demo Content, Import CCF, Reindex all entries, and Start Fresh buttons" />
-    <figcaption>Data tab — import, reindex, or reset your corpus.</figcaption>
+    <figcaption>Data tab â€” import, reindex, or reset your corpus.</figcaption>
   </figure>
 
   <h3>Load demo content</h3>
   <p>
-    Imports 21 sample entries across 4 themes so you can explore Neurologue's features before adding your own notes. Click <strong>Load Demo Content…</strong> and confirm. Existing entries are never overwritten — demo content is added alongside whatever you already have.
+    Imports 21 sample entries across 4 themes so you can explore Neurologue's features before adding your own notes. Click <strong>Load Demo Contentâ€¦</strong> and confirm. Existing entries are never overwritten â€” demo content is added alongside whatever you already have.
   </p>
   <p>
     The demo corpus is a good way to see themes, conflicts, and priorities working immediately without waiting to accumulate your own entries.
@@ -222,9 +223,9 @@
     CCF (Canonical Corpus Format) is the portable format used by Neurologue's <a href="export.html">Export</a> feature. To import a previously exported snapshot:
   </p>
   <ol>
-    <li>Click <strong>Import CCF…</strong></li>
+    <li>Click <strong>Import CCFâ€¦</strong></li>
     <li>Select the CCF export folder (the folder containing <code>entries.json</code>, <code>themes.json</code>, etc.).</li>
-    <li>Neurologue imports entries and themes from the snapshot. Entries with matching IDs are skipped — so re-importing a snapshot will never create duplicates.</li>
+    <li>Neurologue imports entries and themes from the snapshot. Entries with matching IDs are skipped â€” so re-importing a snapshot will never create duplicates.</li>
   </ol>
   <p>This is the recommended way to migrate your corpus between devices, or to restore from a backup.</p>
 
@@ -232,17 +233,17 @@
   <p>
     Clears all stored embeddings and re-processes every entry through the embedding model. Use this after changing the embedding model (in the <a href="#models">Models</a> tab) to ensure all entries are embedded with the new model, or if semantic search feels consistently off.
   </p>
-  <p>Click <strong>Reindex all entries…</strong> and confirm. The background worker will begin reindexing immediately — watch the Worker indicator in the status bar to track progress. Requires Ollama to be running.</p>
+  <p>Click <strong>Reindex all entriesâ€¦</strong> and confirm. The background worker will begin reindexing immediately â€” watch the Worker indicator in the status bar to track progress. Requires Ollama to be running.</p>
 
   <h3>Start fresh</h3>
   <p>
     Permanently deletes all entries, themes, embeddings, and the vector store. Use this to reset Neurologue to a clean state.
   </p>
   <div class="callout danger">
-    <p><strong>This action is irreversible.</strong> Before anything is deleted, you will be offered the option to take a CCF backup to a folder of your choice. We strongly recommend taking the backup — it allows you to re-import your data later if needed.</p>
+    <p><strong>This action is irreversible.</strong> Before anything is deleted, you will be offered the option to take a CCF backup to a folder of your choice. We strongly recommend taking the backup â€” it allows you to re-import your data later if needed.</p>
   </div>
 
-  <!-- ── Scheduled Export ────────────────────────────────── -->
+  <!-- â”€â”€ Scheduled Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="scheduled-export">Scheduled Export</h2>
   <p>
@@ -253,7 +254,7 @@
   <ol>
     <li>Tick <strong>Enable scheduled exports</strong>.</li>
     <li>Choose <strong>Daily</strong> or <strong>Weekly</strong> frequency.</li>
-    <li>Click <strong>Choose folder…</strong> to set the destination. Each run creates a sub-folder named with the date and time (e.g. <code>2026-05-21T08-00-00/</code>).</li>
+    <li>Click <strong>Choose folderâ€¦</strong> to set the destination. Each run creates a sub-folder named with the date and time (e.g. <code>2026-05-21T08-00-00/</code>).</li>
     <li>Optionally tick <strong>Include diff.json</strong> to include a file listing only the entries added or changed since the previous snapshot.</li>
     <li>Click <strong>Save settings</strong>.</li>
   </ol>
@@ -268,7 +269,7 @@
     The <strong>Export history</strong> panel lists previous scheduled export runs with timestamps and entry counts. Click <strong>Refresh</strong> to reload it. Use <strong>Export now</strong> to trigger a snapshot immediately without waiting for the next scheduled run.
   </p>
 
-  <!-- ── Features ────────────────────────────────────────── -->
+  <!-- â”€â”€ Features â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="features">Features</h2>
   <p>
@@ -277,14 +278,14 @@
 
   <h3>Portfolio</h3>
   <p>
-    Portfolio lets you organise your notes into separate named profiles — for example, <em>Personal</em> and <em>Work</em>. Each profile has its own completely independent entries, themes, tags, embeddings, and AI context. The profiles share your Ollama models and global settings.
+    Portfolio lets you organise your notes into separate named profiles â€” for example, <em>Personal</em> and <em>Work</em>. Each profile has its own completely independent entries, themes, tags, embeddings, and AI context. The profiles share your Ollama models and global settings.
   </p>
   <p>
     Toggle <strong>Portfolio</strong> on to enable the feature. A <strong>Portfolio</strong> tab appears in the Settings subnav where you can create and manage profiles. A coloured badge in the toolbar shows your active profile.
   </p>
-  <p>When Portfolio is disabled, all notes belong to a single unnamed default profile — the normal single-corpus mode.</p>
+  <p>When Portfolio is disabled, all notes belong to a single unnamed default profile â€” the normal single-corpus mode.</p>
 
-  <!-- ── Portfolio ───────────────────────────────────────── -->
+  <!-- â”€â”€ Portfolio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="portfolio">Portfolio</h2>
   <p>
@@ -293,14 +294,14 @@
 
   <figure class="screenshot">
     <img src="screenshots/settings-portfolio.png" alt="The Settings Portfolio tab showing profile rows with Switch To and Active badges, and a New profile button below" />
-    <figcaption>Portfolio tab — switch between separate databases for different areas of your life.</figcaption>
+    <figcaption>Portfolio tab â€” switch between separate databases for different areas of your life.</figcaption>
   </figure>
 
   <h3>Creating a profile</h3>
   <ol>
     <li>Click <strong>+ New profile</strong>.</li>
     <li>Enter a name (up to 40 characters).</li>
-    <li>Choose a colour from the swatches — this colour appears in the toolbar badge when the profile is active.</li>
+    <li>Choose a colour from the swatches â€” this colour appears in the toolbar badge when the profile is active.</li>
     <li>Click <strong>Create profile</strong>.</li>
   </ol>
   <p>The new profile starts empty. Switch to it using the <strong>Switch to</strong> button next to its row, or via the profile badge in the toolbar.</p>
@@ -314,9 +315,9 @@
   <p>
     Click the <strong>Delete</strong> button next to a profile in the list. A confirmation prompt appears showing the profile's entry count. You can take a CCF backup of the profile before deleting. Deletion is permanent.
   </p>
-  <p>You cannot delete the currently active profile — switch to another profile first.</p>
+  <p>You cannot delete the currently active profile â€” switch to another profile first.</p>
 
-  <!-- ── Where settings are stored ──────────────────────── -->
+  <!-- â”€â”€ Where settings are stored â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2>Where settings are stored</h2>
   <p>

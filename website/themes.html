@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Themes — Neurologue Docs</title>
+  <title>Themes â€” Neurologue Docs</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -33,16 +34,16 @@
   <p class="page-subtitle">Automatically discovered clusters of related entries, summarised by a local AI.</p>
 
   <figure class="screenshot">
-    <img src="screenshots/themes.png" alt="The Themes view — theme list on the left with entry counts, and selected theme detail including summary and member entries on the right" />
-    <figcaption>Themes view — AI-generated theme names with member entries and similarity scores.</figcaption>
+    <img src="screenshots/themes.png" alt="The Themes view â€” theme list on the left with entry counts, and selected theme detail including summary and member entries on the right" />
+    <figcaption>Themes view â€” AI-generated theme names with member entries and similarity scores.</figcaption>
   </figure>
 
   <h2>What are themes?</h2>
   <p>
-    A <strong>theme</strong> is a group of entries that are semantically similar — they're about the same subject, even if you never labelled them that way. Neurologue discovers themes automatically by running k-means clustering on your entry embeddings.
+    A <strong>theme</strong> is a group of entries that are semantically similar â€” they're about the same subject, even if you never labelled them that way. Neurologue discovers themes automatically by running k-means clustering on your entry embeddings.
   </p>
   <p>
-    Once clusters are found, Neurologue sends the top entries from each cluster to a local LLM (Phi-3 Mini via Ollama) to generate two things: a short descriptive <strong>name</strong> (2–4 words, title case) and a multi-sentence <strong>summary</strong> of the cluster. Both are stored and displayed in the Themes view.
+    Once clusters are found, Neurologue sends the top entries from each cluster to a local LLM (Phi-3 Mini via Ollama) to generate two things: a short descriptive <strong>name</strong> (2â€“4 words, title case) and a multi-sentence <strong>summary</strong> of the cluster. Both are stored and displayed in the Themes view.
   </p>
 
   <div class="callout">
@@ -54,22 +55,22 @@
   <ol class="steps">
     <li>
       <div>
-        <p><strong>Embeddings are generated</strong> — the background worker picks up newly captured entries (batches of 5, every 10 seconds) and calls Ollama (<code>nomic-embed-text</code>) to produce a 768-dimensional vector for each entry.</p>
+        <p><strong>Embeddings are generated</strong> â€” the background worker picks up newly captured entries (batches of 5, every 10 seconds) and calls Ollama (<code>nomic-embed-text</code>) to produce a 768-dimensional vector for each entry.</p>
       </div>
     </li>
     <li>
       <div>
-        <p><strong>Clustering triggers</strong> — after every 5 new embeddings in a session, clustering runs automatically. It requires at least 4 entries with embeddings.</p>
+        <p><strong>Clustering triggers</strong> â€” after every 5 new embeddings in a session, clustering runs automatically. It requires at least 4 entries with embeddings.</p>
       </div>
     </li>
     <li>
       <div>
-        <p><strong>k-means++ clustering</strong> — the number of clusters is chosen automatically: <code>k = round(√(n/2))</code>, clamped between 2 and 20 (where <em>n</em> is the number of embedded entries).</p>
+        <p><strong>k-means++ clustering</strong> â€” the number of clusters is chosen automatically: <code>k = round(âˆš(n/2))</code>, clamped between 2 and 20 (where <em>n</em> is the number of embedded entries).</p>
       </div>
     </li>
     <li>
       <div>
-        <p><strong>LLM name and summary</strong> — Neurologue sends the top 5 entries from each cluster to Phi-3 Mini and makes two requests: one for a 2–4 word descriptive name (replacing the generic "Theme N" placeholder), and one for a 3–5 sentence summary. Both fail gracefully — if Ollama is unavailable, themes are still created with a placeholder name and "No summary yet" until Ollama comes back.</p>
+        <p><strong>LLM name and summary</strong> â€” Neurologue sends the top 5 entries from each cluster to Phi-3 Mini and makes two requests: one for a 2â€“4 word descriptive name (replacing the generic "Theme N" placeholder), and one for a 3â€“5 sentence summary. Both fail gracefully â€” if Ollama is unavailable, themes are still created with a placeholder name and "No summary yet" until Ollama comes back.</p>
       </div>
     </li>
   </ol>
@@ -99,7 +100,8 @@
   </table>
 
   <div class="callout warning">
-    <p><strong>There is currently no visible progress indicator</strong> for clustering. If themes don't appear, check that Ollama is running, you have at least 4 captured entries, and wait for the background worker to finish embedding them. See <a href="troubleshooting.html">Troubleshooting</a>.</p>
+    <p><strong>There is currently no visible progress indicator</strong> for clustering. If themes don't appear, check that Ollama is running, you have at least 4 captured entries, and wait for the background worker to finish embedding them. See <a href="mcp.html">MCP</a>
+      <a href="troubleshooting.html">Troubleshooting</a>.</p>
   </div>
 
   <h2>Viewing themes</h2>
@@ -107,8 +109,8 @@
     Click <strong>Themes</strong> in the left navigation rail to open the dedicated Themes view. The view has two columns:
   </p>
   <ul>
-    <li><strong>Left column</strong> — the full list of themes, each showing its name and entry count, sorted by size (largest first). The active theme is highlighted.</li>
-    <li><strong>Right column</strong> — the selected theme's detail: name, summary, and up to 30 member entries sorted by similarity score.</li>
+    <li><strong>Left column</strong> â€” the full list of themes, each showing its name and entry count, sorted by size (largest first). The active theme is highlighted.</li>
+    <li><strong>Right column</strong> â€” the selected theme's detail: name, summary, and up to 30 member entries sorted by similarity score.</li>
   </ul>
   <p>Click any member entry to jump directly to that entry in the Library view.</p>
 
@@ -119,27 +121,27 @@
 
   <h3>Renaming a theme</h3>
   <p>
-    You can override the LLM-generated name with your own. Click the <strong>✎</strong> (pencil) button next to the theme name to open the rename form. Type a new name and press <kbd>Enter</kbd> or <strong>Save</strong>. Press <kbd>Escape</kbd> or <strong>Cancel</strong> to discard.
+    You can override the LLM-generated name with your own. Click the <strong>âœŽ</strong> (pencil) button next to the theme name to open the rename form. Type a new name and press <kbd>Enter</kbd> or <strong>Save</strong>. Press <kbd>Escape</kbd> or <strong>Cancel</strong> to discard.
   </p>
   <p>
-    User-set names are <strong>preserved across re-clustering</strong> — even when themes are regenerated as you add new entries, your custom name is kept.
+    User-set names are <strong>preserved across re-clustering</strong> â€” even when themes are regenerated as you add new entries, your custom name is kept.
   </p>
 
   <h2>Understanding the similarity score</h2>
   <p>
-    Each entry in a theme has a <strong>score</strong> — the cosine similarity between that entry's embedding and the cluster centroid. A score of <code>1.00</code> would mean the entry is the perfect centre of the theme. Scores closer to <code>0</code> mean the entry is a weaker match but still closest to that cluster compared to all others.
+    Each entry in a theme has a <strong>score</strong> â€” the cosine similarity between that entry's embedding and the cluster centroid. A score of <code>1.00</code> would mean the entry is the perfect centre of the theme. Scores closer to <code>0</code> mean the entry is a weaker match but still closest to that cluster compared to all others.
   </p>
 
   <h3>Cluster count heuristic</h3>
   <p>
-    The number of themes is set automatically using the formula <code>k = round(√(n/2))</code> where <em>n</em> is the total number of embedded entries. This means:
+    The number of themes is set automatically using the formula <code>k = round(âˆš(n/2))</code> where <em>n</em> is the total number of embedded entries. This means:
   </p>
   <table>
     <thead><tr><th>Embedded entries</th><th>Themes created</th></tr></thead>
     <tbody>
-      <tr><td>4–7</td><td>2</td></tr>
-      <tr><td>8–17</td><td>2–3</td></tr>
-      <tr><td>18–31</td><td>3–4</td></tr>
+      <tr><td>4â€“7</td><td>2</td></tr>
+      <tr><td>8â€“17</td><td>2â€“3</td></tr>
+      <tr><td>18â€“31</td><td>3â€“4</td></tr>
       <tr><td>50</td><td>5</td></tr>
       <tr><td>200</td><td>10</td></tr>
       <tr><td>800+</td><td>20 (maximum)</td></tr>

@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Analysis — Neurologue Docs</title>
+  <title>Analysis â€” Neurologue Docs</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -42,18 +43,18 @@
     <a href="#replay">Memory Replay</a>
   </nav>
 
-  <!-- ── Dashboard ──────────────────────────────────────── -->
+  <!-- â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="dashboard">Dashboard</h2>
   <p class="section-subtitle">A single-screen overview of your corpus health and recent activity.</p>
 
   <figure class="screenshot">
     <img src="screenshots/dashboard.png" alt="The Dashboard view showing four stat cards at the top and thought density sparkbar below, with active themes and recent captures visible" />
-    <figcaption>Dashboard — a bird’s-eye view of your corpus with live stats and theme activity.</figcaption>
+    <figcaption>Dashboard â€” a birdâ€™s-eye view of your corpus with live stats and theme activity.</figcaption>
   </figure>
 
   <p>
-    Click <strong>Dashboard</strong> in the left navigation rail to open a bird's-eye view of your knowledge base. The dashboard updates on demand — click the <strong>↻</strong> refresh button in the top-right to reload all data.
+    Click <strong>Dashboard</strong> in the left navigation rail to open a bird's-eye view of your knowledge base. The dashboard updates on demand â€” click the <strong>â†»</strong> refresh button in the top-right to reload all data.
   </p>
 
   <h3>Stat cards</h3>
@@ -71,7 +72,7 @@
 
   <h3>Thought density</h3>
   <p>
-    A 14-day sparkbar sits below the stat cards. Each bar represents a single day; its height shows how many entries were captured that day. Use it to spot capture habits — days you wrote a lot versus quiet periods.
+    A 14-day sparkbar sits below the stat cards. Each bar represents a single day; its height shows how many entries were captured that day. Use it to spot capture habits â€” days you wrote a lot versus quiet periods.
   </p>
 
   <h3>Active and emerging themes</h3>
@@ -79,8 +80,8 @@
     The left column shows two lists:
   </p>
   <ul>
-    <li><strong>Active themes</strong> — themes with the most entries captured in the last 7 days. These are the areas currently occupying your mind.</li>
-    <li><strong>Emerging themes</strong> — themes with a recent spike in activity relative to their usual pace. Something new is picking up momentum.</li>
+    <li><strong>Active themes</strong> â€” themes with the most entries captured in the last 7 days. These are the areas currently occupying your mind.</li>
+    <li><strong>Emerging themes</strong> â€” themes with a recent spike in activity relative to their usual pace. Something new is picking up momentum.</li>
   </ul>
   <p>Click any theme name to jump directly to that theme in the Themes view.</p>
 
@@ -89,8 +90,8 @@
     The right column shows:
   </p>
   <ul>
-    <li><strong>Open loops</strong> — entries of type Question, Task, or Decision captured more than 14 days ago that haven't been edited since. These represent unresolved threads. Click any entry to open it in the Library.</li>
-    <li><strong>Recent captures</strong> — the last few entries you saved, regardless of category or theme.</li>
+    <li><strong>Open loops</strong> â€” entries of type Question, Task, or Decision captured more than 14 days ago that haven't been edited since. These represent unresolved threads. Click any entry to open it in the Library.</li>
+    <li><strong>Recent captures</strong> â€” the last few entries you saved, regardless of category or theme.</li>
   </ul>
 
   <h3>Portfolio scope toggle</h3>
@@ -98,14 +99,14 @@
     If the <a href="settings.html#portfolio">Portfolio feature</a> is enabled, a scope toggle appears below the dashboard header. Switch between <strong>This profile</strong> (current active profile only) and <strong>All profiles</strong> to see a combined overview across all your portfolios.
   </p>
 
-  <!-- ── Conflicts ───────────────────────────────────────── -->
+  <!-- â”€â”€ Conflicts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="conflicts">Conflicts</h2>
-  <p class="section-subtitle">Pairs of entries that contradict each other — detected automatically.</p>
+  <p class="section-subtitle">Pairs of entries that contradict each other â€” detected automatically.</p>
 
   <figure class="screenshot">
     <img src="screenshots/conflicts.png" alt="The Conflicts view with a filterable list of conflict pairs on the left and a detail panel showing two contradictory entries with resolve and dismiss buttons on the right" />
-    <figcaption>Conflicts view — review and resolve detected contradictions between your entries.</figcaption>
+    <figcaption>Conflicts view â€” review and resolve detected contradictions between your entries.</figcaption>
   </figure>
 
   <p>
@@ -117,7 +118,7 @@
     The background worker periodically compares entries that share a theme or tag and sends candidate pairs to the LLM with a prompt asking: <em>"Do these two statements genuinely contradict each other?"</em> Pairs that the LLM judges as contradictory are stored as conflicts.
   </p>
   <p>
-    Detection runs automatically on a schedule (default: every 15 minutes for up to 15 pairs). You can also trigger an immediate unlimited scan with the <strong>Scan now</strong> button at the bottom of the list. Scan scope and timing are configurable in <a href="settings.html#worker">Settings → Worker</a>.
+    Detection runs automatically on a schedule (default: every 15 minutes for up to 15 pairs). You can also trigger an immediate unlimited scan with the <strong>Scan now</strong> button at the bottom of the list. Scan scope and timing are configurable in <a href="settings.html#worker">Settings â†’ Worker</a>.
   </p>
 
   <div class="callout warning">
@@ -139,8 +140,8 @@
     For each active conflict you have two options:
   </p>
   <ul>
-    <li><strong>Mark resolved</strong> — use this when you've addressed the contradiction in your thinking. Optionally add a resolution note (e.g. "Changed my view after learning X") before clicking.</li>
-    <li><strong>Dismiss</strong> — use this when the detection was a false positive, or when the contradiction doesn't matter. Dismissed pairs are hidden from the Active list.</li>
+    <li><strong>Mark resolved</strong> â€” use this when you've addressed the contradiction in your thinking. Optionally add a resolution note (e.g. "Changed my view after learning X") before clicking.</li>
+    <li><strong>Dismiss</strong> â€” use this when the detection was a false positive, or when the contradiction doesn't matter. Dismissed pairs are hidden from the Active list.</li>
   </ul>
   <p>
     You can view resolved and dismissed pairs using the filter tabs (Active / Resolved / Dismissed) at the top of the list.
@@ -148,31 +149,31 @@
 
   <h3>Scan settings</h3>
   <p>
-    Three settings control how conflict scanning works — adjust them in <a href="settings.html#worker">Settings → Worker</a>:
+    Three settings control how conflict scanning works â€” adjust them in <a href="settings.html#worker">Settings â†’ Worker</a>:
   </p>
   <ul>
-    <li><strong>Contradiction scan interval</strong> — how often the scheduled scan runs (default: 900 s / 15 min)</li>
-    <li><strong>Scheduled scan pair limit</strong> — how many pairs the scheduled scan checks per run (default: 15). Manual "Scan now" is always unlimited.</li>
-    <li><strong>Contradiction scan scope</strong> — <em>Theme only</em> (pairs within the same theme), <em>Tags also</em> (entries sharing a tag are also compared), or <em>Global</em> (all-pairs — expensive on large corpora).</li>
+    <li><strong>Contradiction scan interval</strong> â€” how often the scheduled scan runs (default: 900 s / 15 min)</li>
+    <li><strong>Scheduled scan pair limit</strong> â€” how many pairs the scheduled scan checks per run (default: 15). Manual "Scan now" is always unlimited.</li>
+    <li><strong>Contradiction scan scope</strong> â€” <em>Theme only</em> (pairs within the same theme), <em>Tags also</em> (entries sharing a tag are also compared), or <em>Global</em> (all-pairs â€” expensive on large corpora).</li>
   </ul>
 
-  <!-- ── Priorities ──────────────────────────────────────── -->
+  <!-- â”€â”€ Priorities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="priorities">Priorities</h2>
   <p class="section-subtitle">Theme-level priority scoring based on energy, value, obligation, and motivation.</p>
 
   <figure class="screenshot">
-    <img src="screenshots/priorities.png" alt="The Priorities view with a ranked theme list and a detail panel showing EVOM score bars, sparkline, and Energy × Value quadrant" />
-    <figcaption>Priorities view — EVOM scoring ranks themes by energy, value, obligation, and motivation.</figcaption>
+    <img src="screenshots/priorities.png" alt="The Priorities view with a ranked theme list and a detail panel showing EVOM score bars, sparkline, and Energy Ã— Value quadrant" />
+    <figcaption>Priorities view â€” EVOM scoring ranks themes by energy, value, obligation, and motivation.</figcaption>
   </figure>
 
   <p>
-    Click <strong>Priorities</strong> in the left navigation rail. The view ranks your themes using the <strong>EVOM model</strong> — a four-axis scoring system derived from the language patterns in your entries.
+    Click <strong>Priorities</strong> in the left navigation rail. The view ranks your themes using the <strong>EVOM model</strong> â€” a four-axis scoring system derived from the language patterns in your entries.
   </p>
 
   <h3>The EVOM model</h3>
   <p>
-    Each theme is scored on four dimensions, each on a 0–1 scale. The LLM reads the theme's recent entries and assigns scores based on the language used:
+    Each theme is scored on four dimensions, each on a 0â€“1 scale. The LLM reads the theme's recent entries and assigns scores based on the language used:
   </p>
 
   <table>
@@ -184,7 +185,7 @@
       </tr>
       <tr>
         <td><strong>Value (V)</strong></td>
-        <td>How important this area appears to be — based on the weight and frequency of its entries. High value = this matters a lot to you.</td>
+        <td>How important this area appears to be â€” based on the weight and frequency of its entries. High value = this matters a lot to you.</td>
       </tr>
       <tr>
         <td><strong>Obligation (O)</strong></td>
@@ -208,21 +209,21 @@
 
   <h3>Neglected obligation alert</h3>
   <p>
-    If a theme has high Obligation but consistently low Energy, a <strong>⚠ Neglected obligation</strong> alert appears in the sparkline panel. This flags a potential source of stress: something you feel you must do, but aren't currently engaging with.
+    If a theme has high Obligation but consistently low Energy, a <strong>âš  Neglected obligation</strong> alert appears in the sparkline panel. This flags a potential source of stress: something you feel you must do, but aren't currently engaging with.
   </p>
 
-  <h3>Energy × Value quadrant</h3>
+  <h3>Energy Ã— Value quadrant</h3>
   <p>
-    A 2×2 quadrant plots each theme at the intersection of its Energy and Value scores. Use it to quickly classify your themes:
+    A 2Ã—2 quadrant plots each theme at the intersection of its Energy and Value scores. Use it to quickly classify your themes:
   </p>
 
   <table>
     <thead><tr><th>Quadrant</th><th>Interpretation</th></tr></thead>
     <tbody>
-      <tr><td><strong>High E, High V</strong> (top-right)</td><td>Engaged <em>and</em> important — your core priorities right now.</td></tr>
-      <tr><td><strong>High E, Low V</strong> (top-left)</td><td>Enthusiastic but potentially unfocused — fun but not strategic.</td></tr>
-      <tr><td><strong>Low E, High V</strong> (bottom-right)</td><td>Important but not energised — possible neglected obligation or blocked progress.</td></tr>
-      <tr><td><strong>Low E, Low V</strong> (bottom-left)</td><td>Low engagement and low importance — candidates for deprioritising.</td></tr>
+      <tr><td><strong>High E, High V</strong> (top-right)</td><td>Engaged <em>and</em> important â€” your core priorities right now.</td></tr>
+      <tr><td><strong>High E, Low V</strong> (top-left)</td><td>Enthusiastic but potentially unfocused â€” fun but not strategic.</td></tr>
+      <tr><td><strong>Low E, High V</strong> (bottom-right)</td><td>Important but not energised â€” possible neglected obligation or blocked progress.</td></tr>
+      <tr><td><strong>Low E, Low V</strong> (bottom-left)</td><td>Low engagement and low importance â€” candidates for deprioritising.</td></tr>
     </tbody>
   </table>
 
@@ -231,28 +232,28 @@
     Below the quadrant, three signal statistics provide context for the scores:
   </p>
   <ul>
-    <li><strong>Open loops</strong> — Questions, Tasks, and Decisions within this theme that haven't been revisited recently.</li>
-    <li><strong>Entries (30 d)</strong> — how many entries were captured for this theme in the last 30 days, giving a sense of recent activity volume.</li>
-    <li><strong>Computed</strong> — when the EVOM scores were last calculated.</li>
+    <li><strong>Open loops</strong> â€” Questions, Tasks, and Decisions within this theme that haven't been revisited recently.</li>
+    <li><strong>Entries (30 d)</strong> â€” how many entries were captured for this theme in the last 30 days, giving a sense of recent activity volume.</li>
+    <li><strong>Computed</strong> â€” when the EVOM scores were last calculated.</li>
   </ul>
 
   <h3>Recomputing priorities</h3>
   <p>
-    Priorities are recomputed automatically after each clustering run. Click the <strong>↻</strong> button in the list header to trigger a manual recomputation. This requires Ollama to be running.
+    Priorities are recomputed automatically after each clustering run. Click the <strong>â†»</strong> button in the list header to trigger a manual recomputation. This requires Ollama to be running.
   </p>
 
-  <!-- ── Graph ───────────────────────────────────────────── -->
+  <!-- â”€â”€ Graph â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="graph">Graph</h2>
-  <p class="section-subtitle">An interactive force-directed map of your knowledge — entries as nodes, similarity as edges.</p>
+  <p class="section-subtitle">An interactive force-directed map of your knowledge â€” entries as nodes, similarity as edges.</p>
 
   <figure class="screenshot">
     <img src="screenshots/graph.png" alt="The Knowledge Graph showing coloured nodes grouped in visible clusters, with edges connecting semantically similar entries" />
-    <figcaption>Knowledge Graph — force-directed layout with entry nodes coloured by theme.</figcaption>
+    <figcaption>Knowledge Graph â€” force-directed layout with entry nodes coloured by theme.</figcaption>
   </figure>
 
   <p>
-    Click <strong>Graph</strong> in the left navigation rail to open the Knowledge Graph. The graph renders every embedded entry as a node, and draws edges between entries that exceed a similarity threshold — so the layout naturally groups related entries into visible clusters that correspond to your themes.
+    Click <strong>Graph</strong> in the left navigation rail to open the Knowledge Graph. The graph renders every embedded entry as a node, and draws edges between entries that exceed a similarity threshold â€” so the layout naturally groups related entries into visible clusters that correspond to your themes.
   </p>
 
   <h3>Interacting with the graph</h3>
@@ -265,8 +266,8 @@
 
   <h3>Toolbar controls</h3>
   <ul>
-    <li><strong>↻ Refresh</strong> — reloads the graph data from the database. Use this after adding new entries that have been embedded.</li>
-    <li><strong>Reset</strong> — resets zoom level and re-runs the force layout from scratch, without fetching fresh data.</li>
+    <li><strong>â†» Refresh</strong> â€” reloads the graph data from the database. Use this after adding new entries that have been embedded.</li>
+    <li><strong>Reset</strong> â€” resets zoom level and re-runs the force layout from scratch, without fetching fresh data.</li>
     <li>The <strong>node count</strong> displayed in the toolbar shows how many entries are currently rendered.</li>
   </ul>
 
@@ -274,14 +275,14 @@
     <p>Only entries that have been <strong>embedded</strong> by the background worker appear in the graph. Newly captured entries may not appear until the worker has processed them.</p>
   </div>
 
-  <!-- ── Memory Replay ──────────────────────────────────── -->
+  <!-- â”€â”€ Memory Replay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
 
   <h2 id="replay">Memory Replay</h2>
-  <p class="section-subtitle">Travel back in time through your captured thoughts — by month, by comparison, or by finding ideas you've neglected.</p>
+  <p class="section-subtitle">Travel back in time through your captured thoughts â€” by month, by comparison, or by finding ideas you've neglected.</p>
 
   <figure class="screenshot">
     <img src="screenshots/replay-month.png" alt="The Memory Replay Month tab showing top themes and a list of entries from the selected month" />
-    <figcaption>Memory Replay — Month tab shows what you were thinking about in any given month.</figcaption>
+    <figcaption>Memory Replay â€” Month tab shows what you were thinking about in any given month.</figcaption>
   </figure>
 
   <p>
@@ -293,28 +294,28 @@
     Select a calendar month from the dropdown. Neurologue shows a summary of that month's activity:
   </p>
   <ul>
-    <li><strong>Top themes</strong> — the themes most active during that month, with entry counts.</li>
-    <li><strong>Entries from this month</strong> — all entries captured during the selected month, in reverse chronological order.</li>
+    <li><strong>Top themes</strong> â€” the themes most active during that month, with entry counts.</li>
+    <li><strong>Entries from this month</strong> â€” all entries captured during the selected month, in reverse chronological order.</li>
     <li>A <strong>total entry count</strong> badge shows how many entries you captured that month.</li>
   </ul>
   <p>Click any entry in the list to jump to it in the Library view.</p>
 
   <figure class="screenshot">
     <img src="screenshots/replay-compare.png" alt="The Compare periods tab showing three columns: Faded themes, In both periods, and New themes" />
-    <figcaption>Compare periods — track how your thinking has evolved between two date ranges.</figcaption>
+    <figcaption>Compare periods â€” track how your thinking has evolved between two date ranges.</figcaption>
   </figure>
 
   <h3>Compare periods</h3>
   <p>
-    Choose two date ranges — Period A and Period B — and click <strong>Compare</strong>. Neurologue performs a theme diff between the two periods and shows results in three columns:
+    Choose two date ranges â€” Period A and Period B â€” and click <strong>Compare</strong>. Neurologue performs a theme diff between the two periods and shows results in three columns:
   </p>
 
   <table>
     <thead><tr><th>Column</th><th>What it shows</th></tr></thead>
     <tbody>
-      <tr><td><strong>Faded themes</strong></td><td>Themes present in Period A but absent or much quieter in Period B — subjects you were thinking about then but have since moved on from.</td></tr>
-      <tr><td><strong>In both periods</strong></td><td>Themes active in both windows — persistent preoccupations.</td></tr>
-      <tr><td><strong>New themes</strong></td><td>Themes present in Period B but not in Period A — new areas of thinking that emerged more recently.</td></tr>
+      <tr><td><strong>Faded themes</strong></td><td>Themes present in Period A but absent or much quieter in Period B â€” subjects you were thinking about then but have since moved on from.</td></tr>
+      <tr><td><strong>In both periods</strong></td><td>Themes active in both windows â€” persistent preoccupations.</td></tr>
+      <tr><td><strong>New themes</strong></td><td>Themes present in Period B but not in Period A â€” new areas of thinking that emerged more recently.</td></tr>
     </tbody>
   </table>
 
@@ -323,7 +324,7 @@
     The <strong>Abandoned ideas</strong> tab surfaces entries of type Idea, Question, or Decision that were captured more than 30 days ago and haven't been edited or revisited since.
   </p>
   <p>
-    These are open threads — things you were thinking about and never returned to. Reviewing them occasionally can surface forgotten insights, spark new connections, or help you decide to formally close them.
+    These are open threads â€” things you were thinking about and never returned to. Reviewing them occasionally can surface forgotten insights, spark new connections, or help you decide to formally close them.
   </p>
   <p>Click any entry in the list to open it in the Library view.</p>
 
