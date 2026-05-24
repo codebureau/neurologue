@@ -75,7 +75,18 @@
   <p>The server starts automatically on the next app launch when enabled. To rotate the token click <strong>Regenerate</strong> and save again.</p>
 
   <h2 id="claude-desktop">Connecting Claude Desktop</h2>
-  <p>Click <strong>Copy Claude Desktop config</strong> in Settings, then paste the result into your <code>claude_desktop_config.json</code>:</p>
+  <p>Claude Desktop uses a <strong>stdio</strong> connection — it launches Neurologue's MCP entry point as a subprocess. Click <strong>Copy Claude Desktop config</strong> in Settings to get the correct snippet for your machine, then paste it into <code>claude_desktop_config.json</code>.</p>
+
+  <p>The config looks like this:</p>
+
+  <pre><code>{
+  "mcpServers": {
+    "neurologue": {
+      "command": "node",
+      "args": ["/path/to/neurologue/src/mcp/stdio.js"]
+    }
+  }
+}</code></pre>
 
   <table class="doc-table">
     <thead>
@@ -83,27 +94,14 @@
     </thead>
     <tbody>
       <tr><td>macOS</td><td><code>~/Library/Application Support/Claude/claude_desktop_config.json</code></td></tr>
-      <tr><td>Windows</td><td><code>%APPDATA%\Claude\claude_desktop_config.json</code></td></tr>
+      <tr><td>Windows (traditional install)</td><td><code>%APPDATA%\Claude\claude_desktop_config.json</code></td></tr>
+      <tr><td>Windows (Microsoft Store)</td><td><code>%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json</code></td></tr>
     </tbody>
   </table>
 
   <div class="callout warning">
-    <p>Claude Desktop may not create this folder automatically. If it does not exist, create it manually before adding the config file.</p>
+    <p>Claude Desktop may not create the <code>Claude</code> folder automatically. Create it manually if it does not exist.</p>
   </div>
-
-  <p>The config snippet looks like this (substitute your actual token):</p>
-
-  <pre><code>{
-  "mcpServers": {
-    "neurologue": {
-      "type": "http",
-      "url": "http://127.0.0.1:3737/mcp",
-      "headers": {
-        "Authorization": "Bearer &lt;your-token&gt;"
-      }
-    }
-  }
-}</code></pre>
 
   <p><strong>Fully quit and restart Claude Desktop</strong> after saving (use the system tray / menu bar quit option, not just closing the window). The Neurologue tools will appear in the tool picker inside any conversation.</p>
 

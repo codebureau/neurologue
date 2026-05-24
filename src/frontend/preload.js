@@ -138,8 +138,9 @@ contextBridge.exposeInMainWorld('neurologue', {
   onIpcError:          (cb)   => { ipcRenderer.on('app:ipc-error', (_e, d) => cb(d)); },
 
   // ── MCP Server ────────────────────────────────────────────────────────────
-  mcpStart:  () => ipcRenderer.invoke('mcp:start'),
-  mcpStop:   () => ipcRenderer.invoke('mcp:stop'),
-  mcpStatus: () => ipcRenderer.invoke('mcp:status'),
+  mcpStart:       () => ipcRenderer.invoke('mcp:start'),
+  mcpStop:        () => ipcRenderer.invoke('mcp:stop'),
+  mcpStatus:      () => ipcRenderer.invoke('mcp:status'),
+  mcpStdioConfig: () => ipcRenderer.invoke('mcp:stdio-config'),
 });
 

@@ -35,7 +35,12 @@ function _readBody(req) {
   });
 }
 
-function _buildMcpServer() {
+/**
+ * Create a McpServer instance with all tools registered.
+ * Shared by both HTTP and stdio transports.
+ * @returns {McpServer}
+ */
+function buildMcpServer() {
   const server = new McpServer({ name: 'neurologue', version: '0.10.3' });
 
   // ── Tool: search_notes ─────────────────────────────────────────────────────
@@ -231,7 +236,7 @@ async function _handleRequest(req, res) {
     return;
   }
 
-  const server = _buildMcpServer();
+  const server = buildMcpServer();
   const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
   try {
     await server.connect(transport);
@@ -292,4 +297,4 @@ function stop() {
 
 function isRunning() { return _running; }
 
-module.exports = { start, stop, isRunning };
+module.exports = { start, stop, isRunning, buildMcpServer };

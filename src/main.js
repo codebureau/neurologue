@@ -436,6 +436,18 @@ ipcMain.handle('mcp:status', () => ({
   running: mcpServer.isRunning(),
 }));
 
+ipcMain.handle('mcp:stdio-config', () => {
+  const stdioPath = path.join(app.getAppPath(), 'src', 'mcp', 'stdio.js');
+  return JSON.stringify({
+    mcpServers: {
+      neurologue: {
+        command: 'node',
+        args: [stdioPath],
+      },
+    },
+  }, null, 2);
+});
+
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 
 handle('priorities:list-metrics', async () => {

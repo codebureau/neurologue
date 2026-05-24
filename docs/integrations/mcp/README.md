@@ -13,29 +13,32 @@ The server starts automatically on the next launch when enabled.
 
 ## Connecting Claude Desktop
 
-Add the following snippet to your `claude_desktop_config.json` (or click **Copy Claude Desktop config** in Settings):
+Claude Desktop uses a **stdio** connection (it launches Neurologue's MCP entry point as a subprocess). Click **Copy Claude Desktop config** in Settings to get the correct snippet for your machine, then paste it into `claude_desktop_config.json`.
+
+The config looks like this:
 
 ```json
 {
   "mcpServers": {
     "neurologue": {
-      "type": "http",
-      "url": "http://127.0.0.1:3737/mcp",
-      "headers": {
-        "Authorization": "Bearer <your-token>"
-      }
+      "command": "node",
+      "args": ["/path/to/neurologue/src/mcp/stdio.js"]
     }
   }
 }
 ```
 
 `claude_desktop_config.json` is located at:
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-> **Note:** Claude Desktop may not create this folder automatically. Create it manually if it does not exist.
+| Platform | Path |
+|---|---|
+| macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+| Windows (traditional install) | `%APPDATA%\Claude\claude_desktop_config.json` |
+| Windows (Microsoft Store) | `%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json` |
 
-Fully quit and restart Claude Desktop after saving (use the system tray/menu bar quit option). The tools will appear in the tool picker. The Neurologue tools will appear in the tool picker.
+> **Note:** Claude Desktop may not create the `Claude` folder automatically. Create it manually if it does not exist.
+
+Fully quit and restart Claude Desktop after saving (use the system tray/menu bar quit option, not just closing the window). The tools will appear in the tool picker. The Neurologue tools will appear in the tool picker.
 
 ## Connecting Cursor
 

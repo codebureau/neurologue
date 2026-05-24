@@ -1776,19 +1776,9 @@ document.getElementById('btn-mcp-regen-token')?.addEventListener('click', () => 
 });
 
 document.getElementById('btn-mcp-copy-config')?.addEventListener('click', async () => {
-  const port = document.getElementById('mcp-port')?.value || 3737;
-  const token = document.getElementById('mcp-token')?.value || '';
-  const config = {
-    mcpServers: {
-      neurologue: {
-        type: 'http',
-        url: `http://127.0.0.1:${port}/mcp`,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      },
-    },
-  };
   try {
-    await navigator.clipboard.writeText(JSON.stringify(config, null, 2));
+    const configJson = await window.neurologue.mcpStdioConfig();
+    await navigator.clipboard.writeText(configJson);
     const btn = document.getElementById('btn-mcp-copy-config');
     const orig = btn.textContent;
     btn.textContent = 'Copied!';
