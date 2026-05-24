@@ -2,16 +2,27 @@
 
 const path = require('path');
 
-// Priority: explicit env var (tests/CLI) → Electron userData → local .data fallback
+// Priority: explicit env var (tests/CLI) → Electron userData → OS-standard path → local .data fallback
+function _osUserDataPath() {
+  const name = 'neurologue';
+  if (process.platform === 'win32') {
+    return path.join(process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming'), name);
+  } else if (process.platform === 'darwin') {
+    return path.join(require('os').homedir(), 'Library', 'Application Support', name);
+  } else {
+    return path.join(process.env.XDG_CONFIG_HOME || path.join(require('os').homedir(), '.config'), name);
+  }
+}
+
 let userDataPath;
 if (process.env.NEUROLOGUE_DATA_PATH) {
   userDataPath = process.env.NEUROLOGUE_DATA_PATH;
 } else {
   try {
     const { app } = require('electron');
-    userDataPath = app ? app.getPath('userData') : path.join(__dirname, '..', '.data');
+    userDataPath = app ? app.getPath('userData') : _osUserDataPath();
   } catch {
-    userDataPath = path.join(__dirname, '..', '.data');
+    userDataPath = _osUserDataPath();
   }
 }
 
