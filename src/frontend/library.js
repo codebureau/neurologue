@@ -1676,6 +1676,15 @@ async function loadSettingsView(section = 'models') {
   // Features panel
   const chkPortfolio = document.getElementById('chk-portfolio-enabled');
   if (chkPortfolio) chkPortfolio.checked = settings.portfolioEnabled || false;
+
+  // MCP panel
+  const chkMcp = document.getElementById('mcp-enabled');
+  if (chkMcp) {
+    chkMcp.checked = settings.mcpEnabled || false;
+    document.getElementById('mcp-port').value = settings.mcpPort || 3737;
+    document.getElementById('mcp-token').value = settings.mcpToken || '';
+    await _refreshMcpStatus();
+  }
 }
 
 document.getElementById('btn-save-settings').addEventListener('click', async () => {
@@ -1715,6 +1724,9 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
     },
     contradictionScope: document.querySelector('#contradiction-scope-group .theme-toggle-btn.active')?.dataset.scopeValue || 'themes',
     contradictionScheduledCap: parseInt(document.getElementById('input-contradiction-scheduled-cap')?.value, 10) || 15,
+    mcpEnabled: document.getElementById('mcp-enabled')?.checked || false,
+    mcpPort: parseInt(document.getElementById('mcp-port')?.value, 10) || 3737,
+    mcpToken: document.getElementById('mcp-token')?.value || '',
   });
   const msg = document.getElementById('settings-saved-msg');
   msg.classList.remove('hidden');
@@ -1723,6 +1735,55 @@ document.getElementById('btn-save-settings').addEventListener('click', async () 
   // Apply portfolio feature gate immediately after save
   const portfolioEnabled = document.getElementById('chk-portfolio-enabled')?.checked || false;
   applyPortfolioFeature(portfolioEnabled);
+
+  // Refresh MCP status display after save
+  await _refreshMcpStatus();
+});
+
+// ── MCP Settings ─────────────────────────────────────────────────────────────
+
+function _generateToken() {
+  const arr = new Uint8Array(24);
+  crypto.getRandomValues(arr);
+  return Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function _refreshMcpStatus() {
+  const statusEl = document.getElementById('mcp-status-text');
+  if (!statusEl) return;
+  try {
+    const { running } = await window.neurologue.mcpStatus();
+    const port = document.getElementById('mcp-port')?.value || 3737;
+    statusEl.textContent = running
+      ? `Running on http://127.0.0.1:${port}/mcp`
+      : 'Stopped';
+    statusEl.style.color = running ? 'var(--cortex-teal)' : '';
+  } catch {
+    statusEl.textContent = 'Unknown';
+  }
+}
+
+document.getElementById('mcp-enabled')?.addEventListener('change', function () {
+  const tokenInput = document.getElementById('mcp-token');
+  if (this.checked && tokenInput && !tokenInput.value) {
+    tokenInput.value = _generateToken();
+  }
+});
+
+document.getElementById('btn-mcp-regen-token')?.addEventListener('click', () => {
+  const tokenInput = document.getElementById('mcp-token');
+  if (tokenInput) tokenInput.value = _generateToken();
+});
+
+document.getElementById('btn-mcp-copy-config')?.addEventListener('click', async () => {
+  try {
+    const configJson = await window.neurologue.mcpStdioConfig();
+    await navigator.clipboard.writeText(configJson);
+    const btn = document.getElementById('btn-mcp-copy-config');
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  } catch { /* ignore */ }
 });
 
 // Reindex all entries — clear all embeddings and re-queue everything

@@ -26,6 +26,7 @@ const { getEntrySignals, getSignalsByTheme } = require('./backend/db/entry_signa
 const { getGraphData } = require('./backend/db/graph');
 const { getMonthSnapshot, comparePeriods, getAbandonedIdeas, listActiveMonths } = require('./backend/db/replay');
 const { listAgents, runAgent, abortAgent, chat } = require('./backend/agents/runner');
+const mcpServer = require('./mcp/server');
 const { listProfiles, getActiveProfile, createProfile, renameProfile, recolorProfile, deleteProfile, setActiveProfile } = require('./backend/portfolio');
 const { getProfileStats } = require('./backend/db/profile-stats');
 const { setDbPath, switchDb } = require('./backend/db/connection');
@@ -418,6 +419,37 @@ handle('agents:chat', async (event, { message, history = [] }) => {
   return { ok: true };
 });
 
+// ── MCP IPC ────────────────────────────────────────────────────────────────────
+
+handle('mcp:start', async () => {
+  const s = getSettings();
+  await mcpServer.start(s.mcpPort || 3737, s.mcpToken || '');
+  return { ok: true };
+});
+
+handle('mcp:stop', async () => {
+  await mcpServer.stop();
+  return { ok: true };
+});
+
+ipcMain.handle('mcp:status', () => ({
+  running: mcpServer.isRunning(),
+}));
+
+ipcMain.handle('mcp:stdio-config', () => {
+  const stdioPath = path.join(app.getAppPath(), 'src', 'mcp', 'stdio.js');
+  const dataPath  = app.getPath('userData');
+  return JSON.stringify({
+    mcpServers: {
+      neurologue: {
+        command: 'node',
+        args: [stdioPath],
+        env: { NEUROLOGUE_DATA_PATH: dataPath },
+      },
+    },
+  }, null, 2);
+});
+
 // ── Priorities IPC ───────────────────────────────────────────────────────────
 
 handle('priorities:list-metrics', async () => {
@@ -693,6 +725,13 @@ app.whenReady().then(async () => {
   registerCaptureHotkey(captureHotkey);
   startWorker();
   startScheduler();
+  // Auto-start MCP server if enabled
+  const initSettings = getSettings();
+  if (initSettings.mcpEnabled) {
+    mcpServer.start(initSettings.mcpPort || 3737, initSettings.mcpToken || '').catch((err) =>
+      console.warn('[MCP] Auto-start failed:', err.message)
+    );
+  }
   // Wire the worker to push IPC events to the library window once it is ready
   _mainWindow.webContents.on('did-finish-load', () => {
     setMainWindow(_mainWindow.webContents);
@@ -729,7 +768,7 @@ ipcMain.handle('worker:reindex-entry', async (_e, { id }) => {
 // ── Settings IPC ──────────────────────────────────────────────────────────
 
 ipcMain.handle('settings:get', () => getSettings());
-ipcMain.handle('settings:save', (_e, updates) => {
+ipcMain.handle('settings:save', async (_e, updates) => {
   const prev = getSettings();
   const result = saveSettings(updates);
   // Propagate interval changes to running worker immediately
@@ -741,6 +780,16 @@ ipcMain.handle('settings:save', (_e, updates) => {
     scanContradictions({ force: true }).catch((e) =>
       console.warn('[settings] post-scope-change scan failed:', e.message)
     );
+  }
+  // Restart MCP server if MCP settings changed
+  const mcpChanged = updates.mcpEnabled !== undefined || updates.mcpPort !== undefined || updates.mcpToken !== undefined;
+  if (mcpChanged) {
+    await mcpServer.stop().catch(() => {});
+    if (result.mcpEnabled) {
+      mcpServer.start(result.mcpPort || 3737, result.mcpToken || '').catch((err) =>
+        console.warn('[MCP] Restart failed:', err.message)
+      );
+    }
   }
   return result;
 });
@@ -823,6 +872,7 @@ ipcMain.handle('ollama:pull-model', async (event, { name }) => {
 app.on('window-all-closed', () => {
   globalShortcut.unregisterAll();
   stopWorker();
+  mcpServer.stop().catch(() => {});
   if (process.platform !== 'darwin') {
     app.quit();
   }

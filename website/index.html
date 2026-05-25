@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neurologue — Documentation</title>
+  <title>Neurologue â€” Documentation</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -35,16 +36,16 @@
     <p class="hero-tagline">Your thinking, organised.</p>
   </div>
 
-  <p class="page-subtitle">A local-first personal cognitive system — capture thoughts instantly, rediscover them intelligently.</p>
+  <p class="page-subtitle">A local-first personal cognitive system â€” capture thoughts instantly, rediscover them intelligently.</p>
 
   <figure class="screenshot">
     <img src="screenshots/library.png" alt="The main Library window showing the three-panel layout with sidebar, entry timeline, and detail panel" />
-    <figcaption>The Library window — everything you've captured, searchable and browsable.</figcaption>
+    <figcaption>The Library window â€” everything you've captured, searchable and browsable.</figcaption>
   </figure>
 
   <h2>What is Neurologue?</h2>
   <p>
-    Neurologue is a desktop application that lets you capture thoughts, notes, and ideas in under two seconds — no context switching required. In the background it generates vector embeddings of everything you write, clusters related entries into <strong>Themes</strong>, and gives you semantic search so you can find ideas by meaning rather than exact words.
+    Neurologue is a desktop application that lets you capture thoughts, notes, and ideas in under two seconds â€” no context switching required. In the background it generates vector embeddings of everything you write, clusters related entries into <strong>Themes</strong>, and gives you semantic search so you can find ideas by meaning rather than exact words.
   </p>
   <p>
     Everything runs <strong>locally</strong>. No accounts, no cloud sync, no telemetry. Your data stays on your machine.
@@ -54,25 +55,25 @@
 
   <div class="flow">
     <div class="flow-step"><strong>Capture</strong><span>Press <kbd>Ctrl+Shift+Space</kbd></span></div>
-    <div class="flow-arrow">→</div>
+    <div class="flow-arrow">â†’</div>
     <div class="flow-step"><strong>Store</strong><span>SQLite + tags</span></div>
-    <div class="flow-arrow">→</div>
+    <div class="flow-arrow">â†’</div>
     <div class="flow-step"><strong>Embed</strong><span>Background worker</span></div>
-    <div class="flow-arrow">→</div>
-    <div class="flow-step"><strong>Cluster</strong><span>k-means → Themes</span></div>
-    <div class="flow-arrow">→</div>
+    <div class="flow-arrow">â†’</div>
+    <div class="flow-step"><strong>Cluster</strong><span>k-means â†’ Themes</span></div>
+    <div class="flow-arrow">â†’</div>
     <div class="flow-step"><strong>Retrieve</strong><span>Search + Browse</span></div>
   </div>
 
   <p>
-    After capture, the <strong>background worker</strong> picks up your entry within 10 seconds, generates a semantic embedding via Ollama, and after every 5 new embeddings automatically re-clusters everything into themes. This happens silently — you don't need to trigger it.
+    After capture, the <strong>background worker</strong> picks up your entry within 10 seconds, generates a semantic embedding via Ollama, and after every 5 new embeddings automatically re-clusters everything into themes. This happens silently â€” you don't need to trigger it.
   </p>
 
   <h2>The science in brief</h2>
 
   <h3>Semantic embeddings</h3>
   <p>
-    When you save an entry, the background worker passes its text through the <code>nomic-embed-text</code> model running in Ollama. The model converts the text into a <strong>768-dimensional vector</strong> — a list of 768 numbers that encodes the <em>meaning</em> of what you wrote, not just the words.
+    When you save an entry, the background worker passes its text through the <code>nomic-embed-text</code> model running in Ollama. The model converts the text into a <strong>768-dimensional vector</strong> â€” a list of 768 numbers that encodes the <em>meaning</em> of what you wrote, not just the words.
   </p>
   <p>
     Entries about similar ideas end up with vectors that are close together in this high-dimensional space. Entries about different topics are far apart. This is what powers semantic search: instead of matching keywords, Neurologue finds entries whose meaning-vectors are nearest to your query's meaning-vector.
@@ -83,7 +84,7 @@
       <!-- Entry box -->
       <rect x="4" y="30" width="110" height="50" rx="6" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
       <text x="59" y="51" text-anchor="middle" font-size="11" fill="var(--text)" font-family="inherit">Entry text</text>
-      <text x="59" y="68" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="inherit">"Interesting idea…"</text>
+      <text x="59" y="68" text-anchor="middle" font-size="10" fill="var(--text-muted)" font-family="inherit">"Interesting ideaâ€¦"</text>
       <!-- Arrow 1 -->
       <line x1="114" y1="55" x2="148" y2="55" stroke="var(--cortex-teal)" stroke-width="1.5" marker-end="url(#arr)"/>
       <!-- Model box -->
@@ -96,7 +97,7 @@
       <!-- Vector box -->
       <rect x="316" y="25" width="118" height="60" rx="6" fill="var(--surface2)" stroke="var(--border)" stroke-width="1.5"/>
       <text x="375" y="47" text-anchor="middle" font-size="11" fill="var(--text)" font-family="inherit">768 numbers</text>
-      <text x="375" y="62" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">[0.021, −0.014, 0.087…]</text>
+      <text x="375" y="62" text-anchor="middle" font-size="9" fill="var(--text-muted)" font-family="inherit">[0.021, âˆ’0.014, 0.087â€¦]</text>
       <text x="375" y="77" text-anchor="middle" font-size="9" fill="var(--text-dim)" font-family="inherit">meaning encoded</text>
       <!-- Arrow 3 -->
       <line x1="434" y1="55" x2="468" y2="55" stroke="var(--cortex-teal)" stroke-width="1.5" marker-end="url(#arr)"/>
@@ -117,10 +118,10 @@
 
   <h3>Automatic clustering into themes</h3>
   <p>
-    Once entries have vectors, Neurologue periodically runs <strong>k-means++ clustering</strong> to group similar entries together. The number of clusters is chosen automatically using the formula <code>k&nbsp;=&nbsp;round(√(n/2))</code>, clamped between 2 and 20.
+    Once entries have vectors, Neurologue periodically runs <strong>k-means++ clustering</strong> to group similar entries together. The number of clusters is chosen automatically using the formula <code>k&nbsp;=&nbsp;round(âˆš(n/2))</code>, clamped between 2 and 20.
   </p>
   <p>
-    Each cluster becomes a <strong>Theme</strong>. Neurologue asks the LLM to read the top entries from each cluster and write a short name and summary. Themes update automatically every time 5 new entries are embedded — your mental landscape evolves as you write.
+    Each cluster becomes a <strong>Theme</strong>. Neurologue asks the LLM to read the top entries from each cluster and write a short name and summary. Themes update automatically every time 5 new entries are embedded â€” your mental landscape evolves as you write.
   </p>
 
   <figure class="science-diagram" aria-label="k-means clustering into themes diagram">
@@ -183,7 +184,7 @@
   </table>
 
   <div class="callout warning">
-    <p><strong>Ollama must be running</strong> for embeddings, theme summaries, entry categorisation, and tag suggestions to work. The app functions without it (capture and text search still work), but semantic search will fall back to text mode, themes won’t be generated, and categories won’t be auto-assigned.</p>
+    <p><strong>Ollama must be running</strong> for embeddings, theme summaries, entry categorisation, and tag suggestions to work. The app functions without it (capture and text search still work), but semantic search will fall back to text mode, themes wonâ€™t be generated, and categories wonâ€™t be auto-assigned.</p>
   </div>
 
   <h2>Quick start</h2>
@@ -208,17 +209,17 @@ ollama pull phi3:mini</code></pre>
     </li>
     <li>
       <div>
-        <p><strong>Capture your first thought</strong> — press <kbd>Ctrl+Shift+Space</kbd> from anywhere, type something, press <kbd>Ctrl+Enter</kbd> to save.</p>
+        <p><strong>Capture your first thought</strong> â€” press <kbd>Ctrl+Shift+Space</kbd> from anywhere, type something, press <kbd>Ctrl+Enter</kbd> to save.</p>
       </div>
     </li>
     <li>
       <div>
-        <p><strong>Open the library</strong> — the main window shows your entry. Wait ~10 seconds for the background worker to embed it. After 4+ entries are embedded, themes will start appearing in the sidebar.</p>
+        <p><strong>Open the library</strong> â€” the main window shows your entry. Wait ~10 seconds for the background worker to embed it. After 4+ entries are embedded, themes will start appearing in the sidebar.</p>
       </div>
     </li>
     <li>
       <div>
-        <p><strong>Try semantic search</strong> — click <strong>Semantic</strong> in the toolbar and type a concept. Results are ranked by meaning, not keywords.</p>
+        <p><strong>Try semantic search</strong> â€” click <strong>Semantic</strong> in the toolbar and type a concept. Results are ranked by meaning, not keywords.</p>
       </div>
     </li>
   </ol>
@@ -235,7 +236,8 @@ ollama pull phi3:mini</code></pre>
       <tr><td><a href="agents.html">Agents</a></td><td>Pre-built AI agents that analyse your corpus and produce narrative reports</td></tr>
       <tr><td><a href="export.html">Export &amp; Import</a></td><td>CCF snapshots, scheduled exports, importing backups, using exports with external AI tools</td></tr>
       <tr><td><a href="settings.html">Settings</a></td><td>Models, tags, hotkey, worker intervals, appearance, data management, scheduled export, Portfolio</td></tr>
-      <tr><td><a href="troubleshooting.html">Troubleshooting</a></td><td>Ollama issues, no themes appearing, semantic search fallback, missing categories, hotkey conflicts</td></tr>
+      <tr><td><a href="mcp.html">MCP</a>
+      <a href="troubleshooting.html">Troubleshooting</a></td><td>Ollama issues, no themes appearing, semantic search fallback, missing categories, hotkey conflicts</td></tr>
     </tbody>
   </table>
 </main>

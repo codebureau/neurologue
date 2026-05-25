@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Capture — Neurologue Docs</title>
+  <title>Capture â€” Neurologue Docs</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -23,6 +23,7 @@
       <a href="agents.html">Agents</a>
       <a href="export.html">Export</a>
       <a href="settings.html">Settings</a>
+      <a href="mcp.html">MCP</a>
       <a href="troubleshooting.html">Troubleshooting</a>
     </nav>
   </div>
@@ -34,12 +35,12 @@
 
   <figure class="screenshot">
     <img src="screenshots/capture.png" alt="The Neurologue capture popup with text input area, tags field, and Markdown checkbox" />
-    <figcaption>The capture popup — open it from any application with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>.</figcaption>
+    <figcaption>The capture popup â€” open it from any application with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>.</figcaption>
   </figure>
 
   <h2>Global hotkey</h2>
   <p>
-    Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> from anywhere on your desktop — even when Neurologue is in the background or minimised. A small floating popup appears instantly on top of your current window.
+    Press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> from anywhere on your desktop â€” even when Neurologue is in the background or minimised. A small floating popup appears instantly on top of your current window.
   </p>
 
   <div class="callout">
@@ -47,11 +48,11 @@
   </div>
 
   <p>
-    The default hotkey is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>. You can change it in <strong>Settings → Capture hotkey</strong>. See the <a href="library.html#capture-hotkey">Library — Capture hotkey</a> section for instructions.
+    The default hotkey is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd>. You can change it in <strong>Settings â†’ Capture hotkey</strong>. See the <a href="library.html#capture-hotkey">Library â€” Capture hotkey</a> section for instructions.
   </p>
 
   <h2>The capture popup</h2>
-  <p>The popup is a compact 560×260px window with two fields and optional Markdown support:</p>
+  <p>The popup is a compact 560Ã—260px window with two fields and optional Markdown support:</p>
 
   <table>
     <thead><tr><th>Field</th><th>Description</th></tr></thead>
@@ -62,7 +63,7 @@
       </tr>
       <tr>
         <td><strong>Tags</strong></td>
-        <td>Optional comma-separated tags, e.g. <code>work, ideas, todo</code>. Whitespace around each tag is trimmed automatically. If Ollama is running, a <strong>Suggest tags</strong> button appears after you type your content — click it to get LLM-generated tag suggestions, then click any suggestion to add it.</td>
+        <td>Optional comma-separated tags, e.g. <code>work, ideas, todo</code>. Whitespace around each tag is trimmed automatically. If Ollama is running, a <strong>Suggest tags</strong> button appears after you type your content â€” click it to get LLM-generated tag suggestions, then click any suggestion to add it.</td>
       </tr>
     </tbody>
   </table>
@@ -78,14 +79,14 @@
       <tr><td><strong>B</strong></td><td><code>**bold text**</code></td></tr>
       <tr><td><em>I</em></td><td><code>*italic text*</code></td></tr>
       <tr><td><code>`</code></td><td><code>`inline code`</code></td></tr>
-      <tr><td>• ≡</td><td><code>- </code> prefix on selected lines (bullet list)</td></tr>
+      <tr><td>â€¢ â‰¡</td><td><code>- </code> prefix on selected lines (bullet list)</td></tr>
       <tr><td>"</td><td><code>&gt; </code> prefix (blockquote)</td></tr>
-      <tr><td>🔗</td><td><code>[link text](https://)</code></td></tr>
+      <tr><td>ðŸ”—</td><td><code>[link text](https://)</code></td></tr>
     </tbody>
   </table>
 
   <p>
-    Click <strong>Preview</strong> in the toolbar to toggle a rendered preview of your Markdown. The raw text is always what gets saved — the preview is for reference only.
+    Click <strong>Preview</strong> in the toolbar to toggle a rendered preview of your Markdown. The raw text is always what gets saved â€” the preview is for reference only.
   </p>
 
   <div class="callout">
@@ -94,7 +95,7 @@
 
   <h2 id="paste-plain">Paste plain text</h2>
   <p>
-    Click <strong>Paste plain</strong> in the footer to toggle paste-without-formatting mode. When active, any paste into the content or tags field strips rich text and HTML — only the plain text value is inserted. Useful when copying from browsers or Word documents.
+    Click <strong>Paste plain</strong> in the footer to toggle paste-without-formatting mode. When active, any paste into the content or tags field strips rich text and HTML â€” only the plain text value is inserted. Useful when copying from browsers or Word documents.
   </p>
 
   <h2>Keyboard shortcuts</h2>
@@ -128,7 +129,7 @@
 
   <h2>After capture</h2>
   <p>
-    Once saved, the entry appears immediately in your <a href="library.html">Library</a>. The background worker will pick it up within 10 seconds, generate a vector embedding, and auto-classify it into a category (Task, Thought, Reminder, Idea, Question, or Decision). You don't need to do anything — this happens silently.
+    Once saved, the entry appears immediately in your <a href="library.html">Library</a>. The background worker will pick it up within 10 seconds, generate a vector embedding, and auto-classify it into a category (Task, Thought, Reminder, Idea, Question, or Decision). You don't need to do anything â€” this happens silently.
   </p>
 
   <div class="callout warning">
@@ -137,7 +138,7 @@
 
   <h3>Tips for good entries</h3>
   <ul>
-    <li>Write naturally — semantic search works on meaning, not keywords, so there's no need to craft perfectly worded entries.</li>
+    <li>Write naturally â€” semantic search works on meaning, not keywords, so there's no need to craft perfectly worded entries.</li>
     <li>Tags are optional but useful for quick filtering. Use them for categories (<code>work</code>, <code>health</code>) or status (<code>todo</code>, <code>idea</code>).</li>
     <li>Short fragments and half-formed thoughts are fine. The system clusters similar entries into themes, so even brief notes contribute to patterns over time.</li>
   </ul>

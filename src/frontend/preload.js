@@ -136,5 +136,11 @@ contextBridge.exposeInMainWorld('neurologue', {
   pullModel:           (name) => ipcRenderer.invoke('ollama:pull-model', { name }),
   onPullProgress:      (cb)   => { ipcRenderer.on('ollama:pull-progress', (_e, d) => cb(d)); },
   onIpcError:          (cb)   => { ipcRenderer.on('app:ipc-error', (_e, d) => cb(d)); },
+
+  // ── MCP Server ────────────────────────────────────────────────────────────
+  mcpStart:       () => ipcRenderer.invoke('mcp:start'),
+  mcpStop:        () => ipcRenderer.invoke('mcp:stop'),
+  mcpStatus:      () => ipcRenderer.invoke('mcp:status'),
+  mcpStdioConfig: () => ipcRenderer.invoke('mcp:stdio-config'),
 });
 

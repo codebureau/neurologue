@@ -652,6 +652,7 @@
             <button class="settings-subnav-item" data-section="scheduled-export">Scheduled Export</button>
             <button class="settings-subnav-item" data-section="features">Features</button>
             <button class="settings-subnav-item feature-portfolio" data-section="portfolio">Portfolio</button>
+            <button class="settings-subnav-item" data-section="mcp">MCP Server</button>
           </nav>
           <div id="settings-content">
 
@@ -887,6 +888,38 @@
               </div>
               <div class="settings-actions-row">
                 <button id="btn-new-profile" class="btn-secondary">+ New profile</button>
+              </div>
+            </div>
+
+            <!-- MCP Server panel -->
+            <div class="settings-panel hidden" id="settings-tab-mcp">
+              <p class="settings-panel-desc">Expose your corpus to external AI tools (Claude Desktop, Cursor, VS Code) via a local MCP server.</p>
+              <div class="settings-field">
+                <label class="settings-toggle">
+                  <input type="checkbox" id="mcp-enabled" />
+                  Enable MCP server
+                </label>
+              </div>
+              <div id="mcp-server-options">
+                <div class="settings-field">
+                  <label for="mcp-port">Port</label>
+                  <input id="mcp-port" type="number" min="1024" max="65535" value="3737" style="width:100px" />
+                </div>
+                <div class="settings-field">
+                  <label for="mcp-token">Bearer token</label>
+                  <div style="display:flex;gap:8px;align-items:center">
+                    <input id="mcp-token" type="text" style="width:280px;font-family:monospace;font-size:12px" placeholder="Auto-generated on enable" readonly />
+                    <button id="btn-mcp-regen-token" class="btn-secondary btn-sm">Regenerate</button>
+                  </div>
+                </div>
+                <div class="settings-field">
+                  <label>Status</label>
+                  <span id="mcp-status-text" class="settings-hint">Stopped</span>
+                </div>
+                <div class="settings-field">
+                  <button id="btn-mcp-copy-config" class="btn-secondary">Copy Claude Desktop config</button>
+                  <span class="settings-hint" style="margin-left:8px">Paste into <code>claude_desktop_config.json</code></span>
+                </div>
               </div>
             </div>
 

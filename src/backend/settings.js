@@ -35,6 +35,9 @@ const DEFAULTS = {
   homeView: 'library',    // view id to show on launch
   navHistoryLimit: 10,    // max entries in session nav stack
   portfolioEnabled: false, // opt-in: multiple named corpus profiles (Portfolio feature)
+  mcpEnabled: false,
+  mcpPort: 3737,
+  mcpToken: '',
   scheduledExport: {
     enabled:     false,
     frequency:   'daily',   // 'daily' | 'weekly'

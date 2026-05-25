@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MCP Server — Neurologue Docs</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-logo">
+      <img src="neurologue-mark.svg" class="site-logo-mark" alt="" aria-hidden="true" />
+      <img src="neurologue-wordmark.svg" class="site-logo-wordmark" alt="Neurologue" />
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">Overview</a>
+      <a href="capture.html">Capture</a>
+      <a href="library.html">Library</a>
+      <a href="themes.html">Themes</a>
+      <a href="analysis.html">Analysis</a>
+      <a href="agents.html">Agents</a>
+      <a href="export.html">Export</a>
+      <a href="settings.html">Settings</a>
+      <a href="mcp.html" class="active">MCP</a>
+      <a href="troubleshooting.html">Troubleshooting</a>
+    </nav>
+  </div>
+</header>
+
+<main class="page-content">
+  <h1>MCP Server</h1>
+  <p class="page-subtitle">Expose your note corpus to Claude Desktop, Cursor, and other AI tools via the Model Context Protocol.</p>
+
+  <nav class="on-page-nav" aria-label="On this page">
+    <a href="#what-is-mcp">What is MCP?</a>
+    <a href="#enabling">Enabling the server</a>
+    <a href="#claude-desktop">Claude Desktop</a>
+    <a href="#cursor">Cursor</a>
+    <a href="#tools">Available tools</a>
+    <a href="#security">Security</a>
+  </nav>
+
+  <h2 id="what-is-mcp">What is MCP?</h2>
+  <p>The <a href="https://modelcontextprotocol.io" rel="noopener noreferrer">Model Context Protocol</a> (MCP) is an open standard that lets AI assistants call tools hosted by local or remote servers. Neurologue's MCP server runs locally alongside the app and gives external clients read/write access to your corpus through six tools.</p>
+
+  <div class="callout">
+    <p>The MCP server binds to <code>127.0.0.1</code> only — it is not reachable from other machines on your network. A bearer token provides additional protection for local processes.</p>
+  </div>
+
+  <h2 id="enabling">Enabling the server</h2>
+  <ol class="steps">
+    <li>
+      <div>
+        <p>Open <strong>Settings → MCP Server</strong>.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p>Check <strong>Enable MCP server</strong>. A bearer token is auto-generated — copy it for the config snippets below.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p>Optionally change the port (default <code>3737</code>).</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <p>Click <strong>Save settings</strong>. The status line confirms the server is running.</p>
+      </div>
+    </li>
+  </ol>
+  <p>The server starts automatically on the next app launch when enabled. To rotate the token click <strong>Regenerate</strong> and save again.</p>
+
+  <h2 id="claude-desktop">Connecting Claude Desktop</h2>
+  <p>Claude Desktop uses a <strong>stdio</strong> connection — it launches Neurologue's MCP entry point as a subprocess. Click <strong>Copy Claude Desktop config</strong> in Settings to get the correct snippet for your machine, then paste it into <code>claude_desktop_config.json</code>.</p>
+
+  <p>The config looks like this:</p>
+
+  <pre><code>{
+  "mcpServers": {
+    "neurologue": {
+      "command": "node",
+      "args": ["/path/to/neurologue/src/mcp/stdio.js"]
+    }
+  }
+}</code></pre>
+
+  <table class="doc-table">
+    <thead>
+      <tr><th>Platform</th><th>Config file location</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>macOS</td><td><code>~/Library/Application Support/Claude/claude_desktop_config.json</code></td></tr>
+      <tr><td>Windows (traditional install)</td><td><code>%APPDATA%\Claude\claude_desktop_config.json</code></td></tr>
+      <tr><td>Windows (Microsoft Store)</td><td><code>%LOCALAPPDATA%\Packages\Claude_pzs8sxrjxfjjc\LocalCache\Roaming\Claude\claude_desktop_config.json</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warning">
+    <p>Claude Desktop may not create the <code>Claude</code> folder automatically. Create it manually if it does not exist.</p>
+  </div>
+
+  <p><strong>Fully quit and restart Claude Desktop</strong> after saving (use the system tray / menu bar quit option, not just closing the window). The Neurologue tools will appear in the tool picker inside any conversation.</p>
+
+  <h2 id="cursor">Connecting Cursor</h2>
+  <p>In <strong>Cursor → Settings → MCP</strong>, add a new server entry:</p>
+
+  <pre><code>{
+  "neurologue": {
+    "url": "http://127.0.0.1:3737/mcp",
+    "headers": {
+      "Authorization": "Bearer &lt;your-token&gt;"
+    }
+  }
+}</code></pre>
+
+  <h2 id="tools">Available tools</h2>
+
+  <table class="doc-table">
+    <thead>
+      <tr>
+        <th>Tool</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>search_notes</code></td>
+        <td>Search notes by text and semantic similarity. Returns matching entries with tags and dates.</td>
+      </tr>
+      <tr>
+        <td><code>list_themes</code></td>
+        <td>List all detected themes with entry counts and descriptions.</td>
+      </tr>
+      <tr>
+        <td><code>get_theme_entries</code></td>
+        <td>Return the notes assigned to a named theme (partial name match).</td>
+      </tr>
+      <tr>
+        <td><code>create_note</code></td>
+        <td>Create a new note in the corpus, optionally with tags. The note is automatically queued for embedding and classification.</td>
+      </tr>
+      <tr>
+        <td><code>summarise_topic</code></td>
+        <td>Retrieve relevant notes and ask the local LLM (via Ollama) to synthesise a summary. Requires Ollama to be running.</td>
+      </tr>
+      <tr>
+        <td><code>run_agent</code></td>
+        <td>Run a built-in Neurologue agent (<code>daily-digest</code>, <code>weekly-review</code>, <code>monthly-themes</code>) and return its full output.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>search_notes</h3>
+  <p>Combines full-text (SQLite LIKE) and semantic (vector) search, deduplicates results by entry ID, and returns up to <code>limit</code> matches (default 10). Results include the date, tags, and up to 200 characters of content per note.</p>
+
+  <h3>list_themes</h3>
+  <p>Returns all themes currently detected in your corpus. Themes are generated automatically by the background clustering worker. If no themes exist yet, run the clustering agent first.</p>
+
+  <h3>get_theme_entries</h3>
+  <p>Accepts a partial theme name and returns the notes assigned to the best match. Up to <code>limit</code> entries (default 20) sorted by relevance score.</p>
+
+  <h3>create_note</h3>
+  <p>Creates a note with <code>source: "mcp"</code> so it is identifiable in the corpus. Tags are normalised to lowercase. The entry is queued for background embedding automatically.</p>
+
+  <h3>summarise_topic</h3>
+  <p>Uses semantic search to find the <code>limit</code> most relevant notes (default 5), then calls the configured Ollama LLM to produce a summary. Falls back to text search if Ollama embeddings are unavailable.</p>
+
+  <h3>run_agent</h3>
+  <p>Streams the full agent output and returns it as a single string. Available agent IDs:</p>
+  <ul>
+    <li><code>daily-digest</code> — summary of today's entries</li>
+    <li><code>weekly-review</code> — themes and highlights from the past week</li>
+    <li><code>monthly-themes</code> — cluster analysis for the past month</li>
+  </ul>
+
+  <h2 id="security">Security</h2>
+  <p>The server only listens on the loopback interface (<code>127.0.0.1</code>) and is not reachable from other machines. The bearer token adds a second layer of access control for local processes.</p>
+  <p>To rotate the token: open <strong>Settings → MCP Server</strong>, click <strong>Regenerate</strong>, save, and update your client config files with the new token.</p>
+
+</main>
+
+<footer class="site-footer">
+  <p>Neurologue &mdash; <a href="https://github.com/Codebureau/neurologue">GitHub</a></p>
+</footer>
+
+</body>
+</html>
