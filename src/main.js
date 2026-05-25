@@ -438,11 +438,13 @@ ipcMain.handle('mcp:status', () => ({
 
 ipcMain.handle('mcp:stdio-config', () => {
   const stdioPath = path.join(app.getAppPath(), 'src', 'mcp', 'stdio.js');
+  const dataPath  = app.getPath('userData');
   return JSON.stringify({
     mcpServers: {
       neurologue: {
         command: 'node',
         args: [stdioPath],
+        env: { NEUROLOGUE_DATA_PATH: dataPath },
       },
     },
   }, null, 2);

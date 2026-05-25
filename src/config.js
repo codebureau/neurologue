@@ -4,13 +4,17 @@ const path = require('path');
 
 // Priority: explicit env var (tests/CLI) → Electron userData → OS-standard path → local .data fallback
 function _osUserDataPath() {
+  const os = require('os');
+  const home = os.homedir();
   const name = 'neurologue';
+  // Use os.homedir() rather than %APPDATA%/%HOME% to avoid MSIX sandbox virtualisation
+  // of environment variables when the process is spawned by a packaged app.
   if (process.platform === 'win32') {
-    return path.join(process.env.APPDATA || path.join(require('os').homedir(), 'AppData', 'Roaming'), name);
+    return path.join(home, 'AppData', 'Roaming', name);
   } else if (process.platform === 'darwin') {
-    return path.join(require('os').homedir(), 'Library', 'Application Support', name);
+    return path.join(home, 'Library', 'Application Support', name);
   } else {
-    return path.join(process.env.XDG_CONFIG_HOME || path.join(require('os').homedir(), '.config'), name);
+    return path.join(home, '.config', name);
   }
 }
 
